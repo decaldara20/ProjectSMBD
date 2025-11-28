@@ -227,7 +227,7 @@
 </div>
 
 <script>
-    const TMDB_API_KEY = 'MASUKKAN_API_KEY_TMDB_ANDA_DISINI';
+    const TMDB_API_KEY = 'f19a5ce3a90ddee4579a9f37d5927676';
     
     document.addEventListener('DOMContentLoaded', function() {
         const img = document.getElementById('tvPoster');
