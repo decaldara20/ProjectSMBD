@@ -7,9 +7,118 @@ use Illuminate\Http\Request;
 
 class GuestController extends Controller
 {
-    public function homepage()
+    public function homepage(Request $request)
     {
-        return view('guest.homepage'); 
+        // --- 1. DATA UNTUK FILTER (Dropdown) ---
+    // Ambil daftar genre unik dari tabel mapping/genre_types
+    $genres = DB::connection('sqlsrv')
+        ->table('genre_types')
+        ->orderBy('genre_name')
+        ->pluck('genre_name');
+
+    // Ambil daftar tahun unik dari title_basics (misal 50 tahun terakhir)
+    $years = DB::connection('sqlsrv')
+        ->table('title_basics')
+        ->select('startYear')
+        ->whereNotNull('startYear')
+        ->distinct()
+        ->orderByDesc('startYear')
+        ->limit(50)
+        ->pluck('startYear');
+
+    $countries = DB::connection('sqlsrv')
+        ->table('origin_country_types')
+        ->orderBy('origin_country_name')
+        ->pluck('origin_country_name');
+
+    $networks = DB::connection('sqlsrv')
+        ->table('network_types')
+        ->orderBy('network_name')
+        ->pluck('network_name');
+
+    $statuses = DB::connection('sqlsrv')
+        ->table('status')
+        ->orderBy('status_name')
+        ->pluck('status_name');
+
+    $types = DB::connection('sqlsrv')
+        ->table('types')
+        ->orderBy('type_name')
+        ->pluck('type_name');
+
+    // --- 2. DATA UNTUK HERO SECTION (1 Film Unggulan) ---
+    // Kita cari 1 film yang ratingnya tinggi dan vote-nya banyak
+    $heroMovie = DB::connection('sqlsrv')
+        ->table('v_DetailJudulIMDB')
+        ->where('primaryTitle', 'Lovely Runner') // Judul Inggris dari 영화는 달린다
+        ->orwhere('originalTitle', 'Seonjae eopgo twieo') // Judul Korea dari Lovely Runner
+        ->first();
+
+    // Fallback jika Lovely Runner tidak ketemu di DB (Pakai Shawshank)
+    if (!$heroMovie) {
+        $heroMovie = DB::connection('sqlsrv')
+            ->table('v_DetailJudulIMDB')
+            ->where('titleType', 'movie')
+            ->orderByDesc('averageRating')
+            ->first();
+    }
+
+    // --- TRIK POSTER MANUAL (Agar Muncul) ---
+    // Kita "suntikkan" data poster TMDb ke dalam objek database ini
+    if ($heroMovie && ($heroMovie->primaryTitle == 'Lovely Runner' || $heroMovie->originalTitle == 'Seonjae eopgo twieo')) {
+        // Poster Path resmi Lovely Runner dari TMDb
+        $heroMovie->poster_path = '/7B6kv1aY8d1B2Vjg02c057e930.jpg'; 
+        // Backdrop Path (Gambar Lebar untuk background)
+        $heroMovie->backdrop_path = '/hQhG9acY2Q0Q3Qz8Jg2x9g3q9.jpg';
+        $heroMovie->plot = "Im Sol sangat terpukul dengan kematian mendadak artis favoritnya, Ryu Sun Jae. Namun, dia menemukan dirinya kembali ke masa lalu ke tahun 2008 saat Sun Jae masih berusia 19 tahun. Akankah dia berhasil mengubah takdir tragis mereka?";
+    } else {
+        // Placeholder Shawshank Redemption
+        $heroMovie->poster_path = '/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg';
+        $heroMovie->plot = "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.";
+    }
+
+    // --- 3. DATA UNTUK SLIDER 1 (Top Movies) ---
+    // Kita gunakan teknik "Ambil ID dulu" agar cepat (seperti pencarian)
+    $topMovieIds = DB::connection('sqlsrv')
+        ->table('title_ratings as tr')
+        ->join('title_basics as tb', 'tr.tconst', '=', 'tb.tconst')
+        ->where('tb.titleType', 'movie')
+        ->orderByDesc('tr.numVotes') // Urutkan berdasarkan popularitas (jumlah vote)
+        ->limit(10)
+        ->pluck('tb.tconst');
+
+    $topMovies = DB::connection('sqlsrv')
+        ->table('v_DetailJudulIMDB')
+        ->whereIn('tconst', $topMovieIds)
+        ->orderByDesc('numVotes')
+        ->get();
+
+    // --- 4. DATA UNTUK SLIDER 2 (Popular TV Shows) ---
+    $topShowIds = DB::connection('sqlsrv')
+        ->table('title_ratings as tr')
+        ->join('title_basics as tb', 'tr.tconst', '=', 'tb.tconst')
+        ->where('tb.titleType', 'tvSeries')
+        ->orderByDesc('tr.numVotes')
+        ->limit(10)
+        ->pluck('tb.tconst');
+
+    $topShows = DB::connection('sqlsrv')
+        ->table('v_DetailJudulIMDB')
+        ->whereIn('tconst', $topShowIds)
+        ->orderByDesc('numVotes')
+        ->get();
+
+        return view('guest.homepage', compact(
+        'heroMovie', 
+        'topMovies', 
+        'topShows', 
+        'genres', 
+        'years',
+        'countries', 
+        'networks', 
+        'statuses', 
+        'types'
+        ));
     }
 
     public function showTitleDetail($tconst) {
