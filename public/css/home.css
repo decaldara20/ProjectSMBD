@@ -3,15 +3,17 @@
    ========================================= */
 .hero {
     position: relative;
-    height: 85vh;
+    /* Ubah height jadi min-height agar responsif di layar kecil */
+    min-height: 85vh; 
     width: 100%;
     background-size: cover;
     background-position: center top;
     background-repeat: no-repeat;
     display: flex;
     align-items: center;
-    margin-top: calc(var(--nav-height) * -1); /* Overlay dengan navbar */
-    overflow: hidden;
+    /* Hapus margin negatif navbar sementara agar tidak nabrak */
+    margin-top: 0; 
+    padding-top: 20px;
 }
 
 /* Overlay Gradien dengan warna yang sudah ditentukan */
@@ -53,11 +55,12 @@
 
 .hero-content {
     position: relative;
-    z-index: 2;
+    z-index: 10; /* Naikkan z-index agar di atas background */
     width: 100%;
     max-width: 900px;
     padding: 0 5%;
-    margin-top: 100px;
+    /* Tambahkan margin bawah agar tidak tertabrak slider */
+    margin-bottom: 60px; 
 }
 
 /* Judul Film dengan Gradient Text */
@@ -219,11 +222,13 @@
    ========================================= */
 .filter-trigger-container {
     padding: 0 5%;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: flex-end;
     position: relative;
-    z-index: 100;
+    /* Pastikan tombol filter di atas segalanya */
+    z-index: 30; 
+    top: -30px; /* Tarik sedikit ke atas agar sejajar header section */
 }
 
 .btn-filter {
@@ -440,7 +445,10 @@
 
 /* Overlap dengan Hero */
 .content-section:first-of-type {
-    margin-top: -180px; 
+    /* Ubah menjadi -50px saja untuk efek overlap sedkit, atau 0 agar aman */
+    margin-top: -60px; 
+    position: relative;
+    z-index: 20; /* Pastikan slider di atas gradient hero */
 }
 
 .section-header {
