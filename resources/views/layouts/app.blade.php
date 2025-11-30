@@ -179,13 +179,15 @@
                             <span class="material-symbols-outlined text-[#EAEAEA] group-hover:text-neon-cyan text-[20px]" id="theme-icon">dark_mode</span>
                         </button>
 
-                        <button class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] hover:bg-neon-cyan/20 text-white transition-all duration-300 group" title="Riwayat">
-                            <span class="material-symbols-outlined text-[#EAEAEA] group-hover:text-neon-cyan text-[20px]">history</span>
-                        </button>
+                        <a href="{{ route('history.index') }}" class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-[#1A1A1A] hover:bg-cyan-100 dark:hover:bg-neon-cyan/20 text-gray-600 dark:text-white transition-all duration-300 group border border-transparent hover:border-cyan-200 dark:hover:border-neon-cyan/30" title="Riwayat">
+                            <span class="material-symbols-outlined group-hover:text-cyan-600 dark:group-hover:text-neon-cyan text-[20px]">history</span>
+                        </a>
 
-                        <button class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] hover:bg-neon-cyan/20 text-white transition-all duration-300 group" title="Favorit Saya">
-                            <span class="material-symbols-outlined text-[#EAEAEA] group-hover:text-neon-cyan text-[20px]">favorite</span>
-                        </button>
+                        <a href="{{ route('favorites.index') }}" 
+                            class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] hover:bg-neon-cyan/20 text-white transition-all duration-300 group border border-transparent hover:border-neon-cyan/30 no-underline" 
+                            title="Favorit Saya">
+                                <span class="material-symbols-outlined text-[#EAEAEA] group-hover:text-neon-cyan text-[20px]">favorite</span>
+                        </a>
                     </div>
 
                     <div class="relative group">
@@ -355,6 +357,14 @@
                             <input type="radio" name="type" value="tvSeries" class="peer sr-only">
                             <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">TV Series</span>
                         </label>
+                        <label class="cursor-pointer flex-1 min-w-[80px]">
+                            <input type="radio" name="type" value="tvMiniSeries" class="peer sr-only">
+                            <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">TV Mini Series</span>
+                        </label>
+                        <label class="cursor-pointer flex-1 min-w-[80px]">
+                            <input type="radio" name="type" value="videoGame" class="peer sr-only">
+                            <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">Game</span>
+                        </label>
                     </div>
                 </div>
 
@@ -462,9 +472,20 @@
                             <input type="checkbox" name="tv_status[]" value="Returning Series" class="w-4 h-4 rounded text-purple-600 bg-gray-100 dark:bg-[#1A1A1A] border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-0">
                             <span class="ml-3 text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-purple-500 transition-colors">Returning</span>
                         </label>
+
+                        <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
+                            <input type="checkbox" name="tv_status[]" value="In Production" class="w-4 h-4 rounded text-purple-600 bg-gray-100 dark:bg-[#1A1A1A] border-gray-300 dark:border-gray-600 focus:ring-purple-500 focus:ring-offset-0">
+                            <span class="ml-3 text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-purple-500 transition-colors">In Production</span>
+                        </label>
+                        
                         <label class="flex items-center p-3.5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-all group">
                             <input type="checkbox" name="tv_status[]" value="Ended" class="w-4 h-4 rounded text-purple-600 bg-gray-100 dark:bg-[#1A1A1A] border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-0">
                             <span class="ml-3 text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-purple-500 transition-colors">Ended</span>
+                        </label>
+
+                        <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
+                            <input type="checkbox" name="tv_status[]" value="Canceled" class="w-4 h-4 rounded text-purple-600 bg-gray-100 dark:bg-[#1A1A1A] border-gray-300 dark:border-gray-600 focus:ring-purple-500 focus:ring-offset-0">
+                            <span class="ml-3 text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-purple-500 transition-colors">Canceled</span>
                         </label>
                     </div>
                 </div>

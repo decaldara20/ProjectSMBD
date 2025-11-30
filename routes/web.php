@@ -23,6 +23,18 @@ Route::get('/tv-shows', [GuestController::class, 'tvShows'])->name('tv.index');
 // Halaman Katalog Artis
 Route::get('/artists', [GuestController::class, 'artists'])->name('artists.index');
 
+// Halaman History
+Route::get('/history', [GuestController::class, 'history'])->name('history.index');
+
+// Hapus History
+Route::post('/history/clear', [GuestController::class, 'clearHistory'])->name('history.clear');
+
+// Halaman Favorit
+Route::get('/favorites', [GuestController::class, 'favorites'])->name('favorites.index');
+
+// Aksi Toggle (Tambah/Hapus) Favorit
+Route::post('/favorites/toggle', [GuestController::class, 'toggleFavorite'])->name('favorites.toggle');
+
 // PERUBAHAN DI SINI: Ganti 'searchTitles' menjadi 'search'
 // sesuai dengan nama function baru di Controller Anda.
 // Ganti 'searchTitles' menjadi 'search'

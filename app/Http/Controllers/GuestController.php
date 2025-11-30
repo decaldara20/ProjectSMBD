@@ -225,6 +225,119 @@ class GuestController extends Controller
 
 
 
+    // =======================================
+    // 5. HISTORY MANAGEMENT
+    // =======================================
+    private function addToHistory($type, $id, $title, $year, $rating)
+    {
+        $history = session()->get('view_history', []);
+
+        // 1. Hapus item jika sudah ada (biar tidak duplikat & naik ke paling atas)
+        $history = array_filter($history, function($item) use ($id, $type) {
+            return !($item['id'] == $id && $item['type'] == $type);
+        });
+
+        // 2. Tambahkan item baru ke awal array
+        array_unshift($history, [
+            'type' => $type, // 'movie', 'tv', 'person'
+            'id' => $id,
+            'title' => $title,
+            'year' => $year,
+            'rating' => $rating,
+            'timestamp' => now()
+        ]);
+
+        // 3. Batasi cuma simpan 20 item terakhir
+        $history = array_slice($history, 0, 20);
+
+        // 4. Simpan kembali ke session
+        session()->put('view_history', $history);
+    }
+
+    // Halaman History
+    public function history()
+    {
+        // Ambil data dari session
+        $history = session()->get('view_history', []);
+        
+        // Ubah array jadi Collection biar enak di-looping di Blade
+        $history = collect($history)->map(function($item) {
+            return (object) $item;
+        });
+
+        return view('guest.history', compact('history'));
+    }
+
+    // Hapus History
+    public function clearHistory()
+    {
+        session()->forget('view_history');
+        return redirect()->route('history.index')->with('success', 'Riwayat penelusuran dihapus.');
+    }
+
+    // ==========================================
+    // 6. FAVORITES (WISHLIST) SYSTEM
+    // ==========================================
+    
+    // Menampilkan Halaman Favorit
+    public function favorites()
+    {
+        // Ambil data dari session 'favorites'
+        $favorites = session()->get('favorites', []);
+        
+        // Ubah array jadi Collection object biar mudah di-loop di Blade
+        $favorites = collect($favorites)->map(function($item) {
+            return (object) $item;
+        });
+
+        return view('guest.favorites', compact('favorites'));
+    }
+
+    // Logic Tambah/Hapus Favorit
+    public function toggleFavorite(Request $request)
+    {
+        $favorites = session()->get('favorites', []);
+        $id = $request->id;
+        $type = $request->type;
+        
+        // Cek apakah item sudah ada di favorit?
+        $exists = false;
+        $index = -1;
+        
+        foreach($favorites as $key => $item) {
+            if ($item['id'] == $id && $item['type'] == $type) {
+                $exists = true;
+                $index = $key;
+                break;
+            }
+        }
+
+        if ($exists) {
+            // Jika sudah ada, HAPUS (Un-favorite)
+            unset($favorites[$index]);
+            $message = 'Dihapus dari Favorit.';
+        } else {
+            // Jika belum ada, TAMBAH
+            $favorites[] = [
+                'id' => $id,
+                'type' => $type,
+                'title' => $request->title,
+                'year' => $request->year,
+                'rating' => $request->rating,
+                'timestamp' => now()
+            ];
+            $message = 'Ditambahkan ke Favorit.';
+        }
+
+        // Simpan kembali ke session (re-index array values)
+        session()->put('favorites', array_values($favorites));
+
+        return back()->with('success', $message);
+    }
+
+
+
+
     // =========================================================================
     // 4. DETAIL PAGES (Film, TV, Person)
     // =========================================================================
@@ -238,6 +351,8 @@ class GuestController extends Controller
         if (!$title) {
             return redirect('/')->with('error', 'Judul tidak ditemukan');
         }
+
+        $this->addToHistory('movie', $title->tconst, $title->primaryTitle, $title->startYear, $title->averageRating);
 
         return view('guest.title-detail', compact('title'));
     }
@@ -257,6 +372,8 @@ class GuestController extends Controller
         if (!$tvShow) {
             return redirect('/')->with('error', 'TV Show tidak ditemukan');
         }
+
+        $this->addToHistory('person', $person->nconst, $person->primaryName, null, null);
 
         return view('guest.tv-detail', compact('tvShow'));
     }
