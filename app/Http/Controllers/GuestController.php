@@ -8,11 +8,10 @@ use Carbon\Carbon;
 
 class GuestController extends Controller
 {
-    // =========================================================================
-    // 1. HOMEPAGE (Slider, Hero, Filter Data)
-    // =========================================================================
-    public function homepage(Request $request)
-    {
+    // ==========================================
+    // 1. HOMEPAGE DISPLAY
+    // ==========================================
+    public function homepage(Request $request) {
         // A. DATA FILTER
         $genres = DB::connection('sqlsrv')->table('genre_types')->orderBy('genre_name')->pluck('genre_name');
         $years = DB::connection('sqlsrv')->table('title_basics')->select('startYear')->whereNotNull('startYear')->distinct()->orderByDesc('startYear')->limit(50)->pluck('startYear');
@@ -21,31 +20,34 @@ class GuestController extends Controller
         $statuses = DB::connection('sqlsrv')->table('status')->orderBy('status_name')->pluck('status_name');
         $types = DB::connection('sqlsrv')->table('types')->orderBy('type_name')->pluck('type_name');
 
-        // B. HERO MOVIE (1 Film Unggulan)
-        $heroMovie = DB::connection('sqlsrv')
-            ->table('v_DetailJudulIMDB')
-            ->where('primaryTitle', 'Lovely Runner')
-            ->orWhere('originalTitle', 'Seonjae eopgo twieo')
-            ->first();
+        // B. HERO SECTION (Film Unggulan/ Random Populer)
+        // $heroMovie = DB::connection('sqlsrv')
+        // ->table('v_DetailJudulIMDB')
+        // ->where('titleType', 'movie')
+        // ->where('numVotes', '>', 100000) // Filter populer (>100k vote)
+        // ->orderByDesc('averageRating')
+        // ->first();
 
-        if (!$heroMovie) {
-            $heroMovie = DB::connection('sqlsrv')
-                ->table('v_DetailJudulIMDB')
-                ->where('titleType', 'movie')
-                ->orderByDesc('averageRating')
-                ->first();
-        }
-
-        // Inject Data Dummy untuk Poster Hero (Jika Lovely Runner)
-        if ($heroMovie && ($heroMovie->primaryTitle == 'Lovely Runner' || $heroMovie->originalTitle == 'Seonjae eopgo twieo')) {
-            $heroMovie->poster_path = '/7B6kv1aY8d1B2Vjg02c057e930.jpg';
-            $heroMovie->backdrop_path = '/hQhG9acY2Q0Q3Qz8Jg2x9g3q9.jpg';
-            $heroMovie->plot = "Im Sol sangat terpukul dengan kematian mendadak artis favoritnya...";
-        } else {
-            // Placeholder default
-            $heroMovie->poster_path = '/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg';
-            $heroMovie->backdrop_path = null; 
-        }
+        // // Fallback jika DB kosong
+        // if (!$heroMovie) {
+        //     $heroMovie = (object) [
+        //         'tconst' => null, 
+        //         'primaryTitle' => 'Selamat Datang di IMTVDB',
+        //         'averageRating' => 'N/A', 
+        //         'startYear' => date('Y'),
+        //         'runtimeMinutes' => 0, 
+        //         'contentRating' => 'PG',
+        //         'plot' => 'Jelajahi ribuan film dan serial TV terbaik di sini.', 
+        //         'poster_path' => null,
+        //         'backdrop_path' => null
+        //     ];
+        // } else {
+        //     // Placeholder data poster (karena DB lokal tidak punya)
+        //     $heroMovie->poster_path = null; 
+        //     $heroMovie->backdrop_path = null;
+        //     $heroMovie->plot = "Nikmati pengalaman sinematik terbaik dengan koleksi film terlengkap dari seluruh dunia.";
+        //     if (!isset($heroMovie->contentRating)) $heroMovie->contentRating = 'PG-13'; 
+        // }
 
         // C. SLIDER 1: TOP MOVIES
         $topMovieIds = DB::connection('sqlsrv')
@@ -56,15 +58,13 @@ class GuestController extends Controller
             ->limit(10)
             ->pluck('tb.tconst');
 
-        $topMovies = DB::connection('sqlsrv')
+        $topMovies = $topMovieIds->isEmpty() ? [] : DB::connection('sqlsrv')
             ->table('v_DetailJudulIMDB')
             ->whereIn('tconst', $topMovieIds)
             ->orderByDesc('numVotes')
             ->get();
 
         // D. SLIDER 2: POPULAR TV SHOWS
-        // Kita ambil dari v_DetailJudulTvShow (Data Lokal) agar posternya bagus
-        // Jika ingin data IMDB, ganti join ke title_basics
         $topShowIds = DB::connection('sqlsrv')
             ->table('v_DetailJudulTvShow')
             ->orderByDesc('popularity') // Asumsi ada kolom popularity
@@ -77,10 +77,24 @@ class GuestController extends Controller
             ->orderByDesc('popularity')
             ->get();
 
+        // E. SLIDER 3: TOP ARTISTS
+        // Ambil dari View Bankability (Top 10 Artis Paling Populer/Banyak Vote)
+        $topArtists = DB::connection('sqlsrv')
+            ->table('v_Executive_BankabilityReport_Base')
+            ->orderByDesc('TotalNumVotes')
+            ->limit(10)
+            ->get();
+
+        // Tambahkan properti profile_path kosong (biar view gak error saat manggil API nanti)
+        foreach($topArtists as $artist) {
+            $artist->profile_path = null; 
+        }
+        
         return view('guest.homepage', compact(
-            'heroMovie', 
+            // 'heroMovie', 
             'topMovies', 
-            'topShows', 
+            'topShows',
+            'topArtists', 
             'genres', 
             'years',
             'countries', 

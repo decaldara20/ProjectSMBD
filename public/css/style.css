@@ -345,41 +345,54 @@ ul { list-style: none; }
 4. FOOTER
    ========================================= */
 .main-footer {
-    background-color: var(--bg-card);
+    background-color: var(--bg-card); /* Warna latar footer */
     border-top: 1px solid var(--border-color);
-    padding: 40px 5%;
-    margin-top: auto;
-    transition: all var(--transition-normal);
-}
-
-.footer-content {
+    padding: 40px 20px;
+    margin-top: auto; /* Mendorong footer ke bawah jika konten sedikit */
+    
+    /* RAHASIA CENTER */
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
+    justify-content: center; /* Rata tengah Horizontal (Kiri-Kanan) */
+    align-items: center;     /* Rata tengah Vertikal (Atas-Bawah) */
+    text-align: center;      /* Memastikan teks di dalamnya juga rata tengah */
 }
 
-.footer-text {
-    color: var(--text-muted);
-    font-size: 14px;
-}
-
-.footer-links {
+/* Wadah untuk menumpuk elemen ke bawah */
+.footer-stack {
     display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
+    flex-direction: column; /* Susun ke bawah */
+    align-items: center;    /* Pastikan anak-anaknya di tengah */
+    gap: 12px;              /* Jarak antar baris */
 }
 
-.footer-links a {
+/* Gaya Link 'About Us' */
+.footer-link-main {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+.footer-link-main:hover {
+    color: var(--cyan-glow);
+    letter-spacing: 1px;
+}
+
+/* Gaya Copyright */
+.footer-copy {
+    font-size: 13px;
     color: var(--text-secondary);
-    font-size: 14px;
-    transition: color var(--transition-fast);
 }
 
-.footer-links a:hover {
-    color: var(--cyan-primary);
-    text-decoration: underline;
+/* Gaya Powered By */
+.footer-credit {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.laravel-text {
+    color: #FF2D20; /* Merah Laravel */
+    font-weight: bold;
 }
 
 /* Tombol Back to Top */
