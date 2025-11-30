@@ -349,22 +349,33 @@
                             <input type="radio" name="type" value="multi" class="peer sr-only" checked>
                             <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">All</span>
                         </label>
+                        
                         <label class="cursor-pointer flex-1 min-w-[80px]">
                             <input type="radio" name="type" value="movie" class="peer sr-only">
                             <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">Movies</span>
                         </label>
-                        <label class="cursor-pointer flex-1 min-w-[80px]">
-                            <input type="radio" name="type" value="tvSeries" class="peer sr-only">
-                            <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">TV Series</span>
-                        </label>
-                        <label class="cursor-pointer flex-1 min-w-[80px]">
-                            <input type="radio" name="type" value="tvMiniSeries" class="peer sr-only">
-                            <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">TV Mini Series</span>
-                        </label>
+
+                        
                         <label class="cursor-pointer flex-1 min-w-[80px]">
                             <input type="radio" name="type" value="videoGame" class="peer sr-only">
                             <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">Game</span>
                         </label>
+
+                        <label class="cursor-pointer flex-1 min-w-[80px]">
+                            <input type="radio" name="type" value="short" class="peer sr-only">
+                            <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">Short</span>
+                        </label>
+                        
+                        <label class="cursor-pointer flex-1 min-w-[80px]">
+                            <input type="radio" name="type" value="tvSeries" class="peer sr-only">
+                            <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">TV Series</span>
+                        </label>
+
+                        <label class="cursor-pointer flex-1 min-w-[80px]">
+                            <input type="radio" name="type" value="tvMiniSeries" class="peer sr-only">
+                            <span class="flex items-center justify-center w-full px-4 py-2.5 rounded-xl border border-gray-300 dark:border-white/20 text-sm font-medium text-gray-600 dark:text-gray-400 peer-checked:bg-cyan-600 peer-checked:text-white peer-checked:border-cyan-600 dark:peer-checked:bg-neon-cyan/20 dark:peer-checked:text-neon-cyan dark:peer-checked:border-neon-cyan hover:bg-gray-100 dark:hover:bg-white/5 transition-all shadow-sm">TV Mini Series</span>
+                        </label>
+                        
                     </div>
                 </div>
 

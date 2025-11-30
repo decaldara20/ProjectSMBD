@@ -102,48 +102,56 @@
 </div>
 
 <script>
-    const TMDB_API_KEY = 'f19a5ce3a90ddee4579a9f37d5927676'; // Ganti dengan API Key Anda
+    const TMDB_API_KEY = 'f19a5ce3a90ddee4579a9f37d5927676'; 
 
     document.addEventListener("DOMContentLoaded", function() {
         const posters = document.querySelectorAll('.tmdb-poster');
         const backdrops = document.querySelectorAll('.tmdb-backdrop');
         const overviewText = document.querySelector('.tmdb-overview');
 
-        // 1. Fetch Gambar Poster & Backdrop
         posters.forEach(img => {
-            const id = img.getAttribute('data-id');
+            const id = img.getAttribute('data-id'); // ID IMDb (tt...)
+            
             if (!id) return;
 
+            // Panggil Endpoint FIND
             const url = `https://api.themoviedb.org/3/find/${id}?api_key=${TMDB_API_KEY}&external_source=imdb_id`;
 
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
-                    if (data.movie_results?.length > 0) {
-                        const movie = data.movie_results[0];
-                        
-                        // Set Poster
-                        if (movie.poster_path) {
-                            img.src = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+                    let result = null;
+
+                    // LOGIKA BARU: Cek Movie dulu, kalau tidak ada cek TV
+                    if (data.movie_results && data.movie_results.length > 0) {
+                        result = data.movie_results[0];
+                    } else if (data.tv_results && data.tv_results.length > 0) {
+                        result = data.tv_results[0];
+                    }
+
+                    if (result) {
+                        // 1. Set Poster
+                        if (result.poster_path) {
+                            img.src = `https://image.tmdb.org/t/p/w500${result.poster_path}`;
                         }
                         
-                        // Set Backdrop (Background Besar)
-                        if (movie.backdrop_path) {
+                        // 2. Set Backdrop (Background Besar)
+                        if (result.backdrop_path) {
                             backdrops.forEach(bg => {
-                                bg.style.backgroundImage = `url('https://image.tmdb.org/t/p/original${movie.backdrop_path}')`;
+                                bg.style.backgroundImage = `url('https://image.tmdb.org/t/p/original${result.backdrop_path}')`;
                             });
                         }
 
-                        // Set Overview (Sinopsis) jika ada
-                        if (movie.overview && overviewText) {
-                            overviewText.textContent = movie.overview;
-                        } else if (overviewText) {
-                            overviewText.textContent = "Sinopsis tidak tersedia untuk judul ini.";
+                        // 3. Set Overview (Sinopsis)
+                        if (result.overview && overviewText) {
+                            overviewText.textContent = result.overview;
                         }
                     } else {
-                        if (overviewText) overviewText.textContent = "Detail tambahan tidak ditemukan di database eksternal.";
+                        // Fallback jika tidak ditemukan di TMDb
+                        if (overviewText) overviewText.textContent = "Detail sinopsis belum tersedia.";
                     }
-                });
+                })
+                .catch(err => console.error("Gagal mengambil data TMDb:", err));
         });
     });
 </script>

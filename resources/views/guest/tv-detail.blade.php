@@ -1,258 +1,160 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $tvShow->primaryTitle }} - Detail TV</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* --- Setup Dasar --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #0F0F0F;
-            color: #e0e0e0;
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
+@extends('layouts.app')
 
-        .container { max-width: 1000px; margin: 0 auto; }
+@section('title', $tvShow->primaryTitle ?? 'TV Show Detail')
 
-        /* --- Tombol Kembali --- */
-        .btn-back {
-            display: inline-block;
-            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            margin-bottom: 30px;
-            transition: all 0.3s;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .btn-back:hover { background: #06b6d4; border-color: #06b6d4; color: #fff; }
+@section('content')
 
-        /* --- Layout Detail --- */
-        .detail-wrapper {
-            display: flex;
-            gap: 40px;
-            background: #1a1a1a;
-            padding: 30px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
+<div class="relative w-full min-h-[85vh]">
+    
+    <div class="absolute inset-0 bg-cover bg-center opacity-30 tmdb-backdrop" 
+         data-id="{{ $tvShow->show_id }}" 
+         data-type="tv"
+         style="background-image: url('https://via.placeholder.com/1920x800/1a1a1a/333');">
+    </div>
+    
+    <div class="absolute inset-0 bg-gradient-to-t from-[#121212] via-[#121212]/90 to-transparent"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-[#121212] via-[#121212]/70 to-transparent"></div>
 
-        /* --- Kolom Kiri (Poster) --- */
-        .poster-col {
-            flex: 0 0 300px;
-        }
-        .poster {
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            object-fit: cover;
-        }
+    <div class="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-10 py-10 md:py-20 flex flex-col md:flex-row gap-10 items-start">
         
-        /* --- Kolom Kanan (Info) --- */
-        .info-col { flex: 1; }
+        <div class="w-full md:w-[300px] shrink-0 rounded-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.6)] border border-white/10 group perspective">
+            <img src="https://via.placeholder.com/300x450/1a1a1a/666?text=Loading..." 
+                 data-id="{{ $tvShow->show_id }}" 
+                 data-type="tv"
+                 alt="{{ $tvShow->primaryTitle }}"
+                 class="tmdb-poster w-full h-auto object-cover transform transition-transform duration-500 group-hover:scale-105">
+        </div>
 
-        h1 {
-            font-size: 36px;
-            margin-bottom: 5px;
-            color: #fff;
-            line-height: 1.2;
-        }
-
-        .original-title {
-            color: #888;
-            font-size: 16px;
-            margin-bottom: 20px;
-            font-style: italic;
-        }
-
-        .meta-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 25px;
-        }
-
-        .badge {
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-        .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-        .badge-cyan { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
-        .badge-yellow { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
-
-        .rating-box {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(255,255,255,0.05);
-            padding: 10px 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            gap: 15px;
-        }
-        .rating-score { font-size: 24px; font-weight: 700; color: #fbbf24; }
-        .rating-votes { font-size: 13px; color: #888; }
-
-        /* --- Data List --- */
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-            background: rgba(0,0,0,0.2);
-            padding: 20px;
-            border-radius: 12px;
-        }
-        
-        .data-item label { display: block; font-size: 12px; color: #666; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
-        .data-item span { font-size: 15px; color: #fff; font-weight: 500; }
-
-        .overview {
-            line-height: 1.8;
-            color: #ccc;
-            margin-bottom: 30px;
-            font-size: 15px;
-        }
-
-        .creators {
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 20px;
-            font-size: 14px;
-            color: #aaa;
-        }
-        .creators span { color: #fff; font-weight: 600; }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .detail-wrapper { flex-direction: column; }
-            .poster-col { flex: 0 0 auto; width: 100%; max-width: 300px; margin: 0 auto; }
-            .data-grid { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <a href="javascript:history.back()" class="btn-back">← Kembali</a>
-
-<div class="poster-col">
-    {{-- REVISI: Gunakan Placeholder Loading & ID TMDB agar JavaScript yang mengisinya --}}
-    <img 
-        src="https://placehold.co/400x600/222/888?text=Loading..." 
-        id="tvPoster"
-        data-tmdb-id="{{ $tvShow->show_id }}" 
-        class="poster" 
-        alt="{{ $tvShow->primaryTitle }}"
-    >
-</div>
-
-        <div class="info-col">
-            <h1>{{ $tvShow->primaryTitle }}</h1>
-            <div class="original-title">Judul Asli: {{ $tvShow->original_name }}</div>
-
-            <div class="meta-tags">
-                <span class="badge badge-cyan">TV SERIES</span>
+        <div class="flex-1 space-y-6 text-white">
+            
+            <div>
+                <div class="flex items-center gap-3 mb-2">
+                    @if($tvShow->status_name == 'Returning Series' || $tvShow->status_name == 'In Production')
+                        <span class="px-3 py-1 rounded-full bg-green-500/20 text-green-400 border border-green-500/30 text-xs font-bold uppercase tracking-wider animate-pulse">
+                            {{ $tvShow->status_name }}
+                        </span>
+                    @elseif($tvShow->status_name == 'Ended')
+                        <span class="px-3 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold uppercase tracking-wider">
+                            Ended
+                        </span>
+                    @else
+                        <span class="px-3 py-1 rounded-full bg-gray-500/20 text-gray-400 border border-gray-500/30 text-xs font-bold uppercase tracking-wider">
+                            {{ $tvShow->status_name }}
+                        </span>
+                    @endif
+                </div>
                 
-                @if($tvShow->status_name)
-                    <span class="badge badge-blue">{{ $tvShow->status_name }}</span>
+                <h1 class="text-4xl md:text-6xl font-black tracking-tight leading-none font-display">
+                    {{ $tvShow->primaryTitle }}
+                </h1>
+                @if($tvShow->original_name != $tvShow->primaryTitle)
+                    <p class="text-gray-400 text-sm italic mt-1">Original Title: {{ $tvShow->original_name }}</p>
                 @endif
-                
-                @if($tvShow->isAdult)
-                    <span class="badge" style="background: #ef4444; color: white;">18+</span>
-                @endif
+            </div>
 
+            <div class="flex flex-wrap items-center gap-4 text-sm font-medium text-gray-300">
+                <div class="flex items-center gap-1 text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-full border border-yellow-400/20">
+                    <i class="fas fa-star"></i> 
+                    <span class="text-lg font-bold">{{ number_format($tvShow->averageRating, 1) }}</span>
+                </div>
+                
+                <span>{{ \Carbon\Carbon::parse($tvShow->startYear)->format('Y') }}</span>
+                <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
+                
+                <span class="text-white">{{ $tvShow->number_of_seasons }} Seasons</span>
+                <span class="text-gray-500">({{ $tvShow->number_of_episodes }} Episodes)</span>
+                
+                <span class="w-1 h-1 bg-gray-500 rounded-full"></span>
+                <span class="border border-gray-600 px-2 py-0.5 rounded text-xs">TV-MA</span>
+            </div>
+
+            <div class="flex flex-wrap gap-2">
                 @if($tvShow->Genres_List)
                     @foreach(explode(',', $tvShow->Genres_List) as $genre)
-                        <span class="badge badge-yellow" style="color: #fff; background: rgba(255,255,255,0.1)">{{ trim($genre) }}</span>
+                        <a href="/search?genre={{ trim($genre) }}" class="px-4 py-1.5 rounded-full bg-white/5 hover:bg-purple-500/20 border border-white/10 hover:border-purple-500/50 text-gray-300 hover:text-purple-400 text-xs font-bold uppercase tracking-wider transition-all">
+                            {{ trim($genre) }}
+                        </a>
                     @endforeach
                 @endif
             </div>
 
-            <div class="rating-box">
-                <div>
-                    <div class="rating-score">★ {{ number_format($tvShow->averageRating, 1) }}</div>
-                    <div class="rating-votes">{{ number_format($tvShow->numVotes) }} Votes</div>
-                </div>
-                <div style="border-left: 1px solid #444; height: 30px;"></div>
-                <div>
-                    <div style="font-size: 18px; font-weight: 600; color: #fff;">
-                        {{ number_format($tvShow->popularity, 0) }}
-                    </div>
-                    <div class="rating-votes">Popularity</div>
+            <div class="flex flex-wrap gap-4 pt-4">
+                <form action="{{ route('favorites.toggle') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="id" value="{{ $tvShow->show_id }}">
+                    <input type="hidden" name="type" value="tv">
+                    <input type="hidden" name="title" value="{{ $tvShow->primaryTitle }}">
+                    <input type="hidden" name="year" value="{{ \Carbon\Carbon::parse($tvShow->startYear)->format('Y') }}">
+                    <input type="hidden" name="rating" value="{{ $tvShow->averageRating }}">
+                    
+                    <button type="submit" class="flex items-center gap-2 px-6 py-3 bg-[#2A2A2A] hover:bg-pink-600 text-white font-bold rounded-full border border-white/10 hover:border-pink-500 transition-all shadow-lg hover:shadow-pink-500/30 group">
+                        <i class="fas fa-heart group-hover:animate-pulse"></i> 
+                        <span>Add to Favorites</span>
+                    </button>
+                </form>
+
+                @if($tvShow->homepage)
+                    <a href="{{ $tvShow->homepage }}" target="_blank" class="flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-full shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all transform hover:-translate-y-1">
+                        <i class="fas fa-external-link-alt"></i> Official Site
+                    </a>
+                @endif
+            </div>
+
+            <div class="pt-4 max-w-3xl">
+                <h3 class="text-purple-400 font-bold uppercase tracking-widest text-xs mb-2">Overview</h3>
+                <p class="text-lg text-gray-300 leading-relaxed">
+                    {{ $tvShow->overview ?? 'Sinopsis belum tersedia.' }}
+                </p>
+            </div>
+
+            <div class="pt-6 border-t border-white/10">
+                <h4 class="text-gray-500 text-xs uppercase font-bold mb-2">Created By</h4>
+                <div class="flex flex-wrap gap-4">
+                    @if($tvShow->Creators_List)
+                        @foreach(explode(',', $tvShow->Creators_List) as $creator)
+                            <div class="flex items-center gap-2 text-white font-medium bg-white/5 px-3 py-1 rounded-lg">
+                                <i class="fas fa-pen-nib text-gray-400 text-xs"></i> {{ trim($creator) }}
+                            </div>
+                        @endforeach
+                    @else
+                        <span class="text-gray-500 italic">Data kreator tidak tersedia</span>
+                    @endif
                 </div>
             </div>
 
-            <p class="overview">
-                {{ $tvShow->overview ? $tvShow->overview : 'Belum ada sinopsis untuk serial TV ini.' }}
-            </p>
-
-            <div class="data-grid">
-                <div class="data-item">
-                    <label>Tahun Tayang</label>
-                    <span>
-                        {{ $tvShow->startYear ? \Carbon\Carbon::parse($tvShow->startYear)->format('Y') : '-' }} 
-                        - 
-                        {{ $tvShow->endYear ? \Carbon\Carbon::parse($tvShow->endYear)->format('Y') : 'Sekarang' }}
-                    </span>
-                </div>
-                <div class="data-item">
-                    <label>Total Episode</label>
-                    <span>{{ $tvShow->number_of_episodes ?? '-' }} Eps ({{ $tvShow->number_of_seasons ?? '-' }} Seasons)</span>
-                </div>
-                <div class="data-item">
-                    <label>Durasi per Eps</label>
-                    <span>{{ $tvShow->episode_run_time ?? '-' }} Menit</span>
-                </div>
-                <div class="data-item">
-                    <label>Bahasa</label>
-                    <span>{{ $tvShow->Languages_List ?? '-' }}</span>
-                </div>
-            </div>
-
-            @if($tvShow->Creators_List)
-            <div class="creators">
-                Dibuat oleh: <span>{{ $tvShow->Creators_List }}</span>
-            </div>
-            @endif
-
-            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    const TMDB_API_KEY = 'f19a5ce3a90ddee4579a9f37d5927676';
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        const img = document.getElementById('tvPoster');
-        const tmdbId = img.getAttribute('data-tmdb-id');
+    const TMDB_API_KEY = 'f19a5ce3a90ddee4579a9f37d5927676'; 
 
-        if (tmdbId && TMDB_API_KEY) {
-            // Endpoint Get TV Details (Langsung pakai ID angka)
-            const url = `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${TMDB_API_KEY}`;
+    document.addEventListener("DOMContentLoaded", function() {
+        const posters = document.querySelectorAll('.tmdb-poster');
+        const backdrops = document.querySelectorAll('.tmdb-backdrop');
+
+        posters.forEach(img => {
+            const id = img.getAttribute('data-id');
+            // Endpoint KHUSUS TV (pake ID angka)
+            const url = `https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_API_KEY}`;
 
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
+                    // Set Poster
                     if (data.poster_path) {
-                        // Gunakan w780 (High Quality)
-                        img.src = `https://image.tmdb.org/t/p/w780${data.poster_path}`;
-                    } else {
-                        // Fallback
-                        const title = "{{ $tvShow->primaryTitle }}";
-                        img.src = `https://placehold.co/400x600/1a1a1a/666?text=${encodeURIComponent(title)}`;
+                        img.src = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
                     }
-                })
-                .catch(err => console.log(err));
-        }
+                    
+                    // Set Backdrop
+                    if (data.backdrop_path) {
+                        backdrops.forEach(bg => {
+                            bg.style.backgroundImage = `url('https://image.tmdb.org/t/p/original${data.backdrop_path}')`;
+                        });
+                    }
+                });
+        });
     });
 </script>
 
-</body>
-</html>
+@endsection

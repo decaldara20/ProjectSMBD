@@ -373,8 +373,17 @@ class GuestController extends Controller
             return redirect('/')->with('error', 'TV Show tidak ditemukan');
         }
 
-        $this->addToHistory('person', $person->nconst, $person->primaryName, null, null);
+        $this->addToHistory(
+            'tv', 
+            $tvShow->show_id, 
+            $tvShow->primaryTitle, 
+            $tvShow->startYear ? \Carbon\Carbon::parse($tvShow->startYear)->format('Y') : 'N/A', 
+            $tvShow->averageRating
+        );
 
+        $tvShow->poster_path = null;
+        $tvShow->backdrop_path = null;
+        
         return view('guest.tv-detail', compact('tvShow'));
     }
 
