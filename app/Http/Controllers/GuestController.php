@@ -220,8 +220,6 @@ class GuestController extends Controller
         return view('guest.artists', compact('artists', 'currentProfession'));
     }
 
-
-
     // =======================================
     // 5. HISTORY MANAGEMENT
     // =======================================
@@ -332,11 +330,8 @@ class GuestController extends Controller
         return back()->with('success', $message);
     }
 
-
-
-
     // =========================================================================
-    // 4. DETAIL PAGES (Film, TV, Person)
+    // 7. DETAIL PAGES (Film, TV, Person)
     // =========================================================================
 
     public function showTitleDetail($tconst) {
@@ -385,38 +380,58 @@ class GuestController extends Controller
     }
 
     public function showPersonDetail($nconst) {
-        // 1. Ambil Info Aktor
+        // 1. AMBIL INFO ARTIS
+        // Coba ambil dari View v_DetailAktor (yang baru dibuat)
         $person = DB::connection('sqlsrv')
-            ->table('name_basics')
+            ->table('v_DetailAktor')
             ->where('nconst', $nconst)
             ->first();
 
+        // Fallback ke tabel mentah jika View belum update/kosong
         if (!$person) {
-            return redirect('/')->with('error', 'Orang tidak ditemukan');
+            $personRaw = DB::connection('sqlsrv')->table('name_basics')->where('nconst', $nconst)->first();
+            if (!$personRaw) return redirect('/')->with('error', 'Orang tidak ditemukan');
+
+            // Buat objek manual biar View gak error
+            $person = $personRaw;
+            $person->profession = $personRaw->primaryProfession ?? 'Artist';
+            $person->known_for_titles = $personRaw->knownForTitles ?? '';
         }
 
-        // 2. AMBIL FILMOGRAFI (OPTIMASI PHP)
+        // 2. HITUNG TOTAL KREDIT (Karena v_DetailAktor gak punya kolom ini)
+        // Hitung berapa banyak film yang dia bintangi di title_principals
+        $totalCredits = DB::connection('sqlsrv')
+            ->table('title_principals')
+            ->where('nconst', $nconst)
+            ->count();
+        
+        // Masukkan ke objek $person agar bisa dipanggil di View
+        $person->Total_Credits = $totalCredits;
+
+        // 3. AMBIL FILMOGRAFI (Detail Film)
         $rawMovies = DB::connection('sqlsrv')
             ->table('title_principals AS tp')
             ->join('title_basics AS tb', 'tp.tconst', '=', 'tb.tconst')
             ->where('tp.nconst', $nconst)
             ->select('tb.primaryTitle', 'tb.tconst', 'tb.startYear', 'tp.category')
             ->orderByDesc('tb.startYear')
-            ->limit(200) 
+            ->limit(100) // Ambil 100 judul terbaru
             ->get();
 
-        // 3. PROSES GROUPING DI PHP (Hilangkan Duplikat)
+        // Grouping agar judul yang sama tidak muncul dobel (misal: jadi Actor & Writer di 1 film)
         $filmography = $rawMovies->groupBy('tconst')->map(function ($rows) {
             $first = $rows->first();
             $categories = $rows->pluck('category')->unique()->implode(', ');
-            
             return (object) [
                 'tconst' => $first->tconst,
                 'primaryTitle' => $first->primaryTitle,
                 'startYear' => $first->startYear,
-                'category' => $categories 
+                'category' => $categories
             ];
-        })->values()->take(50);
+        })->values();
+
+        // Inject null untuk foto profil (akan diisi JS)
+        $person->profile_path = null;
 
         return view('guest.person-detail', compact('person', 'filmography'));
     }
