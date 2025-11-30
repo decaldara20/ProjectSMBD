@@ -81,6 +81,11 @@ class GuestController extends Controller
         ->orderByDesc('popularity')
         ->get();
 
+        // Inject poster path null untuk JS
+        foreach($topShows as $show) {
+            $show->poster_path = null;
+        }
+
         // E. SLIDER 3: TOP ARTISTS
         // Ambil dari View Bankability (Top 10 Artis Paling Populer/Banyak Vote)
         $topArtists = DB::connection('sqlsrv')
@@ -145,17 +150,16 @@ class GuestController extends Controller
     // ==========================================
     // 3. TV SHOWS CATALOG PAGE
     // ==========================================
-    public function tvShows(Request $request)
-    {
+    public function tvShows(Request $request) {
         // Ambil Data TV Shows dengan Pagination
-        // Kita ganti nama kolomnya biar seragam dengan format 'Movie'
+        // Ganti nama kolomnya biar seragam dengan format 'Movie'
         $query = DB::connection('sqlsrv')
-            ->table('v_DetailJudulTvShow') // Pastikan nama View ini benar
+            ->table('v_DetailJudulTvShow')
             ->select(
-                'show_id as tconst',           // ID
-                'name as primaryTitle',        // Judul
-                'vote_average as averageRating', // Rating
-                'first_air_date as startYear',   // Tahun
+                'show_id as tconst',    // Kita tetap butuh ini jadi 'tconst' buat View Blade
+                'primaryTitle',         // GUNAKAN INI (Jangan 'name', karena di View namanya sudah primaryTitle)
+                'averageRating',        // GUNAKAN INI (Jangan 'vote_average')
+                'startYear',            // GUNAKAN INI (Jangan 'first_air_date')
                 'popularity'
             );
 
@@ -167,6 +171,169 @@ class GuestController extends Controller
 
         return view('guest.tv-shows', compact('tvShows'));
     }
+
+    // ==========================================
+    // 4. ARTISTS CATALOG PAGE
+    // ==========================================
+    public function artists(Request $request) {
+        // 1. Mulai Query dari View Bankabilitas (karena sudah ada ranking popularitas)
+        $query = DB::connection('sqlsrv')
+            ->table('v_Executive_BankabilityReport_Base as v')
+            ->select('v.nconst', 'v.primaryName', 'v.TotalNumVotes');
+
+        // 2. Filter Berdasarkan Profesi (Jika ada request ?profession=actor)
+        if ($request->has('profession') && $request->profession != '') {
+            $prof = $request->profession;
+            
+            // Tips: Jika user cari 'actor', kita cari juga 'actress'
+            $searchProfs = ($prof == 'actor') ? ['actor', 'actress'] : [$prof];
+
+            // Filter menggunakan WHERE EXISTS ke tabel name_professions
+            // (Ini lebih cepat daripada JOIN langsung untuk filter)
+            $query->whereExists(function ($subquery) use ($searchProfs) {
+                $subquery->select(DB::raw(1))
+                    ->from('name_professions as np')
+                    ->whereColumn('np.nconst', 'v.nconst')
+                    ->whereIn('np.profession_name', $searchProfs);
+            });
+        }
+
+        // 3. Filter Pencarian Nama (Search Bar di halaman Artists)
+        if ($request->has('q') && $request->q != '') {
+            $query->where('v.primaryName', 'LIKE', '%' . $request->q . '%');
+        }
+
+        // 4. Sorting Default (Paling Populer)
+        $query->orderByDesc('v.TotalNumVotes');
+
+        // 5. Pagination
+        $artists = $query->paginate(24);
+
+        // Inject placeholder gambar
+        foreach($artists as $artist) {
+            $artist->profile_path = null;
+        }
+
+        // Kirim juga variabel 'profession' ke view untuk judul halaman
+        $currentProfession = $request->profession ?? 'All';
+
+        return view('guest.artists', compact('artists', 'currentProfession'));
+    }
+
+
+
+    // =======================================
+    // 5. HISTORY MANAGEMENT
+    // =======================================
+    private function addToHistory($type, $id, $title, $year, $rating)
+    {
+        $history = session()->get('view_history', []);
+
+        // 1. Hapus item jika sudah ada (biar tidak duplikat & naik ke paling atas)
+        $history = array_filter($history, function($item) use ($id, $type) {
+            return !($item['id'] == $id && $item['type'] == $type);
+        });
+
+        // 2. Tambahkan item baru ke awal array
+        array_unshift($history, [
+            'type' => $type, // 'movie', 'tv', 'person'
+            'id' => $id,
+            'title' => $title,
+            'year' => $year,
+            'rating' => $rating,
+            'timestamp' => now()
+        ]);
+
+        // 3. Batasi cuma simpan 20 item terakhir
+        $history = array_slice($history, 0, 20);
+
+        // 4. Simpan kembali ke session
+        session()->put('view_history', $history);
+    }
+
+    // Halaman History
+    public function history()
+    {
+        // Ambil data dari session
+        $history = session()->get('view_history', []);
+        
+        // Ubah array jadi Collection biar enak di-looping di Blade
+        $history = collect($history)->map(function($item) {
+            return (object) $item;
+        });
+
+        return view('guest.history', compact('history'));
+    }
+
+    // Hapus History
+    public function clearHistory()
+    {
+        session()->forget('view_history');
+        return redirect()->route('history.index')->with('success', 'Riwayat penelusuran dihapus.');
+    }
+
+    // ==========================================
+    // 6. FAVORITES (WISHLIST) SYSTEM
+    // ==========================================
+    
+    // Menampilkan Halaman Favorit
+    public function favorites()
+    {
+        // Ambil data dari session 'favorites'
+        $favorites = session()->get('favorites', []);
+        
+        // Ubah array jadi Collection object biar mudah di-loop di Blade
+        $favorites = collect($favorites)->map(function($item) {
+            return (object) $item;
+        });
+
+        return view('guest.favorites', compact('favorites'));
+    }
+
+    // Logic Tambah/Hapus Favorit
+    public function toggleFavorite(Request $request)
+    {
+        $favorites = session()->get('favorites', []);
+        $id = $request->id;
+        $type = $request->type;
+        
+        // Cek apakah item sudah ada di favorit?
+        $exists = false;
+        $index = -1;
+        
+        foreach($favorites as $key => $item) {
+            if ($item['id'] == $id && $item['type'] == $type) {
+                $exists = true;
+                $index = $key;
+                break;
+            }
+        }
+
+        if ($exists) {
+            // Jika sudah ada, HAPUS (Un-favorite)
+            unset($favorites[$index]);
+            $message = 'Dihapus dari Favorit.';
+        } else {
+            // Jika belum ada, TAMBAH
+            $favorites[] = [
+                'id' => $id,
+                'type' => $type,
+                'title' => $request->title,
+                'year' => $request->year,
+                'rating' => $request->rating,
+                'timestamp' => now()
+            ];
+            $message = 'Ditambahkan ke Favorit.';
+        }
+
+        // Simpan kembali ke session (re-index array values)
+        session()->put('favorites', array_values($favorites));
+
+        return back()->with('success', $message);
+    }
+
+
+
 
     // =========================================================================
     // 4. DETAIL PAGES (Film, TV, Person)
@@ -181,6 +348,8 @@ class GuestController extends Controller
         if (!$title) {
             return redirect('/')->with('error', 'Judul tidak ditemukan');
         }
+
+        $this->addToHistory('movie', $title->tconst, $title->primaryTitle, $title->startYear, $title->averageRating);
 
         return view('guest.title-detail', compact('title'));
     }
@@ -201,6 +370,17 @@ class GuestController extends Controller
             return redirect('/')->with('error', 'TV Show tidak ditemukan');
         }
 
+        $this->addToHistory(
+            'tv', 
+            $tvShow->show_id, 
+            $tvShow->primaryTitle, 
+            $tvShow->startYear ? \Carbon\Carbon::parse($tvShow->startYear)->format('Y') : 'N/A', 
+            $tvShow->averageRating
+        );
+
+        $tvShow->poster_path = null;
+        $tvShow->backdrop_path = null;
+        
         return view('guest.tv-detail', compact('tvShow'));
     }
 
@@ -377,5 +557,10 @@ class GuestController extends Controller
             'query' => $queryRaw,
             'type' => $type
         ]);
+    }
+
+    public function about()
+    {
+        return view('guest.about');
     }
 }

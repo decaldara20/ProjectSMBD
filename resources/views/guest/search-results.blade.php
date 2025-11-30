@@ -1,329 +1,148 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hasil Pencarian: {{ $query }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- Reset & Base --- */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #0F0F0F;
-            color: #e0e0e0;
-            min-height: 100vh;
-            padding: 30px;
-        }
+@extends('layouts.app')
 
-        /* --- Header Section --- */
-        .container { max-width: 1200px; margin: 0 auto; }
+@section('title', 'Search Results')
 
-        .header-nav { margin-bottom: 30px; }
+@section('content')
+<div class="min-h-screen bg-gray-50 dark:bg-[#121212] py-10 transition-colors duration-300">
+    <div class="w-full max-w-[1400px] mx-auto px-4 md:px-8">
         
-        .btn-back {
-            display: inline-flex;
-            align-items: center;
-            background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
-        }
-        .btn-back:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
-        }
-
-        h1 { font-size: 28px; margin-bottom: 40px; color: #fff; }
-        h1 span { color: #06b6d4; }
-
-        /* --- Grid Layout --- */
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 24px;
-        }
-
-        /* --- Card Style --- */
-        .card {
-            background: #1a1a1a;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-            transition: all 0.3s ease;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: #06b6d4;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .card a { text-decoration: none; color: inherit; height: 100%; display: flex; flex-direction: column; }
-
-        /* Poster Image */
-        .poster-wrapper {
-            width: 100%;
-            aspect-ratio: 2/3;
-            background: #222;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .poster-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-
-        .card:hover .poster-wrapper img { transform: scale(1.05); }
-
-        /* Card Content */
-        .card-content {
-            padding: 15px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .card h3 {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            line-height: 1.4;
-            color: #fff;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 13px;
-            color: #aaa;
-            margin-top: auto;
-        }
-
-        /* Badge Styles */
-        .badge {
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            border: 1px solid transparent;
-        }
-        .badge-cyan { background: rgba(6, 182, 212, 0.15); color: #06b6d4; border-color: rgba(6, 182, 212, 0.3); }
-        .badge-blue { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3); }
-        .badge-yellow { background: rgba(234, 179, 8, 0.15); color: #eab308; border-color: rgba(234, 179, 8, 0.3); }
-        .badge-gray { background: rgba(255, 255, 255, 0.1); color: #ccc; border-color: rgba(255, 255, 255, 0.2); }
-
-        .rating { color: #fbbf24; font-weight: 600; display: flex; align-items: center; gap: 4px; }
-
-        /* --- Empty State --- */
-        .no-results {
-            text-align: center;
-            padding: 60px;
-            background: #1a1a1a;
-            border-radius: 16px;
-            border: 1px dashed #333;
-        }
-        .no-results p { font-size: 18px; color: #888; }
-
-        @media (max-width: 768px) {
-            .results-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <div class="header-nav">
-            <a href="{{ route('homepage') }}" class="btn-back">← Kembali ke Home</a>
+        <div class="mb-8 border-b border-gray-200 dark:border-white/10 pb-6">
+            <p class="text-sm text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider mb-1">Search Results For</p>
+            <h1 class="text-3xl md:text-4xl font-black text-gray-900 dark:text-white font-display">
+                "{{ $query }}"
+            </h1>
+            <div class="mt-4 flex flex-wrap gap-2">
+                @if(request('type'))
+                    <span class="px-3 py-1 rounded-full bg-cyan-100 dark:bg-neon-cyan/10 text-cyan-700 dark:text-neon-cyan text-xs font-bold border border-cyan-200 dark:border-neon-cyan/30">
+                        Type: {{ ucfirst(request('type') == 'multi' ? 'All' : request('type')) }}
+                    </span>
+                @endif
+                @if(request('genre'))
+                    <span class="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 text-xs font-bold border border-purple-200 dark:border-purple-500/30">
+                        Genre: {{ request('genre') }}
+                    </span>
+                @endif
+                @if(request('year_min') || request('year_max'))
+                    <span class="px-3 py-1 rounded-full bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-gray-300 text-xs font-bold border border-gray-300 dark:border-white/20">
+                        Year: {{ request('year_min') ?? '...' }} - {{ request('year_max') ?? '...' }}
+                    </span>
+                @endif
+            </div>
         </div>
 
-        <h1>Hasil Pencarian: <span>"{{ $query }}"</span></h1>
-
-        @if (empty($results))
-            <div class="no-results">
-                <p>Tidak ditemukan hasil yang cocok untuk pencarian Anda.</p>
-                <p style="font-size: 14px; margin-top: 10px;">Coba kata kunci lain atau ubah filter.</p>
+        @if($results->isEmpty())
+            <div class="flex flex-col items-center justify-center py-32 text-center">
+                <div class="w-24 h-24 bg-gray-200 dark:bg-white/5 rounded-full flex items-center justify-center mb-6">
+                    <span class="material-symbols-outlined text-5xl text-gray-400">search_off</span>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-2">No results found</h2>
+                <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                    Kami tidak dapat menemukan apa pun untuk "{{ $query }}". Coba gunakan kata kunci lain atau kurangi filter.
+                </p>
+                <a href="/" class="mt-8 px-8 py-3 bg-cyan-600 dark:bg-neon-cyan text-white dark:text-black font-bold rounded-full hover:scale-105 transition-transform shadow-lg">
+                    Back to Home
+                </a>
             </div>
         @else
-            <div class="results-grid">
-                @foreach ($results as $item)
-                    <div class="card">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                @foreach($results as $item)
+                    @php
+                        // Tentukan Link berdasarkan tipe data
+                        $link = '#';
+
+                        // 1. FILM & TV (Sumber IMDb) -> Arahkan ke rute 'title.detail'
+                        // Tambahkan 'tvSeries_imdb' di sini agar tidak mati link-nya
+                        if($item->type == 'movie' || $item->type == 'tvSeries_imdb') {
+                            $link = route('title.detail', $item->id);
+                        }
+                        // 2. TV SHOW (Sumber TV Dataset) -> Arahkan ke rute 'tv.detail'
+                        elseif($item->type == 'tv' || $item->type == 'tvSeries') {
+                            $link = route('tv.detail', $item->id);
+                        }
+                        // 3. ORANG -> Arahkan ke rute 'person.detail'
+                        elseif($item->type == 'person') {
+                            $link = route('person.detail', $item->id);
+                        }
+                    @endphp
+
+                    <a href="{{ $link }}" class="group flex flex-col gap-3 cursor-pointer relative">
                         
-                        {{-- LOGIKA PENENTUAN LINK & BADGE --}}
-                        @php
-                            $route = '#';
-                            $badge = 'UNKNOWN';
-                            $badgeClass = 'badge-gray';
-                            $isPerson = false; // Penanda apakah ini orang
-
-                            // 1. FILM (Dari IMDb)
-                            if ($item->type == 'movie') {
-                                $route = route('title.detail', $item->id);
-                                $badge = 'FILM';
-                                $badgeClass = 'badge-cyan';
-                            } 
-                            // 2. TV SHOW PREMIUM (Dari tabel TV Anda)
-                            elseif ($item->type == 'tvSeries') {
-                                $route = route('tv.detail', $item->id);
-                                $badge = 'TV SERIES';
-                                $badgeClass = 'badge-blue';
-                            }
-                            // 3. TV SHOW CADANGAN (Dari IMDb)
-                            elseif ($item->type == 'tvSeries_imdb') {
-                                $route = route('title.detail', $item->id); 
-                                $badge = 'TV (IMDb)';
-                                $badgeClass = 'badge-yellow';
-                            }
-                            // 4. AKTOR (INI YANG KEMARIN HILANG)
-                            elseif ($item->type == 'person') {
-                                $route = route('person.detail', $item->id); 
-                                $badge = 'AKTOR';
-                                $badgeClass = 'badge-gray';
-                                $isPerson = true;
-                            }
-                        @endphp
-
-                        {{-- Link Utama --}}
-                        <a href="{{ $route }}">
+                        <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-[#1A1A1A] shadow-md hover:shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-cyan-500/30 border border-gray-200 dark:border-white/5">
                             
-                            <div class="poster-wrapper">
-                                <img 
-                                    src="https://placehold.co/300x450/222/888?text=Loading..." 
-                                    data-imdb-id="{{ $item->id }}" 
-                                    data-type="{{ $item->type }}"
-                                    alt="{{ $item->title }}" 
-                                    class="poster-img"
-                                    loading="lazy"
-                                >
+                            <img src="https://via.placeholder.com/300x450?text=Loading..." 
+                                data-id="{{ $item->id }}" 
+                                data-type="{{ $item->type == 'tvSeries' ? 'tv' : $item->type }}"
+                                alt="{{ $item->title }}"
+                                class="tmdb-poster w-full h-full object-cover transition-opacity duration-500 opacity-0"
+                                onload="this.classList.remove('opacity-0')">
+
+                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+                            <div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-bold text-white uppercase border border-white/10">
+                                {{ $item->type == 'tvSeries' ? 'TV' : ucfirst($item->type) }}
                             </div>
 
-                            <div class="card-content">
-                                <h3>{{ $item->title }}</h3>
-                                
-                                <div class="meta">
-                                    <span>
-                                        {{-- Jika orang, labelnya 'Lahir: 1990' --}}
-                                        {{ $item->startYear ? ($isPerson ? '' : '') . $item->startYear : '' }}
-                                        
-                                        <span class="badge {{ $badgeClass }}">{{ $badge }}</span>
-                                    </span>
-
-                                    {{-- Rating hanya muncul untuk Film/TV (Bukan Orang) --}}
-                                    @if(!$isPerson && isset($item->averageRating))
-                                        <span class="rating">
-                                            ★ {{ number_format($item->averageRating, 1) }}
-                                        </span>
-                                    @endif
+                            @if($item->type != 'person' && isset($item->averageRating))
+                                <div class="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400 flex items-center gap-1 shadow-sm">
+                                    <i class="fas fa-star text-[10px]"></i> {{ number_format($item->averageRating, 1) }}
                                 </div>
+                            @endif
+                        </div>
 
-                                {{-- Jika Aktor, tampilkan 'Known For' --}}
-                                @if($isPerson && isset($item->known_for))
-                                    <div style="margin-top: 8px; font-size: 11px; color: #888; line-height: 1.3;">
-                                        <em>{{ \Illuminate\Support\Str::limit($item->known_for, 40) }}</em>
-                                    </div>
+                        <div class="px-1">
+                            <h3 class="text-gray-900 dark:text-gray-200 text-sm font-semibold truncate group-hover:text-cyan-600 dark:group-hover:text-neon-cyan transition-colors">
+                                {{ $item->title }}
+                            </h3>
+                            <p class="text-gray-500 text-xs mt-1">
+                                @if($item->type == 'person')
+                                    {{ $item->known_for ?? 'Artist' }}
+                                @else
+                                    {{ $item->startYear ?? '-' }}
                                 @endif
-                            </div>
-                        </a>
-                    </div>
+                            </p>
+                        </div>
+                    </a>
                 @endforeach
             </div>
         @endif
     </div>
+</div>
+
 <script>
     const TMDB_API_KEY = 'f19a5ce3a90ddee4579a9f37d5927676'; 
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const images = document.querySelectorAll('.poster-img');
-
-        images.forEach(img => {
-            const id = img.getAttribute('data-imdb-id'); // Bisa ID IMDb (tt..) atau TMDB (123..)
+    document.addEventListener("DOMContentLoaded", function() {
+        const posters = document.querySelectorAll('.tmdb-poster');
+        posters.forEach(img => {
+            const id = img.getAttribute('data-id');
             const type = img.getAttribute('data-type');
-            const title = img.getAttribute('alt');
-
-            // Fungsi Fallback (Placeholder)
-            const showPlaceholder = () => {
-                img.src = `https://placehold.co/300x450/1a1a1a/666?text=${encodeURIComponent(title)}`;
-                img.style.opacity = 1;
-            };
-
-            if (!id || !TMDB_API_KEY) { showPlaceholder(); return; }
-
-            // --- LOGIKA PENENTUAN URL ---
-            let url = '';
             
-            // KASUS KHUSUS: Jika ini TV SHOW UTAMA (Dari Local DB), ID-nya adalah ID TMDB (Angka)
-            if (type === 'tvSeries') {
-                // Gunakan endpoint 'Get TV Details' langsung
-                url = `https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_API_KEY}`;
-            } 
-            // KASUS LAIN: Film, Orang, atau TV Backup (Dari IMDb), ID-nya adalah IMDb (tt/nm)
-            else {
-                // Gunakan endpoint 'Find by External ID'
-                url = `https://api.themoviedb.org/3/find/${id}?api_key=${TMDB_API_KEY}&external_source=imdb_id`;
-            }
+            if (!id) return;
+            
+            let url = '';
+            if (type === 'tv' && !isNaN(id)) url = `https://api.themoviedb.org/3/tv/${id}?api_key=${TMDB_API_KEY}`;
+            else url = `https://api.themoviedb.org/3/find/${id}?api_key=${TMDB_API_KEY}&external_source=imdb_id`;
+            
+            fetch(url).then(r => r.json()).then(data => {
+                let path = null;
+                if (type === 'person') { 
+                    if (data.person_results?.length > 0) path = data.person_results[0].profile_path; 
+                } else if (type === 'tv' && !isNaN(id)) { 
+                    path = data.poster_path; 
+                } else { 
+                    if (data.movie_results?.length > 0) path = data.movie_results[0].poster_path; 
+                    else if (data.tv_results?.length > 0) path = data.tv_results[0].poster_path; 
+                }
 
-            // --- EKSEKUSI FETCH ---
-            fetch(url)
-                .then(response => {
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    return response.json();
-                })
-                .then(data => {
-                    let filePath = null;
-
-                    if (type === 'tvSeries') {
-                        // Respon langsung object TV, bukan array results
-                        filePath = data.poster_path;
-                    } else {
-                        // Logika FIND (IMDb ID)
-                        if (type === 'person' && data.person_results?.length > 0) {
-                            filePath = data.person_results[0].profile_path;
-                        } else if (data.movie_results?.length > 0) {
-                            filePath = data.movie_results[0].poster_path;
-                        } else if (data.tv_results?.length > 0) {
-                            filePath = data.tv_results[0].poster_path;
-                        }
-                    }
-
-                    if (filePath) {
-                        const finalUrl = `https://image.tmdb.org/t/p/w500${filePath}`;
-                        // Preload agar mulus
-                        const tempImg = new Image();
-                        tempImg.src = finalUrl;
-                        tempImg.onload = () => {
-                            img.src = finalUrl;
-                            img.style.opacity = 1;
-                        };
-                        tempImg.onerror = showPlaceholder;
-                    } else {
-                        showPlaceholder();
-                    }
-                })
-                .catch(err => {
-                    // console.error(err); // Uncomment untuk debug
-                    showPlaceholder();
-                });
+                if (path) {
+                    img.src = `https://image.tmdb.org/t/p/w500${path}`;
+                } else {
+                    // Fallback Images
+                    if(type === 'person') img.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(img.alt)}&background=random`;
+                    else img.src = `https://via.placeholder.com/300x450/1a1a1a/666?text=${encodeURIComponent(img.alt)}`;
+                    img.classList.remove('opacity-0');
+                }
+            });
         });
     });
 </script>
-
-</body> 
-</html>
+@endsection
