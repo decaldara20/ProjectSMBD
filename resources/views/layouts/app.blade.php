@@ -136,7 +136,7 @@
 
                             <div class="mt-4 pt-4 border-t border-gray-200 dark:border-white/10 flex justify-between items-center">
                                 <span class="text-xs text-gray-400">Browse by Category</span>
-                                
+
                                 <button onclick="toggleFilterPanel()" class="text-xs text-cyan-600 dark:text-neon-cyan font-bold hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer">
                                     View Advanced Filter <i class="fas fa-arrow-right"></i>
                                 </button>
@@ -312,13 +312,16 @@
         function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
     </script>
 
+    <!-- Backdrop -->
     <div id="filterBackdrop" 
-         onclick="toggleFilterPanel()" 
-         class="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm opacity-0 invisible transition-all duration-300 ease-in-out">
+        onclick="toggleFilterPanel()" 
+        class="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm opacity-0 invisible transition-all duration-300 ease-in-out">
     </div>
 
+    <!-- Filter Panel -->
     <div id="filterPanel" class="fixed top-0 right-0 h-full w-full max-w-md bg-white dark:bg-[#121212]/95 backdrop-blur-xl border-l border-gray-200 dark:border-white/10 shadow-2xl z-[9999] transform translate-x-full filter-panel-transition flex flex-col">
         
+        <!-- Header -->
         <div class="flex items-center justify-between px-8 py-6 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#1A1A1A]/80">
             <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-3 font-display tracking-tight">
                 <span class="material-symbols-outlined text-cyan-600 dark:text-neon-cyan text-2xl">tune</span> 
@@ -329,9 +332,11 @@
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-8 space-y-10 custom-scrollbar">
+        <!-- Scrollable Content -->
+        <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
             <form action="/search" method="GET" id="filterForm">
                 
+                <!-- Content Type -->
                 <div class="space-y-4">
                     <label class="flex items-center gap-2 text-xs font-bold text-cyan-600 dark:text-neon-cyan uppercase tracking-wider">
                         <span class="material-symbols-outlined text-base">category</span> Content Type
@@ -353,13 +358,18 @@
                     </div>
                 </div>
 
+                <!-- Divider -->
+                <div class="h-px bg-gray-200 dark:bg-white/10 w-full my-6"></div>
+
+                <!-- Genre & Year -->
                 <div class="space-y-6">
-                    <div class="space-y-2">
+                    <!-- Genre -->
+                    <div class="space-y-3">
                         <label class="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                             <span class="material-symbols-outlined text-base">theater_comedy</span> Genre
                         </label>
                         <div class="relative">
-                            <select name="genre" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-gray-200 text-sm focus:ring-cyan-500 focus:border-cyan-500 p-3 pl-4 appearance-none cursor-pointer hover:border-cyan-500 transition-colors">
+                            <select name="genre" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-gray-200 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 p-3 pl-4 pr-10 appearance-none cursor-pointer hover:border-cyan-500 transition-colors">
                                 <option value="">Select Genre...</option>
                                 @if(isset($globalGenres))
                                     @foreach($globalGenres as $g)
@@ -367,60 +377,66 @@
                                     @endforeach
                                 @endif
                             </select>
-                            <span class="absolute right-4 top-3.5 pointer-events-none text-gray-400">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </span>
                         </div>
                     </div>
 
-                    <div class="space-y-2">
+                    <!-- Release Year -->
+                    <div class="space-y-3">
                         <label class="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                             <span class="material-symbols-outlined text-base">calendar_month</span> Release Year
                         </label>
                         <div class="flex items-center gap-3">
-                            <div class="relative w-full">
-                                <input type="number" name="year_min" placeholder="1900" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-sm text-gray-900 dark:text-white p-3 pl-4 focus:ring-cyan-500 focus:border-cyan-500 transition-all">
-                                <span class="absolute right-3 top-3 text-xs text-gray-400">MIN</span>
+                            <div class="relative flex-1">
+                                <input type="number" name="year_min" placeholder="1900" min="1900" max="2025" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-sm text-gray-900 dark:text-white p-3 pl-4 pr-12 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">MIN</span>
                             </div>
                             <span class="text-gray-400 font-bold">—</span>
-                            <div class="relative w-full">
-                                <input type="number" name="year_max" placeholder="2025" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-sm text-gray-900 dark:text-white p-3 pl-4 focus:ring-cyan-500 focus:border-cyan-500 transition-all">
-                                <span class="absolute right-3 top-3 text-xs text-gray-400">MAX</span>
+                            <div class="relative flex-1">
+                                <input type="number" name="year_max" placeholder="2025" min="1900" max="2025" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-sm text-gray-900 dark:text-white p-3 pl-4 pr-12 focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">MAX</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="h-px bg-gray-200 dark:bg-white/10 w-full"></div>
+                <!-- Divider -->
+                <div class="h-px bg-gray-200 dark:bg-white/10 w-full my-6"></div>
 
-                <div class="space-y-6">
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-end">
-                            <label class="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                                <span class="material-symbols-outlined text-base">star</span> Min Rating
-                            </label>
-                            <span class="px-2 py-1 bg-cyan-100 dark:bg-neon-cyan/10 text-cyan-700 dark:text-neon-cyan text-xs font-bold rounded border border-cyan-200 dark:border-neon-cyan/30" id="ratingVal">0.0</span>
-                        </div>
-                        <input type="range" name="rating_min" min="0" max="10" step="0.1" value="0" 
-                               class="w-full h-2 bg-gray-300 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-600 dark:accent-neon-cyan hover:accent-cyan-500 transition-all"
-                               oninput="document.getElementById('ratingVal').innerText = this.value">
-                        <div class="flex justify-between text-[10px] text-gray-400 font-mono">
-                            <span>0</span><span>5</span><span>10</span>
-                        </div>
+                <!-- Min Rating -->
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <label class="flex items-center gap-2 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                            <span class="material-symbols-outlined text-base">star</span> Min Rating
+                        </label>
+                        <span class="px-3 py-1.5 bg-cyan-100 dark:bg-neon-cyan/10 text-cyan-700 dark:text-neon-cyan text-xs font-bold rounded-lg border border-cyan-200 dark:border-neon-cyan/30 min-w-[50px] text-center" id="ratingVal">0.0</span>
+                    </div>
+                    <input type="range" name="rating_min" min="0" max="10" step="0.1" value="0" 
+                        class="w-full h-2 bg-gray-300 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-cyan-600 dark:accent-neon-cyan hover:accent-cyan-500 transition-all"
+                        oninput="document.getElementById('ratingVal').innerText = parseFloat(this.value).toFixed(1)">
+                    <div class="flex justify-between text-[10px] text-gray-400 font-mono px-1">
+                        <span>0</span>
+                        <span>5</span>
+                        <span>10</span>
                     </div>
                 </div>
 
-                <div class="h-px bg-gray-200 dark:bg-white/10 w-full"></div>
+                <!-- Divider -->
+                <div class="h-px bg-gray-200 dark:bg-white/10 w-full my-6"></div>
 
+                <!-- TV Specifics -->
                 <div class="space-y-5">
                     <h4 class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
                         <span class="material-symbols-outlined text-lg">live_tv</span> TV Specifics
                     </h4>
                     
-                    <div class="space-y-2">
-                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Country Origin</label>
+                    <!-- Country Origin -->
+                    <div class="space-y-3">
+                        <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Country Origin</label>
                         <div class="relative">
-                            <select name="country" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-gray-200 text-sm focus:ring-purple-500 focus:border-purple-500 p-3 pl-4 appearance-none cursor-pointer">
+                            <select name="country" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-gray-200 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 p-3 pl-4 pr-10 appearance-none cursor-pointer hover:border-purple-500 transition-colors">
                                 <option value="">All Countries</option>
                                 <option value="US">United States (US)</option>
                                 <option value="KR">South Korea (KR)</option>
@@ -429,50 +445,57 @@
                                 <option value="ID">Indonesia (ID)</option>
                                 <option disabled>──────────</option>
                                 @if(isset($countries))
-                                    @foreach($countries as $c) <option value="{{ $c }}">{{ $c }}</option> @endforeach
+                                    @foreach($countries as $c) 
+                                        <option value="{{ $c }}">{{ $c }}</option> 
+                                    @endforeach
                                 @endif
                             </select>
-                            <span class="absolute right-4 top-3.5 pointer-events-none text-gray-400">
+                            <span class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                 <i class="fas fa-chevron-down text-xs"></i>
                             </span>
                         </div>
                     </div>
 
+                    <!-- TV Status -->
                     <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
-                            <input type="checkbox" name="tv_status[]" value="Returning Series" class="w-4 h-4 rounded text-purple-600 bg-gray-100 dark:bg-[#1A1A1A] border-gray-300 dark:border-gray-600 focus:ring-purple-500 focus:ring-offset-0">
+                        <label class="flex items-center p-3.5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-all group">
+                            <input type="checkbox" name="tv_status[]" value="Returning Series" class="w-4 h-4 rounded text-purple-600 bg-gray-100 dark:bg-[#1A1A1A] border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-0">
                             <span class="ml-3 text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-purple-500 transition-colors">Returning</span>
                         </label>
-                        <label class="flex items-center p-3 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
-                            <input type="checkbox" name="tv_status[]" value="Ended" class="w-4 h-4 rounded text-purple-600 bg-gray-100 dark:bg-[#1A1A1A] border-gray-300 dark:border-gray-600 focus:ring-purple-500 focus:ring-offset-0">
+                        <label class="flex items-center p-3.5 rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-all group">
+                            <input type="checkbox" name="tv_status[]" value="Ended" class="w-4 h-4 rounded text-purple-600 bg-gray-100 dark:bg-[#1A1A1A] border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 focus:ring-offset-0">
                             <span class="ml-3 text-xs font-medium text-gray-600 dark:text-gray-300 group-hover:text-purple-500 transition-colors">Ended</span>
                         </label>
                     </div>
                 </div>
 
-                <div class="h-px bg-gray-200 dark:bg-white/10 w-full"></div>
+                <!-- Divider -->
+                <div class="h-px bg-gray-200 dark:bg-white/10 w-full my-6"></div>
 
+                <!-- Cast & Crew -->
                 <div class="space-y-5">
                     <h4 class="text-xs font-bold text-pink-600 dark:text-pink-400 uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-gray-100 dark:border-white/5">
                         <span class="material-symbols-outlined text-lg">group</span> Cast & Crew
                     </h4>
                     
                     <div class="flex gap-3">
-                        <div class="relative w-1/3">
-                            <select name="role" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-xs text-gray-900 dark:text-white p-3 appearance-none cursor-pointer focus:ring-pink-500 focus:border-pink-500">
+                        <!-- Role Selector -->
+                        <div class="relative w-2/5">
+                            <select name="role" class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-xs text-gray-900 dark:text-white p-3 pr-8 appearance-none cursor-pointer focus:ring-2 focus:ring-pink-500 focus:border-pink-500 hover:border-pink-500 transition-colors">
                                 <option value="actor">Actor</option>
                                 <option value="director">Director</option>
                                 <option value="writer">Writer</option>
                             </select>
-                            <span class="absolute right-3 top-3.5 pointer-events-none text-gray-400">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                 <i class="fas fa-chevron-down text-[10px]"></i>
                             </span>
                         </div>
-                        <div class="relative w-2/3">
-                            <span class="absolute left-3 top-3 text-gray-400">
+                        <!-- Name Input -->
+                        <div class="relative flex-1">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
                                 <i class="fas fa-search text-sm"></i>
                             </span>
-                            <input type="text" name="person_name" placeholder="Search Name..." class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-sm text-gray-900 dark:text-white p-3 pl-9 focus:ring-pink-500 focus:border-pink-500 transition-all">
+                            <input type="text" name="person_name" placeholder="Search Name..." class="w-full bg-gray-50 dark:bg-[#0a0a0a] border border-gray-300 dark:border-white/20 rounded-xl text-sm text-gray-900 dark:text-white p-3 pl-10 focus:ring-2 focus:ring-pink-500 focus:border-pink-500 hover:border-pink-500 transition-all">
                         </div>
                     </div>
                 </div>
@@ -480,11 +503,12 @@
             </form>
         </div>
 
+        <!-- Footer Buttons -->
         <div class="p-6 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#121212] flex gap-4 shadow-inner">
-            <button type="button" onclick="document.getElementById('filterForm').reset()" class="flex-1 py-3.5 rounded-xl border border-gray-300 dark:border-white/20 text-gray-600 dark:text-gray-300 font-bold text-sm hover:bg-gray-200 dark:hover:bg-white/5 transition-colors">
+            <button type="button" onclick="document.getElementById('filterForm').reset(); document.getElementById('ratingVal').innerText = '0.0';" class="flex-1 py-3.5 rounded-xl border-2 border-gray-300 dark:border-white/20 text-gray-600 dark:text-gray-300 font-bold text-sm hover:bg-gray-200 dark:hover:bg-white/5 hover:border-gray-400 dark:hover:border-white/30 transition-all active:scale-95">
                 Reset All
             </button>
-            <button type="submit" form="filterForm" class="flex-[2] py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-neon-cyan dark:to-blue-500 text-white dark:text-black font-bold text-sm shadow-lg hover:shadow-cyan-500/30 dark:hover:shadow-neon transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
+            <button type="submit" form="filterForm" class="flex-[2] py-3.5 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-neon-cyan dark:to-blue-500 text-white dark:text-black font-bold text-sm shadow-lg hover:shadow-cyan-500/30 dark:hover:shadow-neon-cyan/50 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2">
                 <span class="material-symbols-outlined text-lg">search</span> Show Results
             </button>
         </div>
