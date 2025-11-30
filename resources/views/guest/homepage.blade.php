@@ -17,7 +17,7 @@
     }
 </style>
 
-<section class="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
+<section class="relative w-full min-h-[90vh] flex flex-col items-center justify-start pt-32 overflow-hidden group/hero">
     
     <div id="heroBackground" 
         class="absolute inset-0 w-full h-full bg-cover bg-center transition-transform duration-100 ease-out scale-110"
@@ -26,33 +26,26 @@
 
     <div class="absolute inset-0 bg-black/40 pointer-events-none"></div>
     
-    <div class="absolute bottom-0 left-0 w-full h-64 bg-gradient-to-t from-[#121212] via-[#121212]/90 to-transparent pointer-events-none z-10"></div>
+    <div class="absolute bottom-0 left-0 w-full h-[600px] bg-gradient-to-t from-[#121212] via-[#121212]/80 to-transparent pointer-events-none z-10"></div>
 
-    <div class="relative z-20 flex flex-col gap-6 max-w-4xl p-4 text-center">
-        
-        <div class="flex flex-col gap-4 animate-fade-in-up">
-            <h1 class="text-white text-5xl font-black leading-tight tracking-[-0.033em] md:text-7xl drop-shadow-2xl font-display md:whitespace-nowrap"
-                style="text-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                Track Films, Discover Shows
+    <div class="relative z-20 flex flex-col gap-4 max-w-5xl p-4 text-center">
+        <div class="animate-fade-in-up" style="animation-delay: 0.1s;">
+            <h1 class="text-white text-6xl md:text-8xl font-black leading-tight tracking-tighter drop-shadow-2xl font-display mb-2"
+                style="text-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                Track Films, <br> <span class="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.5)]">Discover Shows</span>
             </h1>
             
-            <h2 class="text-gray-200 text-lg font-normal leading-relaxed md:text-xl max-w-2xl mx-auto drop-shadow-md">
-                Your ultimate guide to the world of cinema and television. Join now to create your personalized watchlist.
+            <h2 class="text-gray-200 text-xl md:text-2xl font-medium leading-relaxed max-w-3xl mx-auto drop-shadow-lg opacity-90">
+                Your ultimate guide to the world of cinema. <br class="hidden md:block"> Join now to create your personalized watchlist.
             </h2>
         </div>
-        
-        <div class="flex justify-center mt-4">
-            <a href="#trending" 
-                class="group relative flex items-center justify-center overflow-hidden rounded-full px-10 py-4 bg-neon-cyan text-[#121212] text-lg font-bold tracking-wide transition-all duration-300 hover:scale-105 hover:shadow-[0_0_30px_rgba(0,255,255,0.6)]">
-                <span class="relative z-10">Start Exploring</span>
-                <div class="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent z-0"></div>
+
+        <div class="mt-12 animate-bounce text-white/50">
+            <a href="#trending" class="cursor-pointer hover:text-neon-cyan transition-colors">
+                <span class="text-xs font-bold tracking-widest uppercase block mb-2">Scroll Down</span>
+                <i class="fas fa-chevron-down text-2xl"></i>
             </a>
         </div>
-    </div>
-    
-    <div id="heroNeonLine" 
-        class="absolute bottom-0 left-0 w-full h-2 bg-neon-cyan shadow-[0_0_20px_#00FFFF] z-30 transition-all duration-75 ease-out"
-        style="opacity: 1;">
     </div>
 </section>
 

@@ -20,6 +20,9 @@ Route::get('/movies', [GuestController::class, 'movies'])->name('movies.index');
 // Halaman Katalog TV Shows
 Route::get('/tv-shows', [GuestController::class, 'tvShows'])->name('tv.index');
 
+// Halaman Katalog Artis
+Route::get('/artists', [GuestController::class, 'artists'])->name('artists.index');
+
 // PERUBAHAN DI SINI: Ganti 'searchTitles' menjadi 'search'
 // sesuai dengan nama function baru di Controller Anda.
 // Ganti 'searchTitles' menjadi 'search'
@@ -35,3 +38,6 @@ Route::get('/tv/{show_id}', [GuestController::class, 'showTvDetail'])->name('tv.
 
 //rute aktor
 Route::get('/person/{nconst}', [GuestController::class, 'showPersonDetail'])->name('person.detail');
+
+// Halaman About Us
+Route::get('/about', [GuestController::class, 'about'])->name('about');

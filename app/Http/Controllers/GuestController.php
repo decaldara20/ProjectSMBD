@@ -75,7 +75,19 @@ class GuestController extends Controller
             ->table('v_DetailJudulTvShow')
             ->whereIn('show_id', $topShowIds)
             ->orderByDesc('popularity')
+            ->select(
+                'show_id',    // Tetap alias ke 'tconst' agar Blade tidak error
+                'primaryTitle',         // JANGAN pakai 'name as...', kolom ini sudah bernama 'primaryTitle'
+                'averageRating',        // JANGAN pakai 'vote_average as...', kolom ini sudah 'averageRating'
+                'startYear',            // JANGAN pakai 'first_air_date as...', kolom ini sudah 'startYear'
+                'popularity'
+            )
             ->get();
+
+        // Inject poster path null untuk JS
+        foreach($topShows as $show) {
+            $show->poster_path = null;
+        }
 
         // E. SLIDER 3: TOP ARTISTS
         // Ambil dari View Bankability (Top 10 Artis Paling Populer/Banyak Vote)
@@ -141,17 +153,16 @@ class GuestController extends Controller
     // ==========================================
     // 3. TV SHOWS CATALOG PAGE
     // ==========================================
-    public function tvShows(Request $request)
-    {
+    public function tvShows(Request $request) {
         // Ambil Data TV Shows dengan Pagination
-        // Kita ganti nama kolomnya biar seragam dengan format 'Movie'
+        // Ganti nama kolomnya biar seragam dengan format 'Movie'
         $query = DB::connection('sqlsrv')
-            ->table('v_DetailJudulTvShow') // Pastikan nama View ini benar
+            ->table('v_DetailJudulTvShow')
             ->select(
-                'show_id as tconst',           // ID
-                'name as primaryTitle',        // Judul
-                'vote_average as averageRating', // Rating
-                'first_air_date as startYear',   // Tahun
+                'show_id as tconst',    // Kita tetap butuh ini jadi 'tconst' buat View Blade
+                'primaryTitle',         // GUNAKAN INI (Jangan 'name', karena di View namanya sudah primaryTitle)
+                'averageRating',        // GUNAKAN INI (Jangan 'vote_average')
+                'startYear',            // GUNAKAN INI (Jangan 'first_air_date')
                 'popularity'
             );
 
@@ -163,6 +174,56 @@ class GuestController extends Controller
 
         return view('guest.tv-shows', compact('tvShows'));
     }
+
+    // ==========================================
+    // 4. ARTISTS CATALOG PAGE
+    // ==========================================
+    public function artists(Request $request) {
+        // 1. Mulai Query dari View Bankabilitas (karena sudah ada ranking popularitas)
+        $query = DB::connection('sqlsrv')
+            ->table('v_Executive_BankabilityReport_Base as v')
+            ->select('v.nconst', 'v.primaryName', 'v.TotalNumVotes');
+
+        // 2. Filter Berdasarkan Profesi (Jika ada request ?profession=actor)
+        if ($request->has('profession') && $request->profession != '') {
+            $prof = $request->profession;
+            
+            // Tips: Jika user cari 'actor', kita cari juga 'actress'
+            $searchProfs = ($prof == 'actor') ? ['actor', 'actress'] : [$prof];
+
+            // Filter menggunakan WHERE EXISTS ke tabel name_professions
+            // (Ini lebih cepat daripada JOIN langsung untuk filter)
+            $query->whereExists(function ($subquery) use ($searchProfs) {
+                $subquery->select(DB::raw(1))
+                    ->from('name_professions as np')
+                    ->whereColumn('np.nconst', 'v.nconst')
+                    ->whereIn('np.profession_name', $searchProfs);
+            });
+        }
+
+        // 3. Filter Pencarian Nama (Search Bar di halaman Artists)
+        if ($request->has('q') && $request->q != '') {
+            $query->where('v.primaryName', 'LIKE', '%' . $request->q . '%');
+        }
+
+        // 4. Sorting Default (Paling Populer)
+        $query->orderByDesc('v.TotalNumVotes');
+
+        // 5. Pagination
+        $artists = $query->paginate(24);
+
+        // Inject placeholder gambar
+        foreach($artists as $artist) {
+            $artist->profile_path = null;
+        }
+
+        // Kirim juga variabel 'profession' ke view untuk judul halaman
+        $currentProfession = $request->profession ?? 'All';
+
+        return view('guest.artists', compact('artists', 'currentProfession'));
+    }
+
+
 
     // =========================================================================
     // 4. DETAIL PAGES (Film, TV, Person)
@@ -373,5 +434,10 @@ class GuestController extends Controller
             'query' => $queryRaw,
             'type' => $type
         ]);
+    }
+
+    public function about()
+    {
+        return view('guest.about');
     }
 }
