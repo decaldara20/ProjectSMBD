@@ -234,37 +234,38 @@
                 @yield('content')
             </main>
 
-            <footer class="relative bg-[#1A1A1A] text-[#888888] py-10 px-4 sm:px-8 md:px-10 lg:px-20 mt-20">
-    
-                <div class="absolute top-0 left-0 w-full h-24 -mt-24 bg-gradient-to-b from-transparent to-[#1A1A1A] pointer-events-none"></div>
+            @unless(request()->routeIs('login') || request()->routeIs('register'))
+                <footer class="relative bg-[#1A1A1A] text-[#888888] py-10 px-4 sm:px-8 md:px-10 lg:px-20 mt-20">
+        
+                    <div class="absolute top-0 left-0 w-full h-24 -mt-24 bg-gradient-to-b from-transparent to-[#1A1A1A] pointer-events-none"></div>
 
-                <div class="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center justify-center text-center gap-6">
+                    <div class="relative z-10 w-full max-w-7xl mx-auto flex flex-col items-center justify-center text-center gap-6">
 
-                    <div class="flex flex-row flex-wrap items-center justify-center gap-8 text-sm font-medium tracking-wide">
-                        
-                        <a href="{{ route('about') }}" class="text-[#EAEAEA] hover:text-neon-cyan transition-colors duration-300 hover:scale-105 transform no-underline">
-                            About Us
-                        </a>
+                        <div class="flex flex-row flex-wrap items-center justify-center gap-8 text-sm font-medium tracking-wide">
+                            
+                            <a href="{{ route('about') }}" class="text-[#EAEAEA] hover:text-neon-cyan transition-colors duration-300 hover:scale-105 transform no-underline">
+                                About Us
+                            </a>
 
-                        <a href="https://github.com/decaldara20/projectsmbd" target="_blank" class="text-[#EAEAEA] hover:text-white transition-colors duration-300 flex items-center gap-2 hover:scale-105 transform no-underline">
-                            <i class="fab fa-github text-lg"></i> 
-                            <span>Source Code</span>
-                        </a>
+                            <a href="https://github.com/decaldara20/projectsmbd" target="_blank" class="text-[#EAEAEA] hover:text-white transition-colors duration-300 flex items-center gap-2 hover:scale-105 transform no-underline">
+                                <i class="fab fa-github text-lg"></i> 
+                                <span>Source Code</span>
+                            </a>
+
+                        </div>
+
+                        <div class="w-24 h-1 bg-gradient-to-r from-transparent via-[#333] to-transparent rounded-full opacity-50"></div>
+
+                        <div class="flex flex-col gap-1 text-xs text-[#555]">
+                            <p>&copy; 2025 IMTVDB. All rights reserved.</p>
+                            <p class="opacity-70">
+                                Powered by <span class="text-[#FF2D20] font-bold">Laravel</span>
+                            </p>
+                        </div>
 
                     </div>
-
-                    <div class="w-24 h-1 bg-gradient-to-r from-transparent via-[#333] to-transparent rounded-full opacity-50"></div>
-
-                    <div class="flex flex-col gap-1 text-xs text-[#555]">
-                        <p>&copy; 2025 IMTVDB. All rights reserved.</p>
-                        <p class="opacity-70">
-                            Powered by <span class="text-[#FF2D20] font-bold">Laravel</span>
-                        </p>
-                    </div>
-
-                </div>
-            </footer>
-
+                </footer>
+            @endunless
         </div>
     </div>
 

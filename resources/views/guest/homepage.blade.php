@@ -68,12 +68,24 @@
                         class="relative flex-none w-[160px] md:w-[200px] flex flex-col gap-3 group snap-start cursor-pointer">
                         
                         <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-[#1A1A1A] border border-white/5 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:border-neon-cyan/50 group-hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] z-10">
-                            <img src="https://via.placeholder.com/300x450/111/555?text=Loading..." 
+                            
+                            <div class="absolute inset-0 flex flex-col items-center justify-center opacity-30 text-center p-4 z-0">
+                                <i class="fas fa-film text-4xl text-gray-500 mb-2"></i>
+                                <span class="text-neon-cyan font-bold tracking-widest text-xs">IMTVDB</span>
+                                <span class="text-[10px] text-gray-500 mt-1 leading-tight line-clamp-2 px-2">
+                                    {{ $movie->primaryTitle }}
+                                </span>
+                            </div>
+                        
+                            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
                                 data-id="{{ $movie->tconst }}" 
                                 data-type="movie"
                                 alt="{{ $movie->primaryTitle }}"
-                                class="tmdb-poster w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                            
+                                class="tmdb-poster w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                onload="this.classList.remove('opacity-0')">
+
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"></div>
+
                             <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400 flex items-center gap-1 border border-white/10">
                                 <i class="fas fa-star text-[10px]"></i> {{ $movie->averageRating ?? 'N/A' }}
                             </div>
@@ -107,13 +119,23 @@
                     @foreach($topShows as $show)
                     <a href="/tv/{{ $show->show_id }}" 
                         class="relative flex-none w-[160px] md:w-[200px] flex flex-col gap-3 group snap-start cursor-pointer">
+                        
                         <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-[#1A1A1A] border border-white/5 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:border-purple-500/50 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] z-10">
                             
+                            <div class="absolute inset-0 flex flex-col items-center justify-center opacity-30 text-center p-4 z-0">
+                                <i class="fas fa-tv text-4xl text-gray-500 mb-2"></i>
+                                <span class="text-purple-500 font-bold tracking-widest text-xs">IMTVDB</span>
+                                <span class="text-[10px] text-gray-500 mt-1 leading-tight line-clamp-2 px-2">
+                                    {{ $show->name ?? $show->primaryTitle }}
+                                </span>
+                            </div>
+
                             <img src="https://via.placeholder.com/300x450/111/555?text=Loading..." 
                                 data-id="{{ $show->show_id }}" 
                                 data-type="tv"
                                 class="tmdb-poster w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                alt="{{ $show->name ?? $show->primaryTitle ?? 'TV Show' }}">
+                                alt="{{ $show->name ?? $show->primaryTitle ?? 'TV Show' }}"
+                                onload="this.classList.remove('opacity-0')">
 
                             <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             
@@ -121,6 +143,7 @@
                                 <i class="fas fa-star text-[10px]"></i> {{ number_format($show->vote_average ?? $show->averageRating ?? 0, 1) }}
                             </div>
                         </div>
+
                         <div class="px-1">
                             <h3 class="text-gray-200 text-sm md:text-base font-semibold truncate group-hover:text-purple-400 transition-colors">
                                 {{ $show->name ?? $show->primaryTitle }}
@@ -136,39 +159,45 @@
         </div>
     </section>
 
-    <section class="mt-10">
-        <div class="w-full max-w-[1400px] mx-auto px-4 md:px-8">
-            <div class="flex items-center gap-3 mb-2 px-2">
-                <div class="w-1 h-8 bg-pink-500 rounded-full shadow-[0_0_10px_#EC4899]"></div>
+<section class="mt-16 px-4 sm:px-8 md:px-10 lg:px-20">
+        <div class="w-full max-w-[1400px] mx-auto">
+            <div class="flex items-center gap-3 mb-6 px-2 border-b border-gray-200 dark:border-white/10 pb-4">
+                <i class="fas fa-users text-pink-500 text-2xl"></i>
                 <h2 class="text-gray-900 dark:text-white text-3xl font-bold font-display tracking-tight transition-colors">
                     Top Artists
                 </h2>
             </div>
             
-            <div class="flex overflow-x-auto pb-12 pt-4 px-4 -mx-4 gap-8 no-scrollbar">
+            <div class="flex overflow-x-auto pb-12 pt-4 px-4 -mx-4 gap-12 no-scrollbar">
+                
                 @foreach($topArtists as $artist)
                 <a href="{{ isset($artist->nconst) ? '/person/'.$artist->nconst : '#' }}" 
-                    class="flex flex-col gap-3 items-center group min-w-[140px] cursor-pointer">
+                   class="flex flex-col gap-4 items-center group min-w-[140px] cursor-pointer">
                     
-                    <div class="relative p-[3px] rounded-full bg-gradient-to-br from-gray-700 to-gray-900 group-hover:from-pink-500 group-hover:to-purple-500 transition-all duration-300 shadow-lg group-hover:shadow-[0_0_20px_rgba(236,72,153,0.5)]">
+                    <div class="relative p-[2px] rounded-full bg-transparent group-hover:bg-gradient-to-br group-hover:from-pink-500 group-hover:to-purple-600 transition-all duration-300 shadow-none group-hover:shadow-[0_0_20px_rgba(236,72,153,0.4)]">
                         
-                        <div class="w-32 h-32 md:w-36 md:h-36 rounded-full bg-cover bg-center border-4 border-[#121212] overflow-hidden relative"
-                            style="background-image: url('https://ui-avatars.com/api/?name={{ urlencode($artist->primaryName) }}&background=random&size=200');">
-                            
-                            <img src="https://via.placeholder.com/200x200" 
-                                data-id="{{ $artist->nconst }}" 
-                                data-type="person"
-                                alt="{{ $artist->primaryName }}"
-                                class="tmdb-poster absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500"
-                                onload="this.classList.remove('opacity-0')"> 
+                        <div class="w-36 h-36 md:w-40 md:h-40 rounded-full bg-cover bg-center border-4 border-gray-100 dark:border-[#1A1A1A] transition-transform duration-300 group-hover:scale-95 relative overflow-hidden bg-gray-200 dark:bg-[#222]">
+                             
+                             <div class="absolute inset-0 bg-cover bg-center z-0" 
+                                  style="background-image: url('https://ui-avatars.com/api/?name={{ urlencode($artist->primaryName) }}&background=random&size=200&color=fff');">
+                             </div>
+
+                             <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
+                                  data-id="{{ $artist->nconst }}" 
+                                  data-type="person"
+                                  alt="{{ $artist->primaryName }}"
+                                  class="tmdb-poster absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-500 opacity-0"
+                                  onload="this.classList.remove('opacity-0')"> 
                         </div>
                     </div>
                     
-                    <div class="text-center mt-1">
-                        <p class="text-gray-200 text-sm md:text-base font-semibold group-hover:text-pink-400 transition-colors truncate w-32">
+                    <div class="text-center">
+                        <p class="text-gray-800 dark:text-gray-200 text-base font-medium group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors truncate w-36">
                             {{ $artist->primaryName }}
                         </p>
-                        <p class="text-gray-600 text-xs mt-0.5">{{ number_format($artist->TotalNumVotes) }} Votes</p>
+                        <p class="text-gray-500 dark:text-gray-600 text-xs mt-1 uppercase tracking-wider">
+                            {{ number_format($artist->TotalNumVotes) }} VOTES
+                        </p>
                     </div>
                 </a>
                 @endforeach
@@ -232,33 +261,29 @@
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    let imagePath = null;
-
-                    // LOGIKA PENGAMBILAN GAMBAR
+                    let path = null;
+                    
+                    // Logika Path Gambar
                     if (type === 'person') {
-                        // Khusus Artis: Ambil dari person_results -> profile_path
-                        if (data.person_results && data.person_results.length > 0) {
-                            imagePath = data.person_results[0].profile_path;
-                        }
+                        if (data.person_results?.length > 0) path = data.person_results[0].profile_path;
                     } else if (type === 'tv' && !isNaN(id)) {
-                        // Khusus TV ID Angka
-                        imagePath = data.poster_path;
+                        path = data.poster_path;
                     } else {
-                        // Khusus Movie & TV ID String
-                        if (data.movie_results && data.movie_results.length > 0) {
-                            imagePath = data.movie_results[0].poster_path;
-                        } else if (data.tv_results && data.tv_results.length > 0) {
-                            imagePath = data.tv_results[0].poster_path;
-                        }
+                        if (data.movie_results?.length > 0) path = data.movie_results[0].poster_path;
+                        else if (data.tv_results?.length > 0) path = data.tv_results[0].poster_path;
                     }
 
-                    // TAMPILKAN GAMBAR JIKA ADA
-                    if (imagePath) {
-                        img.src = `https://image.tmdb.org/t/p/w500${imagePath}`;
+                    // Jika ada gambar, pasang src dan load
+                    if (path) {
+                        img.src = `https://image.tmdb.org/t/p/w500${path}`;
+                        // 'onload' event di HTML akan otomatis hapus opacity-0 saat gambar siap
                     }
-                    // Jika tidak ada, biarkan default (UI Avatars / Placeholder)
+                    // Jika TIDAK ada gambar, biarkan saja (opacity tetap 0).
+                    // Maka DIV layer bawah (Logo/Avatar) yang akan terlihat.
                 })
-                .catch(error => console.error("Gagal fetch:", error));
+                .catch(() => {
+                    // Error silent, biarkan placeholder tampil
+                });
         });
     });
 </script>
