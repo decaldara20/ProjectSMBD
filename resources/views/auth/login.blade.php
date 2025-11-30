@@ -63,15 +63,15 @@
         </div>
 
         <div class="flex justify-center gap-3">
-            <button class="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-red-500 hover:text-red-500 transition-all flex items-center justify-center text-gray-400 text-sm" title="Google">
+            <!-- <button class="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-red-500 hover:text-red-500 transition-all flex items-center justify-center text-gray-400 text-sm" title="Google">
                 <i class="fab fa-google"></i>
-            </button>
+            </button> -->
             <button class="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white hover:text-white transition-all flex items-center justify-center text-gray-400 text-sm" title="GitHub">
                 <i class="fab fa-github"></i>
             </button>
-            <button class="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-400 hover:text-blue-400 transition-all flex items-center justify-center text-gray-400 text-sm" title="Twitter">
+            <!-- <button class="w-8 h-8 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-400 hover:text-blue-400 transition-all flex items-center justify-center text-gray-400 text-sm" title="Twitter">
                 <i class="fab fa-twitter"></i>
-            </button>
+            </button> -->
         </div>
 
         <p class="mt-4 text-center text-gray-500 text-[11px]">
