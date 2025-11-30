@@ -113,10 +113,30 @@
                         <button class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] hover:bg-neon-cyan/20 text-white transition-all duration-300 group" title="Favorit Saya">
                             <span class="material-symbols-outlined text-[#EAEAEA] group-hover:text-neon-cyan text-[20px]">favorite</span>
                         </button>
+                    </div>
 
-                        <a href="/login" class="flex h-10 px-6 items-center justify-center rounded-full bg-neon-cyan text-[#121212] text-sm font-bold tracking-wide hover:shadow-[0_0_15px_#00FFFF] hover:scale-105 transition-all duration-300">
-                            Login
-                        </a>
+                    <div class="relative group">
+                        <button class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] hover:bg-neon-cyan/20 text-white transition-all duration-300 group-hover:shadow-[0_0_10px_rgba(0,255,255,0.3)] border border-transparent hover:border-neon-cyan/30">
+                            <span class="material-symbols-outlined text-[#EAEAEA] group-hover:text-neon-cyan">person</span>
+                        </button>
+
+                        <div class="absolute right-0 top-full mt-3 w-48 bg-[#1A1A1A] border border-[#333] rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.8)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50 overflow-hidden">
+                            
+                            <div class="px-4 py-3 border-b border-[#333] bg-[#222]">
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Account</p>
+                            </div>
+
+                            <div class="py-1">
+                                <a href="/login" class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-neon-cyan/10 hover:text-neon-cyan transition-colors">
+                                    <span class="material-symbols-outlined text-[18px] mr-3">login</span>
+                                    Log In
+                                </a>
+                                <a href="/register" class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-neon-cyan/10 hover:text-neon-cyan transition-colors border-t border-[#333]">
+                                    <span class="material-symbols-outlined text-[18px] mr-3">person_add</span>
+                                    Sign Up
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
