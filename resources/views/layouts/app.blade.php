@@ -64,8 +64,8 @@
                         
                         <nav class="hidden xl:flex items-center gap-6">
                             <a class="text-[#EAEAEA] hover:text-neon-cyan transition-colors duration-300 text-sm font-medium" href="/">Home</a>
-                            <a class="text-[#EAEAEA] hover:text-neon-cyan transition-colors duration-300 text-sm font-medium" href="#">Movies</a>
-                            <a class="text-[#EAEAEA] hover:text-neon-cyan transition-colors duration-300 text-sm font-medium" href="#">TV Shows</a>
+                            <a class="text-[#EAEAEA] hover:text-neon-cyan transition-colors duration-300 text-sm font-medium" href="{{ route('movies.index') }}">Movies</a>
+                            <a class="text-[#EAEAEA] hover:text-neon-cyan transition-colors duration-300 text-sm font-medium" href="{{ route('tv.index') }}">TV Shows</a>
                             <a class="text-[#EAEAEA] hover:text-neon-cyan transition-colors duration-300 text-sm font-medium" href="#">Artists</a>
                             <a class="text-[#EAEAEA] hover:text-neon-cyan transition-colors duration-300 text-sm font-medium" href="#">Genres</a>
                         </nav>

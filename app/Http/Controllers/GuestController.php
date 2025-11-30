@@ -104,8 +104,68 @@ class GuestController extends Controller
         ));
     }
 
+    // ==========================================
+    // 2. MOVIES CATALOG PAGE
+    // ==========================================
+    public function movies(Request $request) {
+        $genres = DB::connection('sqlsrv')
+            ->table('genre_types')
+            ->orderBy('genre_name')
+            ->pluck('genre_name');
+
+        // Query Dasar: Ambil Film
+        $query = DB::connection('sqlsrv')
+            ->table('v_DetailJudulIMDB')
+            ->where('titleType', 'movie');
+
+        // Filter: Genre (Jika ada di URL ?genre=Action)
+        if ($request->has('genre') && $request->genre != '') {
+            $query->where('Genres_List', 'LIKE', '%' . $request->genre . '%');
+        }
+
+        // Sorting: Default berdasarkan Popularitas (Votes)
+        $query->orderByDesc('numVotes');
+
+        // Ambil Data dengan Pagination (18 film per halaman)
+        $movies = $query->paginate(18);
+
+        // Inject Poster Dummy untuk tampilan (Karena DB lokal tidak ada gambar)
+        // Note: Di View nanti kita pakai JS lazy load seperti di Homepage
+        foreach($movies as $movie) {
+            $movie->poster_path = null;
+        }
+
+        return view('guest.movies', compact('movies', 'genres'));
+    }
+
+    // ==========================================
+    // 3. TV SHOWS CATALOG PAGE
+    // ==========================================
+    public function tvShows(Request $request)
+    {
+        // Ambil Data TV Shows dengan Pagination
+        // Kita ganti nama kolomnya biar seragam dengan format 'Movie'
+        $query = DB::connection('sqlsrv')
+            ->table('v_DetailJudulTvShow') // Pastikan nama View ini benar
+            ->select(
+                'show_id as tconst',           // ID
+                'name as primaryTitle',        // Judul
+                'vote_average as averageRating', // Rating
+                'first_air_date as startYear',   // Tahun
+                'popularity'
+            );
+
+        // Sorting: Default berdasarkan Popularitas
+        $query->orderByDesc('popularity');
+
+        // Ambil Data (18 per halaman)
+        $tvShows = $query->paginate(18);
+
+        return view('guest.tv-shows', compact('tvShows'));
+    }
+
     // =========================================================================
-    // 2. DETAIL PAGES (Film, TV, Person)
+    // 4. DETAIL PAGES (Film, TV, Person)
     // =========================================================================
 
     public function showTitleDetail($tconst) {
