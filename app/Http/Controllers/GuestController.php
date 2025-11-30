@@ -49,33 +49,37 @@ class GuestController extends Controller
         //     if (!isset($heroMovie->contentRating)) $heroMovie->contentRating = 'PG-13'; 
         // }
 
-        // C. SLIDER 1: TOP MOVIES
-        $topMovieIds = DB::connection('sqlsrv')
-            ->table('title_ratings as tr')
-            ->join('title_basics as tb', 'tr.tconst', '=', 'tb.tconst')
-            ->where('tb.titleType', 'movie')
-            ->orderByDesc('tr.numVotes')
-            ->limit(10)
-            ->pluck('tb.tconst');
+// --- 3. DATA UNTUK SLIDER 1 (Top Movies) ---
+    // STEP 1: Ambil 10 ID film terpopuler (Super Cepat karena Index)
+    $topMovieIds = DB::connection('sqlsrv')
+        ->table('title_ratings as tr')
+        ->join('title_basics as tb', 'tr.tconst', '=', 'tb.tconst')
+        ->where('tb.titleType', 'movie')
+        ->orderByDesc('tr.numVotes')
+        ->limit(10)
+        ->pluck('tb.tconst'); // Hanya ambil ID
 
-        $topMovies = $topMovieIds->isEmpty() ? [] : DB::connection('sqlsrv')
-            ->table('v_DetailJudulIMDB')
-            ->whereIn('tconst', $topMovieIds)
-            ->orderByDesc('numVotes')
-            ->get();
+    // STEP 2: Ambil Detail Lengkap berdasarkan ID tadi
+    $topMovies = DB::connection('sqlsrv')
+        ->table('v_DetailJudulIMDB')
+        ->whereIn('tconst', $topMovieIds)
+        ->orderByDesc('numVotes') // Urutkan ulang sesuai ID
+        ->get();
 
-        // D. SLIDER 2: POPULAR TV SHOWS
-        $topShowIds = DB::connection('sqlsrv')
-            ->table('v_DetailJudulTvShow')
-            ->orderByDesc('popularity') // Asumsi ada kolom popularity
-            ->limit(10)
-            ->pluck('show_id');
+// --- 4. DATA UNTUK SLIDER 2 (Popular TV Shows) ---
+    // STEP 1: Ambil 10 ID TV terpopuler dari tabel BASE (bukan View)
+    $topShowIds = DB::connection('sqlsrv')
+        ->table('shows') // Langsung ke tabel fisik, jangan ke View dulu
+        ->orderByDesc('popularity')
+        ->limit(10)
+        ->pluck('show_id');
 
-        $topShows = DB::connection('sqlsrv')
-            ->table('v_DetailJudulTvShow')
-            ->whereIn('show_id', $topShowIds)
-            ->orderByDesc('popularity')
-            ->get();
+    // STEP 2: Ambil Detail dari View
+    $topShows = DB::connection('sqlsrv')
+        ->table('v_DetailJudulTvShow')
+        ->whereIn('show_id', $topShowIds)
+        ->orderByDesc('popularity')
+        ->get();
 
         // E. SLIDER 3: TOP ARTISTS
         // Ambil dari View Bankability (Top 10 Artis Paling Populer/Banyak Vote)
