@@ -24,4 +24,16 @@ class AuthController extends Controller
         // Nanti diisi logika validasi ke tabel 'users'
         return redirect()->route('homepage'); 
     }
+
+    // Proses Logout
+    public function logout(Request $request)
+    {
+        \Illuminate\Support\Facades\Auth::logout();
+
+        $request->session()->invalidate();
+    
+        $request->session()->regenerateToken();
+    
+        return redirect('/')->with('success', 'Berhasil logout.');
+    }
 }

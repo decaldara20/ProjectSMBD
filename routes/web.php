@@ -61,3 +61,6 @@ Route::get('/about', [GuestController::class, 'about'])->name('about');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+
+// Route Logout (Wajib POST demi keamanan)
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

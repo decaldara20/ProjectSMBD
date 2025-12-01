@@ -192,28 +192,71 @@
                             </div>
 
                             <div class="relative group">
-                                <button class="flex items-center justify-center w-10 h-10 rounded-full bg-[#1A1A1A] hover:bg-neon-cyan/20 text-white transition-all duration-300 group-hover:shadow-[0_0_10px_rgba(0,255,255,0.3)] border border-transparent hover:border-neon-cyan/30">
-                                    <span class="material-symbols-outlined text-[#EAEAEA] group-hover:text-neon-cyan">person</span>
-                                </button>
+                                
+                                // Tampilan untuk user yang belum login
+                                @guest
+                                    <button class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-[#1A1A1A] hover:bg-cyan-100 dark:hover:bg-neon-cyan/20 text-gray-600 dark:text-white transition-all duration-300 group-hover:shadow-[0_0_10px_rgba(0,255,255,0.3)] border border-transparent hover:border-cyan-200 dark:hover:border-neon-cyan/30">
+                                        <span class="material-symbols-outlined text-gray-600 dark:text-[#EAEAEA] group-hover:text-cyan-600 dark:group-hover:text-neon-cyan">person</span>
+                                    </button>
 
-                                <div class="absolute right-0 top-full mt-3 w-48 bg-[#1A1A1A] border border-[#333] rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.8)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50 overflow-hidden">
-                                    
-                                    <div class="px-4 py-3 border-b border-[#333] bg-[#222]">
-                                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Account</p>
+                                    <div class="absolute right-0 top-full mt-3 w-48 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50 overflow-hidden">
+                                        <div class="px-4 py-3 border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#222]">
+                                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Account</p>
+                                        </div>
+                                        <div class="py-1">
+                                            <a href="/login" class="flex items-center px-4 py-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-neon-cyan/10 hover:text-cyan-600 dark:hover:text-neon-cyan transition-colors">
+                                                <span class="material-symbols-outlined text-[18px] mr-3">login</span> Log In
+                                            </a>
+                                            <a href="/register" class="flex items-center px-4 py-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-neon-cyan/10 hover:text-cyan-600 dark:hover:text-neon-cyan transition-colors border-t border-gray-200 dark:border-[#333]">
+                                                <span class="material-symbols-outlined text-[18px] mr-3">person_add</span> Sign Up
+                                            </a>
+                                        </div>
                                     </div>
+                                @endguest
 
-                                    <div class="py-1">
-                                        <a href="/login" class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-neon-cyan/10 hover:text-neon-cyan transition-colors">
-                                            <span class="material-symbols-outlined text-[18px] mr-3">login</span>
-                                            Log In
-                                        </a>
-                                        <a href="/register" class="flex items-center px-4 py-3 text-sm text-gray-300 hover:bg-neon-cyan/10 hover:text-neon-cyan transition-colors border-t border-[#333]">
-                                            <span class="material-symbols-outlined text-[18px] mr-3">person_add</span>
-                                            Sign Up
-                                        </a>
+                                // Tampilan untuk user yang sudah login
+                                @auth
+                                    <button class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-[#1A1A1A] border-2 border-transparent group-hover:border-cyan-500 dark:group-hover:border-neon-cyan transition-all duration-300 overflow-hidden shadow-md">
+                                        <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random&color=fff&size=128" 
+                                            alt="{{ Auth::user()->name }}" 
+                                            class="w-full h-full object-cover">
+                                    </button>
+
+                                    <div class="absolute right-0 top-full mt-3 w-56 bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-[#333] rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right z-50 overflow-hidden">
+                                        
+                                        <div class="px-4 py-3 border-b border-gray-200 dark:border-[#333] bg-gray-50 dark:bg-[#222]">
+                                            <p class="text-sm font-bold text-gray-900 dark:text-white truncate">{{ Auth::user()->name }}</p>
+                                            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ Auth::user()->email }}</p>
+                                            <span class="mt-1 inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-100 text-cyan-800 dark:bg-neon-cyan/20 dark:text-neon-cyan uppercase tracking-wider">
+                                                Member
+                                            </span>
+                                        </div>
+
+                                        <div class="py-1">
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-white/5 hover:text-cyan-600 dark:hover:text-neon-cyan transition-colors">
+                                                <span class="material-symbols-outlined text-[18px] mr-3">dashboard</span> Dashboard
+                                            </a>
+                                            <a href="{{ route('favorites.index') }}" class="flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-white/5 hover:text-cyan-600 dark:hover:text-neon-cyan transition-colors">
+                                                <span class="material-symbols-outlined text-[18px] mr-3">favorite</span> My Favorites
+                                            </a>
+                                            <a href="#" class="flex items-center px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-cyan-50 dark:hover:bg-white/5 hover:text-cyan-600 dark:hover:text-neon-cyan transition-colors">
+                                                <span class="material-symbols-outlined text-[18px] mr-3">settings</span> Settings
+                                            </a>
+                                            
+                                            <div class="h-px bg-gray-200 dark:bg-[#333] my-1"></div>
+                                            
+                                            <form action="{{ route('logout') }}" method="POST" class="block">
+                                                @csrf
+                                                <button type="submit" class="w-full text-left flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                                    <span class="material-symbols-outlined text-[18px] mr-3">logout</span> Sign Out
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
+                                @endauth
+
                             </div>
+
                         </div>
                     </header>
                 @endunless
