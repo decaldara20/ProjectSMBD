@@ -29,47 +29,60 @@
                 <a href="/" class="mt-4 text-cyan-500 hover:underline">Mulai Menjelajah &rarr;</a>
             </div>
         @else
+            
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
                 @foreach($history as $item)
-                @php
-                    // Tentukan Link berdasarkan tipe
-                    $link = '#';
-                    if($item->type == 'movie') $link = route('title.detail', $item->id);
-                    elseif($item->type == 'tv') $link = route('tv.detail', $item->id);
-                    elseif($item->type == 'person') $link = route('person.detail', $item->id);
-                @endphp
+                    @php
+                        // Tentukan Link berdasarkan tipe
+                        $link = '#';
+                        if($item->type == 'movie') $link = route('title.detail', $item->id);
+                        elseif($item->type == 'tv') $link = route('tv.detail', $item->id);
+                        elseif($item->type == 'person') $link = route('person.detail', $item->id);
+                    @endphp
 
-                <a href="{{ $link }}" class="flex flex-col gap-3 group cursor-pointer relative">
-                    
-                    <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-[#1A1A1A] shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-cyan-500/50 border border-gray-200 dark:border-white/5">
-                        
-                        <img src="https://via.placeholder.com/300x450?text=Loading..." 
-                             data-id="{{ $item->id }}" 
-                             data-type="{{ $item->type }}"
-                             alt="{{ $item->title }}"
-                             class="tmdb-poster w-full h-full object-cover transition-opacity duration-500 opacity-0"
-                             onload="this.classList.remove('opacity-0')">
+                    <div class="relative group">
+                        <a href="{{ $link }}" class="flex flex-col gap-3 group cursor-pointer relative">
+                            
+                            <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-[#1A1A1A] shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-cyan-500/50 border border-gray-200 dark:border-white/5">
+                                
+                                <img src="https://via.placeholder.com/300x450?text=Loading..." 
+                                    data-id="{{ $item->id }}" 
+                                    data-type="{{ $item->type }}"
+                                    alt="{{ $item->title }}"
+                                    class="tmdb-poster w-full h-full object-cover transition-opacity duration-500 opacity-0"
+                                    onload="this.classList.remove('opacity-0')">
 
-                        <div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-bold text-white uppercase border border-white/10">
-                            {{ $item->type == 'tv' ? 'TV Series' : ucfirst($item->type) }}
-                        </div>
+                                <div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-bold text-white uppercase border border-white/10">
+                                    {{ $item->type == 'tv' ? 'TV Series' : ucfirst($item->type) }}
+                                </div>
 
-                        @if($item->type != 'person' && $item->rating)
-                        <div class="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400 flex items-center gap-1">
-                            <i class="fas fa-star text-[10px]"></i> {{ number_format($item->rating, 1) }}
-                        </div>
-                        @endif
+                                @if($item->type != 'person' && $item->rating)
+                                <div class="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400 flex items-center gap-1">
+                                    <i class="fas fa-star text-[10px]"></i> {{ number_format($item->rating, 1) }}
+                                </div>
+                                @endif
+                            </div>
+
+                            <div class="px-1">
+                                <h3 class="text-gray-900 dark:text-gray-200 text-sm font-semibold truncate group-hover:text-cyan-600 dark:group-hover:text-neon-cyan transition-colors">
+                                    {{ $item->title }}
+                                </h3>
+                                <p class="text-gray-500 text-xs mt-1">
+                                    {{ $item->year ? $item->year : 'Seen just now' }}
+                                </p>
+                            </div>
+                        </a>
+
+                        <form action="{{ route('history.remove') }}" method="POST" class="absolute -top-2 -right-2 z-30 opacity-0 group-hover:opacity-100 transition-all duration-300 transform group-hover:-translate-y-1 group-hover:translate-x-1">
+                            @csrf
+                            <input type="hidden" name="id" value="{{ $item->id }}">
+                            <input type="hidden" name="type" value="{{ $item->type }}">
+                            
+                            <button type="submit" class="w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform border-2 border-[#121212]" title="Hapus item ini">
+                                <span class="material-symbols-outlined text-sm font-bold">close</span>
+                            </button>
+                        </form>
                     </div>
-
-                    <div class="px-1">
-                        <h3 class="text-gray-900 dark:text-gray-200 text-sm font-semibold truncate group-hover:text-cyan-600 dark:group-hover:text-neon-cyan transition-colors">
-                            {{ $item->title }}
-                        </h3>
-                        <p class="text-gray-500 text-xs mt-1">
-                            {{ $item->year ? $item->year : 'Seen just now' }}
-                        </p>
-                    </div>
-                </a>
                 @endforeach
             </div>
         @endif

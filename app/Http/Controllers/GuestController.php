@@ -114,9 +114,9 @@ class GuestController extends Controller
     }
 
     // ==========================================
-    // 2. MOVIES CATALOG PAGE
+    // 2. FILMS CATALOG PAGE
     // ==========================================
-    public function movies(Request $request) {
+    public function films(Request $request) {
         $genres = DB::connection('sqlsrv')
             ->table('genre_types')
             ->orderBy('genre_name')
@@ -124,8 +124,17 @@ class GuestController extends Controller
 
         // Query Dasar: Ambil Film
         $query = DB::connection('sqlsrv')
-            ->table('v_DetailJudulIMDB')
-            ->where('titleType', 'movie');
+            ->table('v_DetailJudulIMDB');
+
+        $query->whereIn('titleType', [
+            'movie', 
+            'short', 
+            'tvMovie', 
+            'video', 
+            'tvSpecial', 
+            'videoGame',
+            'tvShort',
+        ]);
 
         // Filter: Genre (Jika ada di URL ?genre=Action)
         if ($request->has('genre') && $request->genre != '') {
@@ -136,15 +145,14 @@ class GuestController extends Controller
         $query->orderByDesc('numVotes');
 
         // Ambil Data dengan Pagination (18 film per halaman)
-        $movies = $query->paginate(18);
+        $films = $query->paginate(18);
 
         // Inject Poster Dummy untuk tampilan (Karena DB lokal tidak ada gambar)
-        // Note: Di View nanti kita pakai JS lazy load seperti di Homepage
-        foreach($movies as $movie) {
-            $movie->poster_path = null;
+        foreach($films as $film) {
+            $film->poster_path = null;
         }
 
-        return view('guest.movies', compact('movies', 'genres'));
+        return view('guest.films', compact('films', 'genres'));
     }
 
     // ==========================================
@@ -173,7 +181,7 @@ class GuestController extends Controller
     }
 
     // ==========================================
-    // 4. ARTISTS CATALOG PAGE
+    // 4. PEOPLE CATALOG PAGE
     // ==========================================
     public function artists(Request $request) {
         // 1. Mulai Query dari View Bankabilitas (karena sudah ada ranking popularitas)
@@ -268,6 +276,24 @@ class GuestController extends Controller
     {
         session()->forget('view_history');
         return redirect()->route('history.index')->with('success', 'Riwayat penelusuran dihapus.');
+    }
+
+    // Hapus Satu Item History
+    public function removeHistoryItem(Request $request)
+    {
+        $history = session()->get('view_history', []);
+        $id = $request->input('id');
+        $type = $request->input('type');
+
+        // Filter array untuk membuang item yang cocok
+        $history = array_filter($history, function($item) use ($id, $type) {
+            return !($item['id'] == $id && $item['type'] == $type);
+        });
+
+        // Re-index array agar urutan rapi
+        session()->put('view_history', array_values($history));
+
+        return back()->with('success', 'Item dihapus dari riwayat.');
     }
 
     // ==========================================

@@ -15,6 +15,36 @@
         background-image: linear-gradient(rgba(18, 18, 18, 0.4) 0%, rgba(18, 18, 18, 0.8) 100%), 
                             url('{{ asset("images/hero-bg.png") }}');
     }
+
+    .logo h1 {
+        font-size: clamp(2rem, 4vw, 4rem); 
+        font-weight: 700;
+        letter-spacing: -0.05em;
+        line-height: 1.1;
+    }
+
+    .search-form {
+    width: 100%;
+        max-width: min(90%, 800px); 
+        margin: 0 auto; 
+        animation: scaleIn 0.8s ease-out 0.2s both;
+    }
+
+    /* Laptop Kecil (1280px - 1440px) */
+    @media (max-width: 1440px) {
+        .logo {
+            margin-bottom: 40px; /* Kurangi jarak logo ke search bar */
+        }
+        
+        .suggestions {
+            margin-top: 24px;
+        }
+        
+        .tag {
+            padding: 6px 12px; /* Perkecil tombol tag sedikit */
+            font-size: 12px;
+        }
+    }
 </style>
 
 <section class="relative w-full min-h-[90vh] flex flex-col items-center justify-start pt-32 overflow-hidden group/hero">

@@ -15,8 +15,8 @@ use App\Http\Controllers\AuthController;
 // Halaman Beranda
 Route::get('/', [GuestController::class, 'homepage'])->name('homepage');
 
-// Halaman Katalog Movies
-Route::get('/movies', [GuestController::class, 'movies'])->name('movies.index');
+// Halaman Katalog Films
+Route::get('/films', [GuestController::class, 'films'])->name('films.index');
 
 // Halaman Katalog TV Shows
 Route::get('/tv-shows', [GuestController::class, 'tvShows'])->name('tv.index');
@@ -27,8 +27,11 @@ Route::get('/artists', [GuestController::class, 'artists'])->name('artists.index
 // Halaman History
 Route::get('/history', [GuestController::class, 'history'])->name('history.index');
 
-// Hapus History
+// Hapus History Keseluruhan
 Route::post('/history/clear', [GuestController::class, 'clearHistory'])->name('history.clear');
+
+// Hapus Satu Item History
+Route::post('/history/remove', [GuestController::class, 'removeHistoryItem'])->name('history.remove');
 
 // Halaman Favorit
 Route::get('/favorites', [GuestController::class, 'favorites'])->name('favorites.index');

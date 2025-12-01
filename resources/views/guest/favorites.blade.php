@@ -25,7 +25,7 @@
                 <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                     Simpan film dan serial TV yang ingin Anda tonton nanti dengan menekan tombol hati pada halaman detail.
                 </p>
-                <a href="{{ route('movies.index') }}" class="mt-8 px-8 py-3 bg-cyan-600 dark:bg-neon-cyan text-white dark:text-black font-bold rounded-full hover:scale-105 transition-transform shadow-lg hover:shadow-cyan-500/50">
+                <a href="{{ route('homepage') }}" class="mt-8 px-8 py-3 bg-cyan-600 dark:bg-neon-cyan text-white dark:text-black font-bold rounded-full hover:scale-105 transition-transform shadow-lg hover:shadow-cyan-500/50">
                     Mulai Menjelajah
                 </a>
             </div>
@@ -46,11 +46,11 @@
                         <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-[#1A1A1A] shadow-md hover:shadow-xl transition-all duration-300 group-hover:scale-105 group-hover:shadow-pink-500/30 border border-gray-200 dark:border-white/5">
                             
                             <img src="https://via.placeholder.com/300x450?text=Loading..." 
-                                 data-id="{{ $item->id }}" 
-                                 data-type="{{ $item->type }}"
-                                 alt="{{ $item->title }}"
-                                 class="tmdb-poster w-full h-full object-cover transition-opacity duration-500 opacity-0"
-                                 onload="this.classList.remove('opacity-0')">
+                                data-id="{{ $item->id }}" 
+                                data-type="{{ $item->type }}"
+                                alt="{{ $item->title }}"
+                                class="tmdb-poster w-full h-full object-cover transition-opacity duration-500 opacity-0"
+                                onload="this.classList.remove('opacity-0')">
 
                             <div class="absolute top-2 left-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-[10px] font-bold text-white uppercase border border-white/10 shadow-sm">
                                 {{ $item->type == 'tv' ? 'TV Show' : ucfirst($item->type) }}
