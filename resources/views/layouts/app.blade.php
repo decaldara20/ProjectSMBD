@@ -193,7 +193,6 @@
 
                             <div class="relative group">
                                 
-                                // Tampilan untuk user yang belum login
                                 @guest
                                     <button class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-[#1A1A1A] hover:bg-cyan-100 dark:hover:bg-neon-cyan/20 text-gray-600 dark:text-white transition-all duration-300 group-hover:shadow-[0_0_10px_rgba(0,255,255,0.3)] border border-transparent hover:border-cyan-200 dark:hover:border-neon-cyan/30">
                                         <span class="material-symbols-outlined text-gray-600 dark:text-[#EAEAEA] group-hover:text-cyan-600 dark:group-hover:text-neon-cyan">person</span>
@@ -214,7 +213,6 @@
                                     </div>
                                 @endguest
 
-                                // Tampilan untuk user yang sudah login
                                 @auth
                                     <button class="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-[#1A1A1A] border-2 border-transparent group-hover:border-cyan-500 dark:group-hover:border-neon-cyan transition-all duration-300 overflow-hidden shadow-md">
                                         <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random&color=fff&size=128" 
