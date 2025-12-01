@@ -64,40 +64,40 @@
             <div class="relative group/slider">
                 <div class="flex overflow-x-auto pb-12 pt-4 px-4 -mx-4 gap-6 no-scrollbar scroll-smooth snap-x">
                     @foreach($topMovies as $movie)
-                    <a href="{{ isset($movie->tconst) ? '/title/'.$movie->tconst : '#' }}" 
-                        class="relative flex-none w-[160px] md:w-[200px] flex flex-col gap-3 group snap-start cursor-pointer">
-                        
-                        <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-[#1A1A1A] border border-white/5 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:border-neon-cyan/50 group-hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] z-10">
+                        <a href="{{ isset($movie->tconst) ? '/title/'.$movie->tconst : '#' }}" 
+                            class="relative flex-none w-[160px] md:w-[200px] flex flex-col gap-3 group snap-start cursor-pointer">
                             
-                            <div class="absolute inset-0 flex flex-col items-center justify-center opacity-30 text-center p-4 z-0">
-                                <i class="fas fa-film text-4xl text-gray-500 mb-2"></i>
-                                <span class="text-neon-cyan font-bold tracking-widest text-xs">IMTVDB</span>
-                                <span class="text-[10px] text-gray-500 mt-1 leading-tight line-clamp-2 px-2">
+                            <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-[#1A1A1A] border border-white/5 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:border-neon-cyan/50 group-hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] z-10">
+                                
+                                <div class="absolute inset-0 flex flex-col items-center justify-center opacity-30 text-center p-4 z-0">
+                                    <i class="fas fa-film text-4xl text-gray-500 mb-2"></i>
+                                    <span class="text-neon-cyan font-bold tracking-widest text-xs">IMTVDB</span>
+                                    <span class="text-[10px] text-gray-500 mt-1 leading-tight line-clamp-2 px-2">
+                                        {{ $movie->primaryTitle }}
+                                    </span>
+                                </div>
+                            
+                                <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
+                                    data-id="{{ $movie->tconst }}" 
+                                    data-type="movie"
+                                    alt="{{ $movie->primaryTitle }}"
+                                    class="tmdb-poster w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    onload="this.classList.remove('opacity-0')">
+
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"></div>
+
+                                <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400 flex items-center gap-1 border border-white/10">
+                                    <i class="fas fa-star text-[10px]"></i> {{ $movie->averageRating ?? 'N/A' }}
+                                </div>
+                            </div>
+
+                            <div class="px-1">
+                                <h3 class="text-gray-200 text-sm md:text-base font-semibold truncate group-hover:text-neon-cyan transition-colors">
                                     {{ $movie->primaryTitle }}
-                                </span>
+                                </h3>
+                                <p class="text-gray-500 text-xs mt-1">{{ $movie->startYear ?? '-' }} • Movie</p>
                             </div>
-                        
-                            <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
-                                data-id="{{ $movie->tconst }}" 
-                                data-type="movie"
-                                alt="{{ $movie->primaryTitle }}"
-                                class="tmdb-poster w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                onload="this.classList.remove('opacity-0')">
-
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20"></div>
-
-                            <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400 flex items-center gap-1 border border-white/10">
-                                <i class="fas fa-star text-[10px]"></i> {{ $movie->averageRating ?? 'N/A' }}
-                            </div>
-                        </div>
-
-                        <div class="px-1">
-                            <h3 class="text-gray-200 text-sm md:text-base font-semibold truncate group-hover:text-neon-cyan transition-colors">
-                                {{ $movie->primaryTitle }}
-                            </h3>
-                            <p class="text-gray-500 text-xs mt-1">{{ $movie->startYear ?? '-' }} • Movie</p>
-                        </div>
-                    </a>
+                        </a>
                     @endforeach
                 </div>
             </div>
@@ -117,42 +117,42 @@
             <div class="relative group/slider">
                 <div class="flex overflow-x-auto pb-12 pt-4 px-4 -mx-4 gap-6 no-scrollbar scroll-smooth snap-x">
                     @foreach($topShows as $show)
-                    <a href="/tv/{{ $show->show_id }}" 
-                        class="relative flex-none w-[160px] md:w-[200px] flex flex-col gap-3 group snap-start cursor-pointer">
-                        
-                        <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-[#1A1A1A] border border-white/5 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:border-purple-500/50 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] z-10">
+                        <a href="/tv/{{ $show->show_id }}" 
+                            class="relative flex-none w-[160px] md:w-[200px] flex flex-col gap-3 group snap-start cursor-pointer">
                             
-                            <div class="absolute inset-0 flex flex-col items-center justify-center opacity-30 text-center p-4 z-0">
-                                <i class="fas fa-tv text-4xl text-gray-500 mb-2"></i>
-                                <span class="text-purple-500 font-bold tracking-widest text-xs">IMTVDB</span>
-                                <span class="text-[10px] text-gray-500 mt-1 leading-tight line-clamp-2 px-2">
+                            <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-[#1A1A1A] border border-white/5 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:border-purple-500/50 group-hover:shadow-[0_0_20px_rgba(168,85,247,0.4)] z-10">
+                                
+                                <div class="absolute inset-0 flex flex-col items-center justify-center opacity-30 text-center p-4 z-0">
+                                    <i class="fas fa-tv text-4xl text-gray-500 mb-2"></i>
+                                    <span class="text-purple-500 font-bold tracking-widest text-xs">IMTVDB</span>
+                                    <span class="text-[10px] text-gray-500 mt-1 leading-tight line-clamp-2 px-2">
+                                        {{ $show->name ?? $show->primaryTitle }}
+                                    </span>
+                                </div>
+
+                                <img src="https://via.placeholder.com/300x450/111/555?text=Loading..." 
+                                    data-id="{{ $show->show_id }}" 
+                                    data-type="tv"
+                                    class="tmdb-poster w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    alt="{{ $show->name ?? $show->primaryTitle ?? 'TV Show' }}"
+                                    onload="this.classList.remove('opacity-0')">
+
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                
+                                <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400 flex items-center gap-1 border border-white/10">
+                                    <i class="fas fa-star text-[10px]"></i> {{ number_format($show->vote_average ?? $show->averageRating ?? 0, 1) }}
+                                </div>
+                            </div>
+
+                            <div class="px-1">
+                                <h3 class="text-gray-200 text-sm md:text-base font-semibold truncate group-hover:text-purple-400 transition-colors">
                                     {{ $show->name ?? $show->primaryTitle }}
-                                </span>
+                                </h3>
+                                <p class="text-gray-500 text-xs mt-1">
+                                    {{ \Carbon\Carbon::parse($show->first_air_date ?? $show->startYear ?? now())->format('Y') }} • TV Series
+                                </p>
                             </div>
-
-                            <img src="https://via.placeholder.com/300x450/111/555?text=Loading..." 
-                                data-id="{{ $show->show_id }}" 
-                                data-type="tv"
-                                class="tmdb-poster w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                alt="{{ $show->name ?? $show->primaryTitle ?? 'TV Show' }}"
-                                onload="this.classList.remove('opacity-0')">
-
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            
-                            <div class="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400 flex items-center gap-1 border border-white/10">
-                                <i class="fas fa-star text-[10px]"></i> {{ number_format($show->vote_average ?? $show->averageRating ?? 0, 1) }}
-                            </div>
-                        </div>
-
-                        <div class="px-1">
-                            <h3 class="text-gray-200 text-sm md:text-base font-semibold truncate group-hover:text-purple-400 transition-colors">
-                                {{ $show->name ?? $show->primaryTitle }}
-                            </h3>
-                            <p class="text-gray-500 text-xs mt-1">
-                                {{ \Carbon\Carbon::parse($show->first_air_date ?? $show->startYear ?? now())->format('Y') }} • TV Series
-                            </p>
-                        </div>
-                    </a>
+                        </a>
                     @endforeach
                 </div>
             </div>
