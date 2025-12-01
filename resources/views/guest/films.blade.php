@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Movies Catalog')
+@section('title', 'Films Catalog')
 
 @section('content')
 <div class="min-h-screen bg-gray-50 dark:bg-[#121212] py-10 transition-colors duration-300">
@@ -8,10 +8,10 @@
         
         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-white font-display">
-                <span class="text-cyan-600 dark:text-neon-cyan">Explore</span> Movies
+                <span class="text-cyan-600 dark:text-neon-cyan">Explore</span> Films
             </h1>
             
-            <form action="{{ route('movies.index') }}" method="GET" class="flex gap-2">
+            <form action="{{ route('films.index') }}" method="GET" class="flex gap-2">
                 <select name="genre" class="bg-white dark:bg-[#1A1A1A] border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-lg focus:ring-cyan-500 focus:border-cyan-500 block p-2.5">
                     <option value="">All Genres</option>
                     @foreach($genres as $g)
@@ -25,36 +25,36 @@
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-            @foreach($movies as $movie)
-            <a href="{{ isset($movie->tconst) ? '/title/'.$movie->tconst : '#' }}" 
-               class="flex flex-col gap-3 group cursor-pointer">
+            @foreach($films as $film)
+            <a href="{{ isset($film->tconst) ? '/title/'.$film->tconst : '#' }}" 
+                class="flex flex-col gap-3 group cursor-pointer">
                 
                 <div class="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-200 dark:bg-[#1A1A1A] shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-cyan-500/50 border border-gray-200 dark:border-white/5">
                     
                     <img src="https://via.placeholder.com/300x450?text=Loading..." 
-                         data-id="{{ $movie->tconst }}" 
-                         data-type="movie"
-                         alt="{{ $movie->primaryTitle }}"
-                         class="tmdb-poster w-full h-full object-cover transition-opacity duration-500 opacity-0"
-                         onload="this.classList.remove('opacity-0')">
+                        data-id="{{ $film->tconst }}" 
+                        data-type="movie"
+                        alt="{{ $film->primaryTitle }}"
+                        class="tmdb-poster w-full h-full object-cover transition-opacity duration-500 opacity-0"
+                        onload="this.classList.remove('opacity-0')">
 
                     <div class="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded-md text-xs font-bold text-yellow-400 flex items-center gap-1">
-                        <i class="fas fa-star text-[10px]"></i> {{ $movie->averageRating }}
+                        <i class="fas fa-star text-[10px]"></i> {{ $film->averageRating }}
                     </div>
                 </div>
 
                 <div class="px-1">
                     <h3 class="text-gray-900 dark:text-gray-200 text-sm font-semibold truncate group-hover:text-cyan-600 dark:group-hover:text-neon-cyan transition-colors">
-                        {{ $movie->primaryTitle }}
+                        {{ $film->primaryTitle }}
                     </h3>
-                    <p class="text-gray-500 text-xs mt-1">{{ $movie->startYear }}</p>
+                    <p class="text-gray-500 text-xs mt-1">{{ $film->startYear }}</p>
                 </div>
             </a>
             @endforeach
         </div>
 
         <div class="mt-12">
-            {{ $movies->appends(request()->query())->links('pagination::tailwind') }}
+            {{ $films->appends(request()->query())->links('pagination::tailwind') }}
         </div>
     </div>
 </div>
