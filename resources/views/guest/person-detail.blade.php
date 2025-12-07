@@ -17,11 +17,11 @@
             <div class="relative rounded-full overflow-hidden aspect-square shadow-[0_0_60px_rgba(139,92,246,0.3)] border-4 border-[#1A1A1A] bg-[#1A1A1A] ring-1 ring-white/10">
                 
                 <img src="https://ui-avatars.com/api/?name={{ urlencode($person->primaryName) }}&size=500&background=random&color=fff" 
-                     data-id="{{ $person->nconst }}" 
-                     data-type="person"
-                     alt="{{ $person->primaryName }}"
-                     class="tmdb-poster w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110 opacity-0"
-                     onload="this.classList.remove('opacity-0')">
+                        data-id="{{ $person->nconst }}" 
+                        data-type="person"
+                        alt="{{ $person->primaryName }}"
+                        class="tmdb-poster w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110 opacity-0"
+                        onload="this.classList.remove('opacity-0')">
             </div>
             
             <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md px-6 py-2 rounded-full border border-white/10 text-white font-bold shadow-lg md:hidden whitespace-nowrap">

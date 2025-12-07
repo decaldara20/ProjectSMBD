@@ -15,6 +15,9 @@ use App\Http\Controllers\AuthController;
 // Halaman Beranda
 Route::get('/', [GuestController::class, 'homepage'])->name('homepage');
 
+// Halaman Explore (Semua Data)
+Route::get('/explore', [GuestController::class, 'explore'])->name('explore.index');
+
 // Halaman Katalog Films
 Route::get('/films', [GuestController::class, 'films'])->name('films.index');
 
@@ -24,20 +27,27 @@ Route::get('/tv-shows', [GuestController::class, 'tvShows'])->name('tv.index');
 // Halaman Katalog Artis
 Route::get('/artists', [GuestController::class, 'artists'])->name('artists.index');
 
-// Halaman History
-Route::get('/history', [GuestController::class, 'history'])->name('history.index');
+// --- PROTECTED ROUTES (HANYA YANG SUDAH LOGIN) ---
+Route::middleware(['auth'])->group(function () {
 
-// Hapus History Keseluruhan
-Route::post('/history/clear', [GuestController::class, 'clearHistory'])->name('history.clear');
+    // Halaman History
+    Route::get('/history', [GuestController::class, 'history'])->name('history.index');
 
-// Hapus Satu Item History
-Route::post('/history/remove', [GuestController::class, 'removeHistoryItem'])->name('history.remove');
+    // Hapus History Keseluruhan
+    Route::post('/history/clear', [GuestController::class, 'clearHistory'])->name('history.clear');
 
-// Halaman Favorit
-Route::get('/favorites', [GuestController::class, 'favorites'])->name('favorites.index');
+    // Hapus Satu Item History
+    Route::post('/history/remove', [GuestController::class, 'removeHistoryItem'])->name('history.remove');
 
-// Aksi Toggle (Tambah/Hapus) Favorit
-Route::post('/favorites/toggle', [GuestController::class, 'toggleFavorite'])->name('favorites.toggle');
+    // Halaman Favorit
+    Route::get('/favorites', [GuestController::class, 'favorites'])->name('favorites.index');
+
+    // Aksi Toggle (Tambah/Hapus) Favorit
+    Route::post('/favorites/toggle', [GuestController::class, 'toggleFavorite'])->name('favorites.toggle');
+
+    // Route Logout
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
 
 // PERUBAHAN DI SINI: Ganti 'searchTitles' menjadi 'search'
 // sesuai dengan nama function baru di Controller Anda.

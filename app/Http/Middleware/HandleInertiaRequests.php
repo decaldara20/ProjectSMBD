@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Support\Facades\DB;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -35,6 +36,11 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $genres = DB::connection('sqlsrv')
+            ->table('genre_types')
+            ->orderBy('genre_name')
+            ->get();
+        
         return array_merge(parent::share($request), [
             // 1. Kirim Data Auth (User Login)
             'auth' => [
@@ -45,6 +51,8 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'message' => fn () => $request->session()->get('message')
             ],
+
+            'globalGenres' => $genres,
         ]);
     }
 }
