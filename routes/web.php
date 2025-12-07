@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GuestController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ExecutiveController;
+use App\Http\Controllers\ProductionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -77,3 +79,25 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 // Route Logout (Wajib POST demi keamanan)
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+
+
+// GROUP EXECUTIVE
+Route::middleware(['auth', 'role:executive'])->prefix('executive')->group(function () {
+    Route::get('/dashboard', [ExecutiveController::class, 'dashboard'])->name('executive.dashboard');
+    Route::get('/trends', [ExecutiveController::class, 'trends'])->name('executive.trends');
+    Route::get('/talents', [ExecutiveController::class, 'talents'])->name('executive.talents');
+    Route::get('/platforms', [ExecutiveController::class, 'platforms'])->name('executive.platforms');
+    // Nanti tambah route report dll disini
+});
+
+// GROUP PRODUCTION
+Route::middleware(['auth', 'role:production'])->prefix('production')->group(function () {
+    Route::get('/dashboard', [ProductionController::class, 'dashboard'])->name('production.dashboard');
+    Route::get('/movies', [ProductionController::class, 'movies'])->name('production.movies');
+    Route::get('/tv-shows', [ProductionController::class, 'tvShows'])->name('production.tv_shows');
+    Route::get('/people', [ProductionController::class, 'people'])->name('production.people');
+    Route::get('/companies', [ProductionController::class, 'companies'])->name('production.companies');
+    Route::get('/genres', [ProductionController::class, 'genres'])->name('production.genres');
+    // Nanti tambah route CRUD movie disini
+});
