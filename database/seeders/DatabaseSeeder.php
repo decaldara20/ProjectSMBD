@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +16,37 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+       // 1. AKUN EXECUTIVE (Untuk Dashboard Grafik/Analisa)
+        User::updateOrCreate(
+            ['email' => 'admin@imtvdb.com'], // Kunci pencarian (biar gak duplikat)
+            [
+                'name' => 'Boss Executive',
+                'password' => Hash::make('password123'), // Password selalu 'password123'
+                'role' => 'executive', // <--- PENTING: Sesuai Middleware
+                'email_verified_at' => now(),
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // 2. AKUN PRODUCTION (Untuk Dashboard CRUD Film/TV)
+        User::updateOrCreate(
+            ['email' => 'prod@imtvdb.com'],
+            [
+                'name' => 'Production Lead',
+                'password' => Hash::make('password123'),
+                'role' => 'production', // <--- PENTING: Sesuai Middleware
+                'email_verified_at' => now(),
+            ]
+        );
+
+        // 3. AKUN USER BIASA (Opsional, buat tes halaman Guest/User)
+        User::updateOrCreate(
+            ['email' => 'user@imtvdb.com'],
+            [
+                'name' => 'Movie Fan',
+                'password' => Hash::make('password123'),
+                'role' => 'user',
+                'email_verified_at' => now(),
+            ]
+        );
     }
 }
