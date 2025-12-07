@@ -977,6 +977,18 @@ class GuestController extends Controller
             })->values();
         }
 
+        // --- LOGIKA PENCATATAN (REAL DATA) ---
+        // Simpan ke database 'search_logs'
+        if ($queryRaw && strlen($queryRaw) > 2) { // Hanya catat jika > 2 huruf
+            DB::table('search_logs')->insert([
+                'keyword' => strtolower($queryRaw), // Simpan huruf kecil biar gampang dikelompokkan
+                'results_count' => $results->count(),
+                'ip_address' => $request->ip(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         // Return Inertia
         return \Inertia\Inertia::render('Guest/SearchResults', [
             'results' => $results,

@@ -9,103 +9,189 @@ use Inertia\Inertia;
 class ExecutiveController extends Controller
 {
     // 1. DASHBOARD UTAMA (Overview)
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        // Statistik Global
-        $totalMovies = DB::connection('sqlsrv')->table('v_DetailJudulIMDB')->count();
-        $totalTV = DB::connection('sqlsrv')->table('v_DetailJudulTvShow')->count();
-        $avgRating = DB::connection('sqlsrv')->table('v_DetailJudulIMDB')->avg('averageRating');
+        // 1. SETUP FILTER WAKTU (REAL)
+        $range = $request->input('range', 'all'); 
+        
+        // Tentukan batas tanggal (Start Date)
+        $startDate = match($range) {
+            '30d' => now()->subDays(30),
+            '1y'  => now()->subYear(),
+            default => null, // All Time
+        };
 
-        // Chart Data (Genre Sample)
-        $genreStats = DB::connection('sqlsrv')->table('genre_types')->limit(5)->get();
-        $genreCounts = [450, 300, 200, 150, 100]; // Mock data
+        // 2. KPI DASHBOARD (REAL COUNT)
+        // Kita hitung total saat ini
+        $kpi = [
+            'total_titles' => DB::connection('sqlsrv')->table('title_basics')->count(),
+            // Hitung rata-rata rating (opsional: filter berdasarkan tahun rilis jika mau lebih spesifik)
+            'avg_rating'   => number_format(DB::connection('sqlsrv')->table('title_ratings')->avg('averageRating'), 1),
+            'total_pros'   => DB::connection('sqlsrv')->table('name_basics')->count(),
+            'total_tv'     => DB::connection('sqlsrv')->table('shows')->count(),
+        ];
 
-        // Top Rated
-        $topMovies = DB::connection('sqlsrv')
-            ->table('v_DetailJudulIMDB')
-            ->where('titleType', 'movie')
-            ->orderByDesc('averageRating')
+        // 3. CHART: GENRE TRENDS (REAL FROM VIEW)
+        // View v_Executive_Genre_Stats sudah matang, kita ambil Top 5
+        $genreData = DB::connection('sqlsrv')
+            ->table('v_Executive_Genre_Stats')
+            ->orderByDesc('total_votes')
             ->limit(5)
-            ->get(['primaryTitle', 'startYear', 'averageRating', 'numVotes']);
+            ->get();
+
+        // 4. CHART: PLATFORM ANALYTICS (REAL FROM VIEW)
+        $platformData = DB::connection('sqlsrv')
+            ->table('v_Executive_Platform_Share')
+            ->orderByDesc('total_shows')
+            ->limit(7)
+            ->get();
+
+        // 5. CHART: YEARLY GROWTH (REAL FROM VIEW)
+        $growthQuery = DB::connection('sqlsrv')
+            ->table('v_Executive_Yearly_Growth')
+            ->where('startYear', '>=', 2010); // Default 15 tahun terakhir
+        
+        // Jika filter 1y/30d aktif, kita persempit datanya
+        if ($range !== 'all') {
+             // Logic khusus untuk chart tahunan, kalau filter 30 hari mungkin grafiknya flat
+             // Jadi kita biarkan grafik pertumbuhan tetap tahunan, atau sesuaikan jika perlu.
+        }
+        $growthData = $growthQuery->orderBy('startYear')->get();
+
+
+        // 6. BUSINESS INTELLIGENCE: FAILED SEARCHES (REAL DATA!)
+        // Mengambil keyword yang hasilnya 0, dikelompokkan, dan dihitung jumlahnya
+        $failedQuery = DB::table('search_logs')
+            ->select('keyword as term', DB::raw('count(*) as count'))
+            ->where('results_count', 0); // Hanya yang GAGAL (hasil 0)
+
+        // Terapkan Filter Waktu pada Log Pencarian
+        if ($startDate) {
+            $failedQuery->where('created_at', '>=', $startDate);
+        }
+
+        $failedSearches = $failedQuery
+            ->groupBy('keyword')
+            ->orderByDesc('count')
+            ->limit(5)
+            ->get()
+            ->map(function($item) {
+                // Tambahkan data dummy trend karena kita belum punya data bulan lalu untuk dibandingkan
+                // Nanti bisa dikembangkan lagi
+                $item->trend = 'New Alert'; 
+                return $item;
+            });
 
         return Inertia::render('Executive/Dashboard', [
-            'stats' => [
-                'total_movies' => $totalMovies,
-                'total_tv' => $totalTV,
-                'total_users' => 1250,
-                'avg_rating' => number_format($avgRating, 1)
-            ],
+            'kpi' => $kpi,
             'charts' => [
-                'genres' => ['labels' => $genreStats->pluck('genre_name'), 'data' => $genreCounts],
-                'views' => ['labels' => ['Jan','Feb','Mar','Apr','May','Jun'], 'data' => [1200,1900,3000,5000,2300,3400]]
+                'genres' => $genreData,
+                'platforms' => $platformData,
+                'growth' => $growthData,
             ],
-            'topMovies' => $topMovies
+            'bi' => [
+                'failed_searches' => $failedSearches // Data Asli dari tabel search_logs
+            ],
+            'filters' => [
+                'range' => $range
+            ]
         ]);
     }
 
-    // 2. MARKET TRENDS (Analisa Genre & Waktu)
+    // 2. MARKET TRENDS
     public function trends()
     {
-        // A. Tren Tahun (Jumlah Rilis Film 10 Tahun Terakhir)
-        // Gunakan query agregasi count group by year
+        // --- LAPORAN 4A: Pertumbuhan Rilis Konten (10 Tahun Terakhir) ---
         $yearlyTrend = DB::connection('sqlsrv')
-            ->table('title_basics')
-            ->select('startYear', DB::raw('count(*) as total'))
-            ->where('startYear', '>=', 2010)
-            ->where('startYear', '<=', 2025)
-            ->groupBy('startYear')
+            ->table('v_Executive_Yearly_Growth')
+            ->where('startYear', '>=', date('Y') - 10)
+            ->where('startYear', '<=', date('Y'))
             ->orderBy('startYear')
             ->get();
 
-        // B. Analisa Genre (Mockup Data Kompleks)
-        // Kita bandingkan Jumlah Film vs Rata-rata Rating per Genre
-        $genrePerformance = [
-            ['name' => 'Action', 'count' => 1200, 'rating' => 6.8],
-            ['name' => 'Drama', 'count' => 3500, 'rating' => 7.2],
-            ['name' => 'Comedy', 'count' => 2800, 'rating' => 6.5],
-            ['name' => 'Horror', 'count' => 1500, 'rating' => 5.9],
-            ['name' => 'Sci-Fi', 'count' => 800, 'rating' => 7.0],
-            ['name' => 'Thriller', 'count' => 1100, 'rating' => 6.9],
-        ];
+        // --- LAPORAN 2A: Genre Paling Populer (By Total Votes) ---
+        $topGenresByVotes = DB::connection('sqlsrv')
+            ->table('v_Executive_Genre_Stats')
+            ->orderByDesc('total_votes')
+            ->limit(10)
+            ->get();
+
+        // --- LAPORAN 2B: Genre Kualitas Terbaik (By Avg Rating) ---
+        // Filter: Hanya genre yang punya minimal 500 judul agar data valid (tidak bias)
+        $topGenresByRating = DB::connection('sqlsrv')
+            ->table('v_Executive_Genre_Stats')
+            ->where('total_titles', '>', 500) 
+            ->orderByDesc('avg_rating')
+            ->limit(10)
+            ->get();
 
         return Inertia::render('Executive/Trends', [
-            'yearlyTrend' => $yearlyTrend,
-            'genrePerformance' => $genrePerformance
+            'reports' => [
+                'growth' => $yearlyTrend,
+                'popular_genres' => $topGenresByVotes,
+                'quality_genres' => $topGenresByRating
+            ]
         ]);
     }
 
     // 3. TALENT ANALYTICS (Bankabilitas Artis)
     public function talents()
     {
-        // Ambil Top 50 Artis Paling Populer (Vote Terbanyak)
-        $talents = DB::connection('sqlsrv')
+        // 1. KPI Cards (Hitung Cepat)
+        $kpi = [
+            'total_actors' => DB::connection('sqlsrv')->table('name_basics')->where('primaryProfession', 'LIKE', '%actor%')->count(),
+            'total_directors' => DB::connection('sqlsrv')->table('name_basics')->where('primaryProfession', 'LIKE', '%director%')->count(),
+            'avg_pro_rating' => 7.2, // Hardcoded dulu biar cepet (kalo query avg semua person berat)
+        ];
+
+        // 2. Chart: Distribusi Profesi
+        $distribution = DB::connection('sqlsrv')
+            ->table('v_Executive_Talent_Distribution')
+            ->get();
+
+        // 3. Highlight: Rising Stars
+        $risingStars = DB::connection('sqlsrv')
+            ->table('v_Executive_Rising_Stars')
+            ->get();
+
+        // 4. MAIN REPORT (Laporan 3A - Bankable)
+        $bankableList = DB::connection('sqlsrv')
             ->table('v_Executive_BankabilityReport_Base')
             ->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')
             ->orderByDesc('TotalNumVotes')
-            ->limit(50)
-            ->paginate(10); // Pakai pagination biar tabelnya rapi
+            ->paginate(10); // Tetap paginate biar tabelnya rapi
 
         return Inertia::render('Executive/Talents', [
-            'talents' => $talents
+            'kpi' => $kpi,
+            'charts' => [
+                'distribution' => $distribution
+            ],
+            'risingStars' => $risingStars,
+            'bankable' => $bankableList
         ]);
     }
 
     // 4. PLATFORM INTELLIGENCE (TV Networks)
     public function platforms()
     {
-        // Ambil Network dengan jumlah show terbanyak
-        // Asumsi ada tabel 'networks' dan 'shows'
-        // Jika belum ada, kita pakai Dummy Data dulu biar UI jadi
-        $platformShare = [
-            ['name' => 'Netflix', 'count' => 150, 'color' => '#E50914'],
-            ['name' => 'HBO', 'count' => 80, 'color' => '#FFF'],
-            ['name' => 'Amazon Prime', 'count' => 120, 'color' => '#00A8E1'],
-            ['name' => 'Disney+', 'count' => 90, 'color' => '#113CCF'],
-            ['name' => 'Hulu', 'count' => 60, 'color' => '#1CE783'],
+        // Ambil Semua Data dari View Baru
+        $allData = DB::connection('sqlsrv')
+            ->table('v_Executive_Network_Analytics')
+            ->where('total_titles', '>', 5) // Filter network kecil biar grafik gak penuh
+            ->orderByDesc('total_titles')
+            ->limit(10) // Ambil Top 10 Raksasa
+            ->get();
+
+        // 1. KPI Cards
+        $kpi = [
+            'dominant_network' => $allData->first()->network_name, // Yang paling banyak judulnya
+            'highest_quality'  => $allData->sortByDesc('avg_rating')->first()->network_name,
+            'total_networks'   => DB::connection('sqlsrv')->table('networks')->count(),
         ];
 
         return Inertia::render('Executive/Platforms', [
-            'platforms' => $platformShare
+            'kpi' => $kpi,
+            'data' => $allData
         ]);
     }
 }
