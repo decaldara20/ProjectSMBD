@@ -15,13 +15,17 @@ export default function MainLayout({ children }) {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [showBackToTop, setShowBackToTop] = useState(false);
     
+    // --- LIVE SEARCH STATE ---
+    const [keyword, setKeyword] = useState('');
+    const [suggestions, setSuggestions] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+
     const searchInputRef = useRef(null);
+    const searchContainerRef = useRef(null);
 
     // 2. Effect: Inisialisasi & Event Listeners
     useEffect(() => {
-        window.scrollTo(0, 0);
-        
-        // A. Cek Tema Awal
+        // A. Inisialisasi Tema
         if (localStorage.getItem('theme') === 'light') {
             setIsDark(false);
             document.documentElement.classList.remove('dark');
@@ -37,7 +41,14 @@ export default function MainLayout({ children }) {
         };
         window.addEventListener('scroll', handleScroll);
 
-        // C. Keyboard Shortcut '/' untuk Search
+        // C. Click Outside Listener (Menutup dropdown saat klik sembarang tempat)
+        const handleClickOutside = (event) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+
+        // D. Keyboard Shortcut '/' untuk Search
         const handleKeyDown = (e) => {
             if (e.key === '/' && document.activeElement !== searchInputRef.current) {
                 e.preventDefault();
@@ -46,13 +57,34 @@ export default function MainLayout({ children }) {
         };
         
         window.addEventListener('scroll', handleScroll);
+        document.addEventListener('mousedown', handleClickOutside);
         document.addEventListener('keydown', handleKeyDown);
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
+                document.removeEventListener('keydown', handleKeyDown);
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [url]);
+    }, []);
+
+    // --- LOGIC LIVE SEARCH (DEBOUNCE) ---
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (keyword.length >= 3) {
+                axios.get(`/api/search/suggestions?q=${keyword}`)
+                    .then(res => {
+                        setSuggestions(res.data);
+                        setShowDropdown(true);
+                    })
+                    .catch(err => console.error(err));
+            } else {
+                setSuggestions([]);
+                setShowDropdown(false);
+            }
+        }, 300); // Tunggu 300ms
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [keyword]);
 
     // 3. Helper Functions
     const toggleTheme = () => {
@@ -72,16 +104,17 @@ export default function MainLayout({ children }) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    // Helper cek active link
-    const isActive = (path) => currentPath.startsWith(path);
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        setShowDropdown(false);
+        router.get('/search', { q: keyword });
+    };
 
-    // Helper cek halaman auth
+    const isActive = (path) => currentPath.startsWith(path);
     const isAuthPage = url.startsWith('/login') || url.startsWith('/register');
 
-    // State untuk toggle "Lihat Semua"
+    // Genre Logic
     const [showAllGenres, setShowAllGenres] = useState(false);
-
-    // Tentukan batas awal (misal 9 genre pertama)
     const limitGenres = 9;
     
     // Logika pemotongan data
