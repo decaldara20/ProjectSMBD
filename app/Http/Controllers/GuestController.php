@@ -688,6 +688,15 @@ class GuestController extends Controller
             return redirect('/')->with('error', 'Judul tidak ditemukan');
         }
 
+        $genres = DB::connection('sqlsrv')
+            ->table('title_genres as tg')
+            ->join('genre_types as g', 'tg.genre_id', '=', 'g.id') // Sesuaikan 'g.id' jika nama kolom beda
+            ->where('tg.tconst', $tconst)
+            ->pluck('g.genre_name')
+            ->implode(', '); 
+
+        $title->genres = $genres;
+
         // Simpan ke History (Server Side Session)
         $this->addToHistory('movie', $title->tconst, $title->primaryTitle, $title->startYear, $title->averageRating);
 
