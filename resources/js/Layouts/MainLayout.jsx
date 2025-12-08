@@ -343,6 +343,13 @@ export default function MainLayout({ children }) {
                                             name="q" 
                                             value={keyword}
                                             onChange={(e) => setKeyword(e.target.value)}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault(); // Jangan refresh halaman bawaan browser
+                                                    setShowDropdown(false); // Tutup dropdown kalo ada
+                                                    router.get('/search', { q: keyword }); // LANGSUNG PINDAH HALAMAN
+                                                }
+                                            }}
                                             onFocus={() => { if(suggestions.length > 0) setShowDropdown(true); }}
                                             className="block w-full pl-12 pr-12 py-2.5 bg-gray-100 dark:bg-[#1A1A1A]/80 border border-gray-300 dark:border-gray-700 rounded-full text-sm text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-300/40 dark:focus:ring-cyan-300/25 focus:shadow-[0_0_12px_rgba(0,255,255,0.25)] dark:focus:shadow-[0_0_14px_rgba(0,255,255,0.15)] transition-all duration-300 shadow-sm dark:shadow-lg" 
                                             placeholder="Search films, TV shows, peoples..." 
