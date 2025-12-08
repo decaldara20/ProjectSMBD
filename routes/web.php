@@ -70,7 +70,8 @@ Route::get('/person/{nconst}', [GuestController::class, 'showPersonDetail'])->na
 // Halaman About Us
 Route::get('/about', [GuestController::class, 'about'])->name('about');
 
-
+// API Route untuk Live Search
+Route::get('/api/search/suggestions', [GuestController::class, 'getSuggestions']);
 
 // Route Autentikasi Custom
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

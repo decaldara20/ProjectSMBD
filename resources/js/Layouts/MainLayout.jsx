@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import axios from 'axios';
 
 export default function MainLayout({ children }) {
     // 1. Global Data & State
@@ -297,8 +298,8 @@ export default function MainLayout({ children }) {
                             </div>
                             
                             {/* TENGAH: Search Bar */}
-                            <div className="hidden md:flex flex-1 justify-center px-4">
-                                <form action="/search" method="GET" className="relative group w-full flex justify-center">
+                            <div className="hidden md:flex flex-1 justify-center px-4 relative" ref={searchContainerRef}>
+                                <form onSubmit={handleSearchSubmit} className="relative group w-full flex justify-center">
                                     <div className="relative w-full max-w-[350px] group-focus-within:max-w-[600px] transition-all duration-500 ease-in-out">
                                         <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none z-10">
                                             <svg className="w-5 h-5 text-gray-500 dark:text-gray-400 group-focus-within:text-cyan-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -307,7 +308,9 @@ export default function MainLayout({ children }) {
                                             ref={searchInputRef}
                                             type="text" 
                                             name="q" 
-                                            id="globalSearch" 
+                                            value={keyword}
+                                            onChange={(e) => setKeyword(e.target.value)}
+                                            onFocus={() => { if(suggestions.length > 0) setShowDropdown(true); }}
                                             className="block w-full pl-12 pr-12 py-2.5 bg-gray-100 dark:bg-[#1A1A1A]/80 border border-gray-300 dark:border-gray-700 rounded-full text-sm text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-300/40 dark:focus:ring-cyan-300/25 focus:shadow-[0_0_12px_rgba(0,255,255,0.25)] dark:focus:shadow-[0_0_14px_rgba(0,255,255,0.15)] transition-all duration-300 shadow-sm dark:shadow-lg" 
                                             placeholder="Search films, TV shows, peoples..." 
                                             autoComplete="off" 
@@ -317,6 +320,53 @@ export default function MainLayout({ children }) {
                                         </div>
                                     </div>
                                 </form>
+
+                                {/* --- HASIL DROPDOWN --- */}
+                                {showDropdown && suggestions.length > 0 && (
+                                    <div className="absolute top-full mt-2 w-full max-w-[600px] bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in-up">
+                                        <div className="px-4 py-2 bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
+                                            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Top Results</span>
+                                        </div>
+                                        <ul>
+                                            {suggestions.map((item) => (
+                                                <li key={item.tconst}>
+                                                    <Link 
+                                                        href={`/title/${item.tconst}`}
+                                                        className="flex items-center gap-4 px-4 py-3 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-colors group border-b border-gray-100 dark:border-white/5 last:border-0"
+                                                        onClick={() => setShowDropdown(false)}
+                                                    >
+                                                        {/* Thumbnail Placeholder */}
+                                                        <div className="w-10 h-14 bg-gray-800 rounded overflow-hidden shrink-0 flex items-center justify-center text-gray-500">
+                                                            <i className="fas fa-film"></i>
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
+                                                                {item.primaryTitle}
+                                                            </h4>
+                                                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                                                                <span className="bg-gray-200 dark:bg-white/10 px-1.5 rounded text-[10px] uppercase font-bold">{item.titleType}</span>
+                                                                <span>{item.startYear}</span>
+                                                                {item.averageRating && (
+                                                                    <span className="flex items-center gap-1 text-yellow-600 dark:text-yellow-500">
+                                                                        <i className="fas fa-star text-[8px]"></i> {Number(item.averageRating).toFixed(1)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <i className="fas fa-chevron-right text-gray-300 dark:text-gray-600 text-xs group-hover:text-cyan-500 group-hover:translate-x-1 transition-all"></i>
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <Link 
+                                            href={`/search?q=${keyword}`} 
+                                            className="block text-center py-3 bg-gray-50 dark:bg-white/5 text-xs font-bold text-cyan-600 hover:text-cyan-500 hover:underline transition-all"
+                                            onClick={() => setShowDropdown(false)}
+                                        >
+                                            View all results for "{keyword}"
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
 
                             {/* KANAN: Tombol Aksi */}

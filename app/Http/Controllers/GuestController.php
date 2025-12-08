@@ -1138,4 +1138,28 @@ class GuestController extends Controller
     {
         return \Inertia\Inertia::render('Guest/About');
     }
+
+    // ==========================================
+    // API: LIVE SEARCH SUGGESTIONS
+    // ==========================================
+    public function getSuggestions(Request $request) {
+        $query = $request->input('q');
+        
+        // Jangan cari kalau kurang dari 3 huruf (hemat resource)
+        if (strlen($query) < 3) {
+            return response()->json([]);
+        }
+
+        // Cari Film & TV (Gabungan)
+        $results = DB::connection('sqlsrv')
+            ->table('v_DetailJudulIMDB')
+            ->select('tconst', 'primaryTitle', 'startYear', 'titleType', 'averageRating')
+            ->where('primaryTitle', 'LIKE', '%' . $query . '%')
+            ->orderByDesc('numVotes') // Prioritaskan yang populer
+            ->limit(5)
+            ->get();
+
+        return response()->json($results);
+    }
 }
+
