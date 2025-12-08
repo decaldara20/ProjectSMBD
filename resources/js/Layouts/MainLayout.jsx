@@ -345,6 +345,7 @@ export default function MainLayout({ children }) {
                                             onChange={(e) => setKeyword(e.target.value)}
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
+                                                    handleSearchSubmit(e);
                                                     e.preventDefault(); // Jangan refresh halaman bawaan browser
                                                     setShowDropdown(false); // Tutup dropdown kalo ada
                                                     router.get('/search', { q: keyword }); // LANGSUNG PINDAH HALAMAN
