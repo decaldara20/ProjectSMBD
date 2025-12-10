@@ -62,7 +62,7 @@ export default function MainLayout({ children }) {
 
         return () => {
             window.removeEventListener('scroll', handleScroll);
-                document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('mousedown', handleClickOutside);
             document.removeEventListener('keydown', handleKeyDown);
         };
     }, []);
@@ -346,9 +346,9 @@ export default function MainLayout({ children }) {
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') {
                                                     handleSearchSubmit(e);
-                                                    e.preventDefault(); // Jangan refresh halaman bawaan browser
-                                                    setShowDropdown(false); // Tutup dropdown kalo ada
-                                                    router.get('/search', { q: keyword }); // LANGSUNG PINDAH HALAMAN
+                                                    // e.preventDefault(); // Jangan refresh halaman bawaan browser
+                                                    // setShowDropdown(false); // Tutup dropdown kalo ada
+                                                    // router.get('/search', { q: keyword }); // LANGSUNG PINDAH HALAMAN
                                                 }
                                             }}
                                             onFocus={() => { if(suggestions.length > 0) setShowDropdown(true); }}
