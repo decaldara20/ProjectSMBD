@@ -688,14 +688,19 @@ class GuestController extends Controller
             return redirect('/')->with('error', 'Judul tidak ditemukan');
         }
 
-        $genres = DB::connection('sqlsrv')
-            ->table('title_genres as tg')
-            ->join('genre_types as g', 'tg.genre_id', '=', 'g.id') // Sesuaikan 'g.id' jika nama kolom beda
-            ->where('tg.tconst', $tconst)
-            ->pluck('g.genre_name')
-            ->implode(', '); 
-
-        $title->genres = $genres;
+        if (isset($title->Genres_List)) {
+            $title->genres = $title->Genres_List;
+        } 
+        // 2. Jika View belum update, ambil manual dari tabel title_genres
+        else {
+            $genres = DB::connection('sqlsrv')
+                ->table('title_genres')
+                ->where('tconst', $tconst)
+                ->pluck('genre_name')
+                ->implode(', ');
+            
+            $title->genres = $genres;
+        }
 
         // Simpan ke History (Server Side Session)
         $this->addToHistory('movie', $title->tconst, $title->primaryTitle, $title->startYear, $title->averageRating);
@@ -720,6 +725,21 @@ class GuestController extends Controller
 
         if (!$tvShow) {
             return redirect('/')->with('error', 'TV Show tidak ditemukan');
+        }
+
+        if (isset($tvShow->Genres_List)) {
+            $tvShow->genres = $tvShow->Genres_List;
+        } 
+        // 2. Jika View belum update, ambil manual (Sesuai snippet SQL kamu)
+        else {
+            $genres = DB::connection('sqlsrv')
+                ->table('genres') // Tabel penghubung TV
+                ->join('genre_types', 'genres.genre_type_id', '=', 'genre_types.genre_type_id') // Join ke master genre
+                ->where('genres.show_id', $show_id)
+                ->pluck('genre_types.genre_name')
+                ->implode(', ');
+
+            $tvShow->genres = $genres ?: 'TV Series';
         }
 
         // Format Tahun untuk History
