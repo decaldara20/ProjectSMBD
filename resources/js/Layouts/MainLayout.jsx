@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, usePage } from '@inertiajs/react';
+// Tambahkan 'router' di sini
+import { Link, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 
 export default function MainLayout({ children }) {
@@ -362,9 +363,9 @@ export default function MainLayout({ children }) {
                                     </div>
                                 </form>
 
-                                {/* --- HASIL DROPDOWN --- */}
+{/* --- HASIL DROPDOWN (FIXED SYNTAX) --- */}
                                 {showDropdown && suggestions.length > 0 && (
-                                    <div className="absolute top-full mt-2 w-full max-w-[600px] bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in-up">
+                                    <div className="absolute top-full mt-2 w-full bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in-up">
                                         <div className="px-4 py-2 bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
                                             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Top Results</span>
                                         </div>

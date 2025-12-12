@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Inertia\Inertia;
@@ -12,101 +13,79 @@ class GuestController extends Controller
     // ==========================================
     // 1. HOMEPAGE DISPLAY
     // ==========================================
-    public function homepage(Request $request) {
-        // A. DATA FILTER
-        $genres = DB::connection('sqlsrv')->table('genre_types')->orderBy('genre_name')->pluck('genre_name');
-        $years = DB::connection('sqlsrv')->table('title_basics')->select('startYear')->whereNotNull('startYear')->distinct()->orderByDesc('startYear')->limit(50)->pluck('startYear');
-        $countries = DB::connection('sqlsrv')->table('origin_country_types')->orderBy('origin_country_name')->pluck('origin_country_name');
-        $networks = DB::connection('sqlsrv')->table('network_types')->orderBy('network_name')->pluck('network_name');
-        $statuses = DB::connection('sqlsrv')->table('status')->orderBy('status_name')->pluck('status_name');
-        $types = DB::connection('sqlsrv')->table('types')->orderBy('type_name')->pluck('type_name');
+public function homepage(Request $request) {
+        
+        // A. FILTER TAHUN (Manual PHP - Instant)
+        $years = range(date('Y') + 1, 1950); 
+        
+        // B. FILTER LAINNYA (Cache 24 Jam)
+        $filters = Cache::remember('homepage_filters_static', 60 * 24, function () {
+             return [
+                'genres'    => DB::connection('sqlsrv')->table('genre_types')->orderBy('genre_name')->pluck('genre_name'),
+                'countries' => DB::connection('sqlsrv')->table('origin_country_types')->orderBy('origin_country_name')->pluck('origin_country_name'),
+                'networks'  => DB::connection('sqlsrv')->table('network_types')->orderBy('network_name')->pluck('network_name'),
+                'statuses'  => DB::connection('sqlsrv')->table('status')->orderBy('status_name')->pluck('status_name'),
+                'types'     => DB::connection('sqlsrv')->table('types')->orderBy('type_name')->pluck('type_name'),
+             ];
+        });
+        $filters['years'] = $years;
 
         // ==========================================
-        // SLIDER 1: TOP RATED MOVIES (Optimized)
+        // SLIDER 1 & 2 (MOVIES & TV) - Cache 1 Jam
         // ==========================================
-        // STEP 1: Ambil ID dulu (Cepat karena Index)
-        $topMovieIds = DB::connection('sqlsrv')
-            ->table('title_ratings as tr')
-            ->join('title_basics as tb', 'tr.tconst', '=', 'tb.tconst')
-            ->where('tb.titleType', 'movie')
-            ->orderByDesc('tr.numVotes')
-            ->limit(10)
-            ->pluck('tb.tconst');
+        // (Kode Movie & TV biarkan sama seperti yang sudah Optimal sebelumnya)
+        $topMovies = Cache::remember('home_movies_fast', 60, function () {
+            // ... Copy logika movies dari kode sebelumnya ...
+             $ids = DB::connection('sqlsrv')->table('title_ratings as tr')
+                ->join('title_basics as tb', 'tr.tconst', '=', 'tb.tconst')
+                ->where('tb.titleType', 'movie')->orderByDesc('tr.numVotes')->limit(10)->pluck('tb.tconst');
+            return DB::connection('sqlsrv')->table('v_DetailJudulIMDB')
+                ->whereIn('tconst', $ids)->orderByDesc('numVotes')->get();
+        });
 
-        // STEP 2: Ambil Detail Lengkap berdasarkan ID tadi
-        $topMovies = DB::connection('sqlsrv')
-            ->table('v_DetailJudulIMDB')
-            ->whereIn('tconst', $topMovieIds)
-            ->orderByDesc('numVotes')
-            ->get();
-
-        // ==========================================
-        // SLIDER 2: POPULAR TV SHOWS (Optimized)
-        // ==========================================
-        // STEP 1: Ambil ID dari tabel fisik 'shows' (bukan View)
-        $topShowIds = DB::connection('sqlsrv')
-            ->table('shows') 
-            ->orderByDesc('popularity')
-            ->limit(10)
-            ->pluck('show_id');
-
-        // STEP 2: Ambil Detail dari View
-        $topShows = DB::connection('sqlsrv')
-            ->table('v_DetailJudulTvShow')
-            ->whereIn('show_id', $topShowIds)
-            ->orderByDesc('popularity')
-            ->get();
-
-        // Inject poster path null (untuk diproses JS di frontend nanti)
-        foreach($topShows as $show) {
-            $show->poster_path = null;
-        }
-
-// ==========================================
-        // SLIDER 3: TOP ACTORS ONLY (Optimized)
-        // ==========================================
-        // Langkah 1: Ambil ID Artis Populer yang spesifik berprofesi 'actor' atau 'actress'
-        $topArtistIds = DB::connection('sqlsrv')
-            ->table('v_Executive_BankabilityReport_Base as v') // Pastikan View ini ada
-            ->whereExists(function ($query) {
-                $query->select(DB::raw(1))
-                    ->from('name_professions as np')
-                    ->whereColumn('np.nconst', 'v.nconst')
-                    ->whereIn('np.profession_name', ['actor', 'actress']); // Ambil keduanya agar adil
-            })
-            ->orderByDesc('TotalNumVotes') // Atau 'popularity' jika pakai kolom TMDB
-            ->limit(10)
-            ->pluck('nconst');
-
-        // Langkah 2: Ambil Data Lengkap
-        $topArtists = DB::connection('sqlsrv')
-            ->table('v_Executive_BankabilityReport_Base')
-            ->whereIn('nconst', $topArtistIds)
-            ->orderByDesc('TotalNumVotes')
-            ->get();
-
-        foreach($topArtists as $artist) {
-            $artist->profile_path = null; 
-        }
+        $topShows = Cache::remember('home_tv_fast', 60, function () {
+            // ... Copy logika tv dari kode sebelumnya ...
+             $ids = DB::connection('sqlsrv')->table('shows')->orderByDesc('popularity')->limit(10)->pluck('show_id');
+            $data = DB::connection('sqlsrv')->table('v_DetailJudulTvShow')
+                ->whereIn('show_id', $ids)->orderByDesc('popularity')->get();
+            foreach($data as $item) $item->poster_path = null;
+            return $data;
+        });
 
         // ==========================================
-        // RETURN KE REACT (INERTIA)
+        // SLIDER 3: TOP ACTORS (PAKAI VIEW BARU)
         // ==========================================
+        // Ini kuncinya. Kita panggil View ringan yang baru dibuat.
+        // Cache sebentar saja (30 menit) cukup.
+        
+        $topArtists = Cache::remember('home_artists_v_fast', 30, function () {
+            $data = DB::connection('sqlsrv')
+                ->table('v_Web_TopActors_Fast') // <--- View Baru
+                ->orderByDesc('sort_metric')
+                ->limit(10)
+                ->get();
+
+            // Kita perlu ambil detail tambahan? 
+            // Biasanya View di atas cuma nama & ID. Jika butuh foto/profesi lengkap:
+            // Kita bisa ambil detailnya lagi ATAU cukup data dari view itu saja jika sudah lengkap.
+            
+            // Asumsi: View di atas sudah cukup untuk slider (Nama + ID).
+            // Jika butuh "Primary Profession" atau detail lain, kita load lazy loading atau join di View-nya.
+            
+            foreach($data as $artist) {
+                $artist->profile_path = null; 
+                // Fallback jika kolom ini tidak ada di View baru
+                $artist->TotalNumVotes = $artist->sort_metric; 
+            }
+
+            return $data;
+        });
+
         return Inertia::render('Guest/Homepage', [
-            // 'heroMovie'  => $heroMovie,
             'topMovies'  => $topMovies,
             'topShows'   => $topShows,
             'topArtists' => $topArtists,
-            
-            // Semua filter dikirim dalam satu object
-            'filters' => [
-                'genres'    => $genres,
-                'years'     => $years,
-                'countries' => $countries,
-                'networks'  => $networks,
-                'statuses'  => $statuses,
-                'types'     => $types
-            ]
+            'filters'    => $filters
         ]);
     }
 
@@ -937,102 +916,112 @@ class GuestController extends Controller
     //     return view('guest.person-detail', compact('person', 'filmography'));
     // }
 
-    // =========================================================================
-    // 9. SEARCH LOGIC (LENGKAP)
-    // =========================================================================
+// ==========================================
+    // 9. SEARCH LOGIC (FULL-TEXT SEARCH ENABLED)
+    // ==========================================
     public function search(Request $request)
     {
         $queryRaw = trim($request->input('q'));
         $type = $request->input('type', 'multi'); 
 
-        if (!$queryRaw) {
-            return redirect('/');
-        }
-
-        // --- PRE-PROCESSING ---
-        $cleanQuery = str_replace(['"', "'", '%'], '', $queryRaw);
-        $searchParam = '%' . $cleanQuery . '%';
-
-        $results = collect([]); 
-
-        // KASUS A: PENCARIAN FILM
-        if ($type === 'movie' || $type === 'multi') {
-            $sqlMovie = "
-                SELECT TOP 20 
-                    v.tconst as id,
-                    v.primaryTitle as title,
-                    v.startYear,
-                    'movie' as type,
-                    v.averageRating,
-                    'https://placehold.co/300x450/222/FFF?text=' + REPLACE(LEFT(v.primaryTitle, 15), ' ', '+') as poster,
-                    NULL as known_for
-                FROM dbo.v_DetailJudulIMDB v
-                WHERE v.primaryTitle LIKE ? 
-                AND v.titleType IN ('movie', 'short', 'tvMovie')
-                ORDER BY v.numVotes DESC
-            ";
-            $movieResults = DB::connection('sqlsrv')->select($sqlMovie, [$searchParam]);
-            $results = $results->merge($movieResults);
-        }
-
-        // KASUS B: PENCARIAN TV SHOW
-        if ($type === 'tvSeries' || $type === 'multi') {
-            $sqlTV = "
-                SELECT TOP 20 
-                    CAST(v.show_id as VARCHAR(20)) as id,
-                    v.primaryTitle as title,
-                    v.startYear,
-                    'tvSeries' as type,
-                    v.averageRating,
-                    'https://placehold.co/300x450/222/FFF?text=' + REPLACE(LEFT(v.primaryTitle, 15), ' ', '+') as poster,
-                    NULL as known_for
-                FROM dbo.v_DetailJudulTvShow v
-                WHERE v.primaryTitle LIKE ? 
-                ORDER BY v.popularity DESC
-            ";
-            $tvResults = DB::connection('sqlsrv')->select($sqlTV, [$searchParam]);
-            $results = $results->merge($tvResults);
-        }
-
-        // KASUS C: PENCARIAN AKTOR
-        if ($type === 'person' || $type === 'multi') {
-            $sqlPerson = "
-                SELECT TOP 20
-                    v.nconst as id,
-                    v.primaryName as title,
-                    v.TotalNumVotes, 
-                    'person' as type,
-                    NULL as averageRating,
-                    'https://placehold.co/300x450/333/FFF?text=' + REPLACE(LEFT(v.primaryName, 10), ' ', '+') as poster,
-                    (SELECT TOP 1 profession_name FROM name_professions WHERE nconst = v.nconst) as known_for
-                FROM dbo.v_Executive_BankabilityReport_Base v
-                WHERE v.primaryName LIKE ?
-                ORDER BY v.TotalNumVotes DESC
-            ";
-            $personResults = DB::connection('sqlsrv')->select($sqlPerson, [$searchParam]);
-            $results = $results->merge($personResults);
-        }
-
-        // Sorting
-        if ($type === 'multi') {
-            $results = $results->sortByDesc(function ($item) {
-                return $item->averageRating ?? ($item->TotalNumVotes ?? 0); 
-            })->values();
-        }
-
-        // --- LOGIKA PENCATATAN (REAL DATA) ---
-        // Simpan ke database 'search_logs'
-        if ($queryRaw && strlen($queryRaw) > 2) { // Hanya catat jika > 2 huruf
-            DB::table('search_logs')->insert([
-                'keyword' => strtolower($queryRaw), // Simpan huruf kecil biar gampang dikelompokkan
-                'results_count' => $results->count(),
-                'ip_address' => $request->ip(),
-                'created_at' => now(),
-                'updated_at' => now(),
+        // Validasi input: Jika kosong, return halaman kosong
+        if (strlen($queryRaw) < 1) {
+             return \Inertia\Inertia::render('Guest/SearchResults', [
+                'results' => [],
+                'queryParams' => $request->all(),
             ]);
         }
 
-        // Return Inertia
+        // --- FORMAT KEYWORD UNTUK FULL-TEXT SEARCH ---
+        // Syntax FTS butuh tanda kutip dan bintang: '"*batman*"'
+        // Ini agar bisa mencari potongan kata (misal: "batm" ketemu "batman")
+        $clean = str_replace(['"', "'"], '', $queryRaw);
+        $ftsKeyword = '"*' . $clean . '*"'; 
+
+        $results = collect([]); 
+
+        // --- A. MOVIE SEARCH (Pake CONTAINS) ---
+        if ($type === 'movie' || $type === 'multi') {
+            $sqlMovie = "
+                SELECT TOP 20 
+                    tb.tconst as id,
+                    tb.primaryTitle as title,
+                    tb.startYear,
+                    'movie' as type,
+                    tr.averageRating,
+                    NULL as poster,
+                    NULL as known_for
+                FROM title_basics tb
+                LEFT JOIN title_ratings tr ON tb.tconst = tr.tconst
+                WHERE tb.titleType IN ('movie', 'tvMovie') 
+                  -- PERUBAHAN UTAMA: Gunakan CONTAINS agar Index FTS terpakai
+                  AND CONTAINS(tb.primaryTitle, ?) 
+                ORDER BY tr.numVotes DESC
+            ";
+            
+            // Kita bungkus Try-Catch:
+            // Jika FTS error (misal index belum selesai dibuat), dia otomatis fallback ke LIKE biasa
+            try {
+                $movieData = DB::connection('sqlsrv')->select($sqlMovie, [$ftsKeyword]);
+            } catch (\Exception $e) {
+                // Fallback ke LIKE (Lambat tapi aman)
+                $sqlMovieLike = str_replace('CONTAINS(tb.primaryTitle, ?)', 'tb.primaryTitle LIKE ?', $sqlMovie);
+                $movieData = DB::connection('sqlsrv')->select($sqlMovieLike, ['%' . $clean . '%']);
+            }
+            $results = $results->merge($movieData);
+        }
+
+        // --- B. TV SEARCH ---
+        if ($type === 'tvSeries' || $type === 'multi') {
+            $sqlTV = "
+                SELECT TOP 20 
+                    tb.tconst as id,
+                    tb.primaryTitle as title,
+                    tb.startYear,
+                    'tvSeries' as type,
+                    tr.averageRating,
+                    NULL as poster,
+                    NULL as known_for
+                FROM title_basics tb
+                LEFT JOIN title_ratings tr ON tb.tconst = tr.tconst
+                WHERE tb.titleType IN ('tvSeries', 'tvMiniSeries') 
+                  AND CONTAINS(tb.primaryTitle, ?)
+                ORDER BY tr.numVotes DESC
+            ";
+            try {
+                $tvData = DB::connection('sqlsrv')->select($sqlTV, [$ftsKeyword]);
+            } catch (\Exception $e) {
+                $sqlTVLike = str_replace('CONTAINS(tb.primaryTitle, ?)', 'tb.primaryTitle LIKE ?', $sqlTV);
+                $tvData = DB::connection('sqlsrv')->select($sqlTVLike, ['%' . $clean . '%']);
+            }
+            $results = $results->merge($tvData);
+        }
+
+        // --- C. PERSON SEARCH ---
+        if ($type === 'person' || $type === 'multi') {
+            // Gunakan Subquery ringan untuk known_for
+            $sqlPerson = "
+                SELECT TOP 20
+                    nb.nconst as id,
+                    nb.primaryName as title,
+                    nb.birthYear as startYear,
+                    'person' as type,
+                    NULL as averageRating,
+                    NULL as poster,
+                    (SELECT TOP 1 np.profession_name FROM name_professions np WHERE np.nconst = nb.nconst) as known_for
+                FROM name_basics nb
+                WHERE CONTAINS(nb.primaryName, ?)
+            ";
+            try {
+                $personData = DB::connection('sqlsrv')->select($sqlPerson, [$ftsKeyword]);
+            } catch (\Exception $e) {
+                $sqlPersonLike = str_replace('CONTAINS(nb.primaryName, ?)', 'nb.primaryName LIKE ?', $sqlPerson);
+                $personData = DB::connection('sqlsrv')->select($sqlPersonLike, ['%' . $clean . '%']);
+            }
+            $results = $results->merge($personData);
+        }
+
+        // Return Inertia (Agar tombol Enter berfungsi)
         return \Inertia\Inertia::render('Guest/SearchResults', [
             'results' => $results,
             'queryParams' => $request->all(),
