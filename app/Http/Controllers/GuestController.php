@@ -62,13 +62,27 @@ class GuestController extends Controller
             $show->poster_path = null;
         }
 
+// ==========================================
+        // SLIDER 3: TOP ACTORS ONLY (Optimized)
         // ==========================================
-        // SLIDER 3: TOP ARTISTS
-        // ==========================================
+        // Langkah 1: Ambil ID Artis Populer yang spesifik berprofesi 'actor' atau 'actress'
+        $topArtistIds = DB::connection('sqlsrv')
+            ->table('v_Executive_BankabilityReport_Base as v') // Pastikan View ini ada
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('name_professions as np')
+                    ->whereColumn('np.nconst', 'v.nconst')
+                    ->whereIn('np.profession_name', ['actor', 'actress']); // Ambil keduanya agar adil
+            })
+            ->orderByDesc('TotalNumVotes') // Atau 'popularity' jika pakai kolom TMDB
+            ->limit(10)
+            ->pluck('nconst');
+
+        // Langkah 2: Ambil Data Lengkap
         $topArtists = DB::connection('sqlsrv')
             ->table('v_Executive_BankabilityReport_Base')
+            ->whereIn('nconst', $topArtistIds)
             ->orderByDesc('TotalNumVotes')
-            ->limit(10)
             ->get();
 
         foreach($topArtists as $artist) {
