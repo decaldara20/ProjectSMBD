@@ -57,7 +57,19 @@ const InsightRow = ({ term, count, trend }) => (
     </div>
 );
 
-export default function Dashboard({ stats, charts, topMovies, bi, filters }) {
+// Ganti 'stats' menjadi 'kpi' di props
+export default function Dashboard({ kpi, charts, topMovies, bi, filters }) {
+
+    // Validasi Data KPI (PENTING)
+    if (!kpi) {
+        return (
+            <DashboardLayout>
+                <div className="flex items-center justify-center h-screen text-white">
+                    Loading Dashboard Data...
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     // Handle Filter Change
     const handleFilter = (range) => {
@@ -68,10 +80,10 @@ export default function Dashboard({ stats, charts, topMovies, bi, filters }) {
 
     // A. GROWTH CHART (Area Line - Smooth)
     const growthData = {
-        labels: charts.growth.map(d => d.startYear),
+        labels: charts?.growth?.map(d => d.startYear) || [],
         datasets: [{
             label: 'Releases',
-            data: charts.growth.map(d => d.total_released),
+            data: charts?.growth?.map(d => d.total_titles) || [], // Sesuaikan dengan nama kolom di controller (total_titles)
             borderColor: '#06b6d4', // Cyan
             borderWidth: 3,
             backgroundColor: (context) => {
@@ -93,10 +105,10 @@ export default function Dashboard({ stats, charts, topMovies, bi, filters }) {
 
     // B. GENRE TRENDS (Vertical Bar - Modern)
     const genreData = {
-        labels: charts.genres.map(g => g.genre_name),
+        labels: charts?.genres?.map(g => g.genre_name) || [],
         datasets: [{
             label: 'Total Votes',
-            data: charts.genres.map(g => g.total_votes),
+            data: charts?.genres?.map(g => g.total_votes) || [],
             backgroundColor: ['#3b82f6', '#06b6d4', '#8b5cf6', '#ec4899', '#f43f5e'],
             borderRadius: 6,
             barThickness: 40,
@@ -106,9 +118,9 @@ export default function Dashboard({ stats, charts, topMovies, bi, filters }) {
 
     // C. PLATFORM SHARE (Doughnut - Minimalist)
     const platformData = {
-        labels: charts.platforms.map(p => p.network_name),
+        labels: charts?.platforms?.map(p => p.network_name) || [],
         datasets: [{
-            data: charts.platforms.map(p => p.total_shows),
+            data: charts?.platforms?.map(p => p.total_shows) || [],
             backgroundColor: ['#E50914', '#00A8E1', '#113CCF', '#1CE783', '#FFF'],
             borderWidth: 0,
             hoverOffset: 15
@@ -163,28 +175,28 @@ export default function Dashboard({ stats, charts, topMovies, bi, filters }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <KPICard 
                         title="Total Titles" 
-                        value={stats.total_titles?.toLocaleString() || 0} 
+                        value={kpi.total_titles || 0} // Akses via 'kpi' bukan 'stats'
                         subtext="+12% Growth"
                         icon="movie" 
                         color="text-cyan-400" 
                     />
                     <KPICard 
                         title="Global IMDb Rating" 
-                        value={stats.avg_rating || 0} 
+                        value={kpi.avg_rating || 0} 
                         subtext="Quality Index"
                         icon="star" 
                         color="text-yellow-400" 
                     />
                     <KPICard 
                         title="Industry Pros" 
-                        value={stats.total_pros?.toLocaleString() || 0} 
+                        value={kpi.total_pros || 0} 
                         subtext="Talent Pool"
                         icon="person_search" 
                         color="text-pink-400" 
                     />
                     <KPICard 
                         title="TV Series Catalog" 
-                        value={stats.total_tv?.toLocaleString() || 0} 
+                        value={kpi.total_tv || 0} 
                         subtext="Episodes Tracked"
                         icon="live_tv" 
                         color="text-purple-400" 
@@ -218,12 +230,12 @@ export default function Dashboard({ stats, charts, topMovies, bi, filters }) {
                         <div className="w-[200px] h-[200px] relative mb-4">
                             <Doughnut data={platformData} options={{ cutout: '80%', plugins: { legend: { display: false } } }} />
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-4xl font-black text-white">{charts.platforms.length}</span>
+                                <span className="text-4xl font-black text-white">{charts?.platforms?.length || 0}</span>
                                 <span className="text-[10px] text-gray-500 uppercase tracking-widest">Networks</span>
                             </div>
                         </div>
                         <div className="flex flex-wrap justify-center gap-2">
-                            {charts.platforms.slice(0, 3).map((p, i) => (
+                            {charts?.platforms?.slice(0, 3).map((p, i) => (
                                 <div key={i} className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
                                     <span className="w-2 h-2 rounded-full" style={{ backgroundColor: platformData.datasets[0].backgroundColor[i] }}></span>
                                     <span className="text-[10px] font-bold text-gray-300">{p.network_name}</span>
@@ -296,4 +308,4 @@ export default function Dashboard({ stats, charts, topMovies, bi, filters }) {
             </div>
         </DashboardLayout>
     );
-}
+}z
