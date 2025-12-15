@@ -671,34 +671,74 @@ public function homepage(Request $request) {
     // =========================================================================
     // 8. DETAIL PAGES (Film, TV, Person)
     // =========================================================================
-    public function showTitleDetail($tconst) {
+public function showTitleDetail($tconst) {
+        // 1. Ambil ID Mentah & Bersihkan Spasi
+        $rawId = trim((string) $tconst);
+
+        // Validasi: Cegah ID kosong (biar gak error/random)
+        if (empty($rawId)) return redirect('/')->with('error', 'ID tidak valid.');
+
+        // 2. LOGIKA PERBAIKAN ID (AUTO-FIX 'tt')
+        // Jika ID cuma "tt597" (pendek), kita coba juga cari versi "tt0000597" (panjang)
+        $searchIds = [$rawId]; // Masukkan ID asli dulu
+        
+        // Cek apakah formatnya "tt" + angka?
+        if (preg_match('/^tt(\d+)$/', $rawId, $matches)) {
+            $numberPart = $matches[1];
+            // Tambahkan versi padding 7 digit (Standar IMDb)
+            $paddedId = 'tt' . str_pad($numberPart, 7, '0', STR_PAD_LEFT);
+            if ($paddedId !== $rawId) {
+                $searchIds[] = $paddedId;
+            }
+        }
+
+        // 3. QUERY UTAMA (Cari di View & Tabel Fisik sekaligus)
+        // Kita cari dimanapun ID itu berada (baik versi pendek maupun panjang)
         $title = DB::connection('sqlsrv')
             ->table('v_DetailJudulIMDB')
-            ->where('tconst', $tconst)
+            ->whereIn('tconst', $searchIds) // Cari semua kemungkinan ID
             ->first();
 
+        // 4. FALLBACK KE TABEL FISIK (Jika di View gak ada)
         if (!$title) {
-            return redirect('/')->with('error', 'Judul tidak ditemukan');
+            $title = DB::connection('sqlsrv')
+                ->table('title_basics as tb')
+                ->leftJoin('title_ratings as tr', 'tb.tconst', '=', 'tr.tconst')
+                ->select(
+                    'tb.tconst', 'tb.primaryTitle', 'tb.originalTitle', 
+                    'tb.startYear', 'tb.runtimeMinutes', 'tb.titleType', 
+                    'tr.averageRating', 'tr.numVotes'
+                )
+                // PENTING: Gunakan whereIn juga disini
+                ->whereIn('tb.tconst', $searchIds)
+                ->first();
         }
 
+        // 5. JIKA MASIH GAGAL (Berarti data memang hancur/hilang)
+        if (!$title) {
+            // DEBUGGING: Jika Anda ingin melihat ID apa yang sebenarnya dicari (bisa dihapus nanti)
+            // dd("Mencari ID: " . implode(', ', $searchIds) . " tapi tidak ketemu di Database.");
+            
+            return redirect('/')->with('error', 'Film tidak ditemukan.');
+        }
+
+        // --- SISANYA SAMA ---
         if (isset($title->Genres_List)) {
             $title->genres = $title->Genres_List;
-        } 
-        // 2. Jika View belum update, ambil manual dari tabel title_genres
-        else {
+        } else {
             $genres = DB::connection('sqlsrv')
                 ->table('title_genres')
-                ->where('tconst', $tconst)
+                ->where('tconst', $title->tconst) // Gunakan ID hasil temuan DB
                 ->pluck('genre_name')
                 ->implode(', ');
-            
-            $title->genres = $genres;
+            $title->genres = $genres ?: '-';
         }
 
-        // Simpan ke History (Server Side Session)
-        $this->addToHistory('movie', $title->tconst, $title->primaryTitle, $title->startYear, $title->averageRating);
+        // Default Plot
+        $title->plot = $title->plot ?? 'Sinopsis belum tersedia.';
 
-        // Render React Component
+        $this->addToHistory('movie', trim($title->tconst), $title->primaryTitle, $title->startYear, $title->averageRating ?? 0);
+
         return Inertia::render('Guest/TitleDetail', [
             'title' => $title
         ]);
@@ -755,62 +795,55 @@ public function homepage(Request $request) {
         ]);
     }
 
-    public function showPersonDetail($nconst) {
-        // 1. AMBIL INFO ARTIS
-        $person = DB::connection('sqlsrv')
-            ->table('v_DetailAktor')
-            ->where('nconst', $nconst)
-            ->first();
+public function showPersonDetail($nconst) {
+        // 1. AMBIL PROFIL (Cache 24 Jam)
+        $person = Cache::remember("person_profile_v3_{$nconst}", 60 * 60 * 24, function () use ($nconst) {
+            $data = DB::connection('sqlsrv')->table('v_DetailAktor')->where('nconst', $nconst)->first();
+            if (!$data) {
+                $data = DB::connection('sqlsrv')->table('name_basics')->where('nconst', $nconst)->first();
+            }
+            return $data;
+        });
 
-        // Fallback jika tidak ada di View
-        if (!$person) {
-            $personRaw = DB::connection('sqlsrv')->table('name_basics')->where('nconst', $nconst)->first();
-            if (!$personRaw) return redirect('/')->with('error', 'Orang tidak ditemukan');
+        if (!$person) return redirect('/')->with('error', 'Orang tidak ditemukan');
 
-            $person = $personRaw;
-            $person->profession = $personRaw->primaryProfession ?? 'Artist';
-            $person->known_for_titles = $personRaw->knownForTitles ?? '';
-        }
-
-        // 2. HITUNG TOTAL KREDIT
-        $totalCredits = DB::connection('sqlsrv')
-            ->table('title_principals')
-            ->where('nconst', $nconst)
-            ->count();
-        
-        $person->Total_Credits = $totalCredits;
-
-        // 3. AMBIL FILMOGRAFI (Detail Film)
-        $rawMovies = DB::connection('sqlsrv')
-            ->table('title_principals AS tp')
-            ->join('title_basics AS tb', 'tp.tconst', '=', 'tb.tconst')
-            ->where('tp.nconst', $nconst)
-            ->select('tb.primaryTitle', 'tb.tconst', 'tb.startYear', 'tp.category')
-            ->orderByDesc('tb.startYear')
-            ->limit(100)
-            ->get();
-
-        // Grouping agar rapi di JSON
-        $filmography = $rawMovies->groupBy('tconst')->map(function ($rows) {
-            $first = $rows->first();
-            $categories = $rows->pluck('category')->unique()->implode(', ');
-            return [
-                'tconst' => $first->tconst,
-                'primaryTitle' => $first->primaryTitle,
-                'startYear' => $first->startYear,
-                'category' => $categories
-            ];
-        })->values();
-
+        // Normalisasi
+        $person->profession = $person->primaryProfession ?? ($person->profession ?? '-');
+        $person->known_for_titles = $person->knownForTitles ?? '';
         $person->profile_path = null;
 
-        // Simpan ke History (Khusus Person)
+        // 2. HITUNG TOTAL KREDIT (Semua kredit, termasuk self)
+        $creditCount = DB::connection('sqlsrv')->selectOne("SELECT COUNT(*) as total FROM title_principals WHERE nconst = ?", [$nconst]);
+        $person->Total_Credits = $creditCount->total;
+
+        // 3. AMBIL FILMOGRAFI (FILTERED SQL)
+        // Disini kita membuang 'self' agar yang muncul hanya Film/Series sungguhan.
+        
+        $filmography = Cache::remember("person_films_filtered_{$nconst}", 60 * 60, function () use ($nconst) {
+            $sql = "
+                SELECT DISTINCT TOP 100
+                    RTRIM(tb.tconst) as tconst, -- ID BERSIH (Anti Link Random)
+                    tb.primaryTitle,
+                    tb.startYear,
+                    tp.category
+                FROM title_principals tp
+                INNER JOIN title_basics tb ON tp.tconst = tb.tconst
+                WHERE tp.nconst = ?
+                -- FILTER PENTING: Hanya ambil peran seni, buang 'self' / 'archive'
+                AND tp.category NOT IN ('self', 'archive_footage', 'guest')
+                -- OPSIONAL: Hanya ambil Film dan TV Series (Buang episode talkshow)
+                AND tb.titleType IN ('movie', 'tvSeries', 'tvMiniSeries', 'short')
+                ORDER BY tb.startYear DESC
+            ";
+
+            return DB::connection('sqlsrv')->select($sql, [$nconst]);
+        });
+
         $this->addToHistory('person', $nconst, $person->primaryName, null, null);
 
-        // Render React Component
         return Inertia::render('Guest/PersonDetail', [
             'person' => $person,
-            'filmography' => $filmography // Kirim data filmografi juga jika mau dipakai di React nanti
+            'filmography' => $filmography
         ]);
     }
 
@@ -998,26 +1031,39 @@ public function homepage(Request $request) {
         }
 
         // --- C. PERSON SEARCH ---
+// --- C. CARI ORANG (ANTI DUPLIKAT) ---
         if ($type === 'person' || $type === 'multi') {
-            // Gunakan Subquery ringan untuk known_for
+            
+            // Kita gunakan DISTINCT untuk membuang duplikat jika ada join yang tidak sengaja
+            // Kita juga batasi TOP 20 agar cepat
+            
             $sqlPerson = "
-                SELECT TOP 20
+                SELECT DISTINCT TOP 20
                     nb.nconst as id,
                     nb.primaryName as title,
                     nb.birthYear as startYear,
                     'person' as type,
                     NULL as averageRating,
                     NULL as poster,
-                    (SELECT TOP 1 np.profession_name FROM name_professions np WHERE np.nconst = nb.nconst) as known_for
+                    -- Ambil 1 Profesi saja sebagai label (Subquery = Aman dari Duplikat)
+                    (
+                        SELECT TOP 1 np.profession_name 
+                        FROM name_professions np 
+                        WHERE np.nconst = nb.nconst
+                    ) as known_for
                 FROM name_basics nb
                 WHERE CONTAINS(nb.primaryName, ?)
             ";
+
             try {
                 $personData = DB::connection('sqlsrv')->select($sqlPerson, [$ftsKeyword]);
             } catch (\Exception $e) {
+                // Fallback jika FTS belum siap
                 $sqlPersonLike = str_replace('CONTAINS(nb.primaryName, ?)', 'nb.primaryName LIKE ?', $sqlPerson);
+                // Hapus DISTINCT di fallback jika bikin lambat, tapi sebaiknya tetap ada
                 $personData = DB::connection('sqlsrv')->select($sqlPersonLike, ['%' . $clean . '%']);
             }
+            
             $results = $results->merge($personData);
         }
 

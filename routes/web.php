@@ -102,3 +102,4 @@ Route::middleware(['auth', 'role:production'])->prefix('production')->group(func
     Route::get('/genres', [ProductionController::class, 'genres'])->name('production.genres');
     // Nanti tambah route CRUD movie disini
 });
+
