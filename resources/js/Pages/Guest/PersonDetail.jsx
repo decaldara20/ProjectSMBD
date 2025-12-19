@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '../../Layouts/MainLayout';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 
-// KOMPONEN GAMBAR PENGGANTI (MURNI CSS - TIDAK BUTUH INTERNET)
+// KOMPONEN GAMBAR PENGGANTI (MURNI CSS - ANTI ERROR)
 const ImageFallback = ({ text, icon = "movie" }) => (
     <div className="w-full h-full flex flex-col items-center justify-center bg-[#222] text-center select-none p-4">
         <span className="material-symbols-outlined text-5xl text-white/10 mb-2">
@@ -53,9 +53,8 @@ export default function PersonDetail({ person, filmography }) {
     useEffect(() => {
         const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
         
-        // Debugging: Cek apakah API Key terbaca
         if (!TMDB_KEY) {
-            console.error("❌ TMDB API KEY MISSING! Pastikan ada di file .env");
+            console.error("TMDB API KEY MISSING!");
             setTmdbProfile(prev => ({ ...prev, biography: "API Key Config Error." }));
             return;
         }
@@ -84,7 +83,6 @@ export default function PersonDetail({ person, filmography }) {
                                     detail.combined_credits.cast.forEach(work => {
                                         const title = work.title || work.name;
                                         if (title && work.poster_path) {
-                                            // Normalisasi Key: lowercase + tanpa simbol
                                             const cleanTitle = title.toLowerCase().replace(/[^a-z0-9]/g, '');
                                             map[cleanTitle] = work.poster_path;
                                         }
@@ -94,11 +92,10 @@ export default function PersonDetail({ person, filmography }) {
                                 setPosterMap(map);
                             });
                     } else {
-                        console.warn("⚠️ Person not found in TMDB.");
                         setTmdbProfile(prev => ({ ...prev, biography: "Details not found in external database." }));
                     }
                 })
-                .catch(err => console.error("❌ TMDB Error:", err));
+                .catch(err => console.error("TMDB Error:", err));
         }
     }, [person]);
 
@@ -118,7 +115,6 @@ export default function PersonDetail({ person, filmography }) {
                 
                 {/* HERO BANNER */}
                 <div className="absolute top-0 left-0 w-full h-[500px] overflow-hidden opacity-30 pointer-events-none">
-                    {/* Menggunakan class standard 'bg-gradient-to-b' (Tailwind v3) agar aman */}
                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/80 to-[#0a0a0a] z-10"></div>
                     {tmdbProfile.image && (
                         <img src={`https://image.tmdb.org/t/p/original${tmdbProfile.image}`} className="w-full h-full object-cover blur-3xl scale-110" alt="Backdrop" />
@@ -182,7 +178,7 @@ export default function PersonDetail({ person, filmography }) {
                             </div>
                         </section>
 
-                        {/* --- KNOWN FOR (DATA LOKAL + GAMBAR TMDB) --- */}
+                        {/* --- KNOWN FOR --- */}
                         <section>
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-2xl font-bold text-white">Known For ({filmography.length} Works)</h3>
@@ -198,8 +194,7 @@ export default function PersonDetail({ person, filmography }) {
                                             href={`/title/${item.tconst}`} 
                                             className="group relative bg-[#181818] rounded-xl overflow-hidden border border-white/5 hover:border-pink-500/50 transition-all flex flex-col h-full shadow-lg"
                                         >
-                                            {/* POSTER IMAGE CONTAINER */}
-                                            {/* Gunakan style inline untuk aspect ratio agar tidak kena warning Tailwind */}
+                                            {/* POSTER IMAGE CONTAINER (FIXED ASPECT RATIO & FALLBACK) */}
                                             <div className="relative w-full bg-[#222] overflow-hidden" style={{ aspectRatio: '2/3' }}>
                                                 {posterUrl ? (
                                                     <img 
@@ -209,7 +204,7 @@ export default function PersonDetail({ person, filmography }) {
                                                         loading="lazy"
                                                     />
                                                 ) : (
-                                                    // COMPONENT FALLBACK (CSS ONLY - NO EXTERNAL URL)
+                                                    // CSS FALLBACK - NO EXTERNAL URL
                                                     <div className="absolute inset-0">
                                                         <ImageFallback text={item.primaryTitle} icon="movie" />
                                                     </div>

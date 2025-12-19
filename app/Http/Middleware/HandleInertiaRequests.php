@@ -34,25 +34,37 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
-    public function share(Request $request): array
+public function share(Request $request): array
     {
-        $genres = DB::connection('sqlsrv')
-            ->table('genre_types')
-            ->orderBy('genre_name')
-            ->get();
-        
         return array_merge(parent::share($request), [
-            // 1. Kirim Data Auth (User Login)
+            // 1. DATA USER LOGIN
             'auth' => [
                 'user' => $request->user(),
             ],
 
-            // 2. Kirim Pesan Flash (Opsional, untuk notifikasi nanti)
+            // 2. FLASH MESSAGES
             'flash' => [
-                'message' => fn () => $request->session()->get('message')
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
             ],
 
-            'globalGenres' => $genres,
+            // 3. DATA GLOBAL GENRES (REVISI SESUAI STRUKTUR DB ANDA)
+            // Kita ambil dari 'title_genres' agar semua genre (IMDb + TV) tertangkap.
+            'globalGenres' => \Illuminate\Support\Facades\Cache::remember('nav_global_genres', 60 * 60 * 24, function () {
+                try {
+                    return DB::connection('sqlsrv')
+                        ->table('title_genres')
+                        ->select('genre_name')
+                        ->distinct() // PENTING: Agar tidak ada duplikat (misal 'Drama' muncul 1000x)
+                        ->whereNotNull('genre_name')
+                        ->where('genre_name', '!=', '')
+                        ->orderBy('genre_name')
+                        ->get();
+                        
+                } catch (\Exception $e) {
+                    return [];
+                }
+            }),
         ]);
     }
 }
