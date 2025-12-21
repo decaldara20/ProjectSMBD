@@ -113,11 +113,18 @@ class ExecutiveController extends Controller
     {
         // --- LAPORAN 4A: Pertumbuhan Rilis Konten (10 Tahun Terakhir) ---
         $yearlyTrend = DB::connection('sqlsrv')
-            ->table('v_Executive_Yearly_Growth')
-            ->where('startYear', '>=', date('Y') - 10)
-            ->where('startYear', '<=', date('Y'))
-            ->orderBy('startYear')
-            ->get();
+        ->table('title_basics')
+        ->select('startYear')
+        // Hitung Total Semua (Untuk Single Line Chart)
+        ->selectRaw("COUNT(*) as total_released")
+        // Hitung Split per Tipe (Untuk cadangan/analisis lebih dalam)
+        ->selectRaw("COUNT(CASE WHEN titleType = 'movie' THEN 1 END) as total_movies")
+        ->selectRaw("COUNT(CASE WHEN titleType = 'tvSeries' THEN 1 END) as total_tv")
+        ->where('startYear', '>=', date('Y') - 10)
+        ->where('startYear', '<=', date('Y'))
+        ->groupBy('startYear')
+        ->orderBy('startYear')
+        ->get();
 
         // --- LAPORAN 2A: Genre Paling Populer (By Total Votes) ---
         $topGenresByVotes = DB::connection('sqlsrv')
@@ -130,7 +137,7 @@ class ExecutiveController extends Controller
         // Filter: Hanya genre yang punya minimal 500 judul agar data valid (tidak bias)
         $topGenresByRating = DB::connection('sqlsrv')
             ->table('v_Executive_Genre_Stats')
-            ->where('total_titles', '>', 500) 
+            ->where('total_titles', '>', 50) 
             ->orderByDesc('avg_rating')
             ->limit(10)
             ->get();
