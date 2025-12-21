@@ -17,7 +17,7 @@ import { Line, Bar } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
-// --- KOMPONEN KECIL: SUMMARY CARD ---
+// --- KOMPONEN KECIL: SUMMARY CARD (TETAP SESUAI REQUEST) ---
 const InsightCard = ({ label, value, subtext, icon, color, gradient }) => (
     <div className="relative overflow-hidden bg-[#1A1A1A] border border-white/5 rounded-2xl p-5 group hover:border-white/10 transition-all duration-300">
         <div className={`absolute -right-4 -top-4 w-24 h-24 bg-linear-to-br ${gradient} opacity-10 blur-2xl rounded-full group-hover:opacity-20 transition-opacity`}></div>
@@ -42,11 +42,13 @@ export default function Trends({ reports }) {
     const topQualGenre = reports.quality_genres[0] || {};
 
     // --- 2. CHART CONFIGURATIONS ---
+    
+    // Opsi Umum (Tanpa Legend - untuk Bar Chart)
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: { 
-            legend: { display: false }, // Legend global dimatikan (biar bersih)
+            legend: { display: false }, 
             tooltip: {
                 backgroundColor: 'rgba(15, 15, 15, 0.95)',
                 titleColor: '#fff',
@@ -55,17 +57,12 @@ export default function Trends({ reports }) {
                 borderWidth: 1,
                 padding: 12,
                 cornerRadius: 8,
-                displayColors: true, // PENTING: Aktifkan kotak warna di tooltip untuk Movies/TV
+                displayColors: true,
                 callbacks: {
                     label: (ctx) => {
                         let val = Number(ctx.raw).toLocaleString();
-                        
-                        // Logic Label Custom
                         if (ctx.chart.canvas.id === 'popChart') return ` ${val} Votes`;
                         if (ctx.chart.canvas.id === 'qualChart') return ` ⭐ ${Number(ctx.raw).toFixed(1)} Rating`;
-                        
-                        // Default untuk Growth Chart (Movies vs TV)
-                        // Akan muncul: "Movies: 1,200 Titles"
                         return ` ${ctx.dataset.label}: ${val} Titles`;
                     }
                 }
@@ -85,11 +82,29 @@ export default function Trends({ reports }) {
         layout: { padding: 0 }
     };
 
-    // --- DATA: INDUSTRY GROWTH (DOUBLE LINE: MOVIES vs TV) ---
+    // [REVISI] Opsi Khusus Line Chart: MENAMPILKAN LEGENDA
+    const lineChartOptions = {
+        ...commonOptions,
+        plugins: {
+            ...commonOptions.plugins,
+            legend: {
+                display: true, // AKTIFKAN LEGEND
+                position: 'top',
+                align: 'end', // Pojok Kanan Atas
+                labels: {
+                    color: '#9ca3af', // Warna teks abu-abu terang
+                    font: { size: 11, family: "'Inter', sans-serif" },
+                    usePointStyle: true, // Pakai titik bulat/kotak kecil
+                    boxWidth: 6
+                }
+            }
+        }
+    };
+
+    // --- DATA: INDUSTRY GROWTH ---
     const growthData = {
         labels: reports.growth.map(d => d.startYear),
         datasets: [
-            // DATASET 1: MOVIES
             {
                 label: 'Movies',
                 data: reports.growth.map(d => d.total_movies || 0), 
@@ -104,15 +119,12 @@ export default function Trends({ reports }) {
                 fill: true,
                 tension: 0.4,
                 borderWidth: 3,
-                
-                // Styling Titik (Hollow Dots)
                 pointRadius: 4, 
                 pointHoverRadius: 7,
-                pointBackgroundColor: '#121212', // Tengahnya hitam
-                pointBorderColor: '#c084fc',     // Pinggirnya ungu
+                pointBackgroundColor: '#121212',
+                pointBorderColor: '#c084fc', 
                 pointBorderWidth: 2,
             },
-            // DATASET 2: TV SHOWS
             {
                 label: 'TV Shows',
                 data: reports.growth.map(d => d.total_tv || 0), 
@@ -127,8 +139,6 @@ export default function Trends({ reports }) {
                 fill: true,
                 tension: 0.4,
                 borderWidth: 3,
-                
-                // Styling Titik (Hollow Dots)
                 pointRadius: 4,
                 pointHoverRadius: 7,
                 pointBackgroundColor: '#121212',
@@ -142,12 +152,13 @@ export default function Trends({ reports }) {
     const popularGenreData = {
         labels: reports.popular_genres.map(g => g.genre_name),
         datasets: [{
+            label: 'Votes',
             data: reports.popular_genres.map(g => g.total_votes),
             backgroundColor: (context) => {
                 const ctx = context.chart.ctx;
                 const gradient = ctx.createLinearGradient(0, 0, 300, 0); 
-                gradient.addColorStop(0, '#2563eb'); // Blue-600
-                gradient.addColorStop(1, '#60a5fa'); // Blue-400
+                gradient.addColorStop(0, '#2563eb'); 
+                gradient.addColorStop(1, '#60a5fa'); 
                 return gradient;
             },
             borderRadius: 4,
@@ -159,12 +170,13 @@ export default function Trends({ reports }) {
     const qualityGenreData = {
         labels: reports.quality_genres.map(g => g.genre_name),
         datasets: [{
+            label: 'Rating',
             data: reports.quality_genres.map(g => g.avg_rating),
             backgroundColor: (context) => {
                 const ctx = context.chart.ctx;
                 const gradient = ctx.createLinearGradient(0, 0, 300, 0);
-                gradient.addColorStop(0, '#059669'); // Emerald-600
-                gradient.addColorStop(1, '#34d399'); // Emerald-400
+                gradient.addColorStop(0, '#059669'); 
+                gradient.addColorStop(1, '#34d399'); 
                 return gradient;
             },
             borderRadius: 4,
@@ -193,7 +205,7 @@ export default function Trends({ reports }) {
                         </p>
                     </div>
 
-                    {/* AT A GLANCE (3 KOLOM) */}
+                    {/* AT A GLANCE (KPI TETAP) */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <InsightCard 
                             label="Current Velocity" 
@@ -237,8 +249,8 @@ export default function Trends({ reports }) {
                     </div>
 
                     <div className="h-[350px] w-full relative z-10">
-                        {/* ID growthChart dihapus karena logic tooltip sudah general */}
-                        <Line data={growthData} options={commonOptions} />
+                        {/* REVISI: Menggunakan lineChartOptions yang sudah ada Legend-nya */}
+                        <Line id="growthChart" data={growthData} options={lineChartOptions} />
                     </div>
 
                     {/* Background Ambient Glow */}
