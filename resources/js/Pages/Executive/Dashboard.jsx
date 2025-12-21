@@ -34,7 +34,7 @@ const StatCard = ({ title, value, subtext, icon, color }) => {
         <div className={`relative group p-6 rounded-3xl bg-[#151515] border border-white/5 transition-all duration-500 ease-out hover:-translate-y-2 ${activeGlow}`}>
             
             {/* Background Gradient Splash (Hidden by default, visible on hover) */}
-            <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 rounded-3xl transition-opacity duration-500 bg-gradient-to-br ${color.replace('text-', 'from-')} to-transparent`}></div>
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 rounded-3xl transition-opacity duration-500 bg-linear-to-br ${color.replace('text-', 'from-')} to-transparent`}></div>
 
             {/* Floating Big Icon (Watermark) */}
             <div className={`absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-500 transform group-hover:rotate-12 group-hover:scale-125`}>
@@ -82,8 +82,8 @@ const TalentListItem = ({ rank, name, role, rating }) => {
     return (
         <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group cursor-default border border-transparent hover:border-white/5">
             {/* Rank Badge */}
-            <div className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-xs ${
-                rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-orange-600 text-black shadow-lg shadow-orange-500/20' 
+            <div className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-xs ${
+                rank === 1 ? 'bg-linear-to-br from-yellow-400 to-orange-600 text-black shadow-lg shadow-orange-500/20' 
                 : rank === 2 ? 'bg-gray-300 text-black'
                 : rank === 3 ? 'bg-orange-300 text-black'
                 : 'bg-white/5 text-gray-500'
@@ -110,7 +110,7 @@ const TalentListItem = ({ rank, name, role, rating }) => {
                 {/* Rating Bar Visual */}
                 <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
                     <div 
-                        className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full" 
+                        className="h-full bg-linear-to-r from-yellow-600 to-yellow-400 rounded-full" 
                         style={{ width: `${percentage}%` }}
                     ></div>
                 </div>
@@ -206,7 +206,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent }) {
                                 onClick={() => handleFilter(range)}
                                 className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
                                     filters?.range === range 
-                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg' 
+                                    ? 'bg-linear-to-r from-cyan-500 to-blue-600 text-white shadow-lg' 
                                     : 'text-gray-500 hover:text-white hover:bg-white/5'
                                 }`}
                             >
