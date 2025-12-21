@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
 class AuthController extends Controller
@@ -11,13 +13,19 @@ class AuthController extends Controller
     // Tampilkan Halaman Login
     public function showLogin()
     {
-        return Inertia::render('Auth/Login');
+        // Panggil komponen AuthSlider, set mode awal ke 'login'
+        return Inertia::render('Auth/AuthSlider', [
+            'defaultView' => 'login'
+        ]);
     }
 
     // Tampilkan Halaman Register
     public function showRegister()
     {
-        return Inertia::render('Auth/Register');
+        // Panggil komponen AuthSlider (FILE YANG SAMA), tapi mode awal 'register'
+        return Inertia::render('Auth/AuthSlider', [
+            'defaultView' => 'register'
+        ]);
     }
 
     // Proses Login
@@ -54,22 +62,26 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
+        // 1. Validasi Input
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|confirmed|min:8',
         ]);
 
+        // 2. Buat User baru
         $user = \App\Models\User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'password' => Hash::make($request->password),
             'role' => 'user', // Default role
         ]);
 
-        \Illuminate\Support\Facades\Auth::login($user);
+        // 3. Login Otomatis setelah Register
+        Auth::login($user);
 
-        return redirect('/');
+        // 4. Redirect ke Homepage
+        return redirect()->route('homepage')->with('success', 'Registration successful! Welcome ' . $user->name);
     }
 
     // Proses Logout
