@@ -30,6 +30,17 @@ public function homepage(Request $request) {
         });
         $filters['years'] = $years;
 
+        $heroMovie = Cache::remember('homepage_hero', 60 * 60 * 24, function () {
+            return DB::connection('sqlsrv')
+                ->table('title_ratings as tr')
+                ->join('title_basics as tb', 'tr.tconst', '=', 'tb.tconst')
+                ->select('tb.tconst', 'tb.primaryTitle', 'tb.startYear', 'tr.averageRating', 'tr.numVotes')
+                ->where('tb.titleType', 'movie')
+                ->where('tr.numVotes', '>', 100000) // Minimal vote biar pasti film terkenal
+                ->orderByDesc('tr.numVotes') // Ambil yang paling populer
+                ->first();
+        });
+
         // ==========================================
         // SLIDER 1 & 2 (MOVIES & TV) - Cache 1 Jam
         // ==========================================
@@ -52,40 +63,35 @@ public function homepage(Request $request) {
             return $data;
         });
 
-        // ==========================================
-        // SLIDER 3: TOP ACTORS (PAKAI VIEW BARU)
-        // ==========================================
-        // Ini kuncinya. Kita panggil View ringan yang baru dibuat.
-        // Cache sebentar saja (30 menit) cukup.
-        
-        $topArtists = Cache::remember('home_artists_v_fast', 30, function () {
-            $data = DB::connection('sqlsrv')
-                ->table('v_Web_TopActors_Fast') // <--- View Baru
-                ->orderByDesc('sort_metric')
-                ->limit(10)
-                ->get();
-
-            // Kita perlu ambil detail tambahan? 
-            // Biasanya View di atas cuma nama & ID. Jika butuh foto/profesi lengkap:
-            // Kita bisa ambil detailnya lagi ATAU cukup data dari view itu saja jika sudah lengkap.
-            
-            // Asumsi: View di atas sudah cukup untuk slider (Nama + ID).
-            // Jika butuh "Primary Profession" atau detail lain, kita load lazy loading atau join di View-nya.
-            
-            foreach($data as $artist) {
-                $artist->profile_path = null; 
-                // Fallback jika kolom ini tidak ada di View baru
-                $artist->TotalNumVotes = $artist->sort_metric; 
-            }
-
-            return $data;
+// 4. TOP ARTISTS (VERSI SQL - TANPA TABEL BARU)
+        // Strategi: Ambil aktor dari film-film dengan rating tertinggi.
+        $topArtists = Cache::remember('homepage_top_living_artists_db_only', 60 * 60 * 24, function () {
+            $sql = "
+                SELECT TOP 15
+                    nb.nconst,
+                    nb.primaryName,
+                    -- Subquery untuk ambil 1 profesi utama
+                    (SELECT TOP 1 profession_name FROM name_professions WHERE nconst = nb.nconst) as primaryProfession,
+                    SUM(tr.numVotes) as LocalPopularity
+                FROM title_ratings tr
+                INNER JOIN title_principals tp ON tr.tconst = tp.tconst
+                INNER JOIN name_basics nb ON tp.nconst = nb.nconst
+                WHERE 
+                    tp.category IN ('actor', 'actress')
+                    AND nb.deathYear IS NULL -- Hanya yang masih hidup
+                    AND tr.numVotes > 50000 -- Optimasi: Hanya cek film populer
+                GROUP BY nb.nconst, nb.primaryName
+                ORDER BY LocalPopularity DESC
+            ";
+            return DB::connection('sqlsrv')->select($sql);
         });
 
+        // Kirim semua variabel ke Frontend
         return Inertia::render('Guest/Homepage', [
-            'topMovies'  => $topMovies,
-            'topShows'   => $topShows,
+            'heroMovie' => $heroMovie, 
+            'topMovies' => $topMovies,
+            'topShows'  => $topShows,
             'topArtists' => $topArtists,
-            'filters'    => $filters
         ]);
     }
 
@@ -153,8 +159,8 @@ public function homepage(Request $request) {
 //         ));
 //     }
 
-    // ==========================================
-    // 2. EXPLORE PAGE (GABUNGAN FILM + TV)
+// ==========================================
+    // 2. EXPLORE PAGE (OPTIMIZED SORTING & FILTER)
     // ==========================================
     public function explore(Request $request)
     {
@@ -164,11 +170,11 @@ public function homepage(Request $request) {
                 'tconst', 
                 'primaryTitle as title',
                 'averageRating',
+                'numVotes', // WAJIB ADA untuk sorting popularitas
                 'startYear',
                 'titleType',
                 'Genres_List as genres'
             );
-            // ->whereIn('titleType', ['movie', 'short', 'tvMovie']); // Filter biar yang muncul film aja
 
         // 2. QUERY B: TV dari Dataset TV
         $tvs = DB::connection('sqlsrv')->table('v_DetailJudulTvShow')
@@ -176,43 +182,53 @@ public function homepage(Request $request) {
                 DB::raw("CAST(show_id AS VARCHAR(20)) as tconst"), 
                 'primaryTitle as title',
                 'averageRating',
+                'numVotes', // WAJIB ADA
                 DB::raw("YEAR(startYear) as startYear"),
                 DB::raw("'tvSeries' as titleType"),
                 'Genres_List as genres'
             );
 
-        // 3. GABUNGKAN (UNION ALL lebih cepat dari UNION)
+        // 3. GABUNGKAN (UNION ALL)
+        // Kita bungkus dalam query builder utama agar bisa difilter/sort belakangan
         $combined = DB::connection('sqlsrv')
             ->query()
             ->fromSub($films->unionAll($tvs), 'catalog_union');
 
         // 4. FILTERING
-        if ($request->has('q') && $request->q != '') {
+        
+        // Filter: Search Keyword
+        if ($request->filled('q')) {
             $combined->where('title', 'LIKE', '%' . $request->q . '%');
         }
 
-        // Filter Type (Movie / TV)
-        if ($request->has('type') && $request->type != 'multi') {
+        // Filter: Type (Movie / TV)
+        if ($request->filled('type') && $request->type != 'multi') {
             $combined->where('titleType', $request->type);
         }
 
-        // 5. SORTING & PAGINATION
-        // Sort by Rating tertinggi & Tahun terbaru
-        $items = $combined->orderByDesc('startYear')
-                            ->orderByDesc('averageRating')
-                            ->paginate(24)
-                            ->withQueryString();
+        // Filter: Genre (PENTING!)
+        // Karena 'Genres_List' bentuknya "Action,Adventure", kita pakai LIKE
+        if ($request->filled('genre')) {
+            $combined->where('genres', 'LIKE', '%' . $request->genre . '%');
+        }
 
-        // 6. DATA PENDUKUNG
-        $genres = DB::connection('sqlsrv')
-        ->table('genre_types')
-        ->orderBy('genre_name')
-        ->pluck('genre_name');
+        // 5. SORTING (LOGIKA BARU - FIX ANOMALI TAHUN DEPAN)
+        // Prioritas 1: Popularitas (Jumlah Vote) -> Biar film terkenal muncul duluan
+        // Prioritas 2: Rating -> Biar film bagus di atas film jelek
+        // Prioritas 3: Tahun -> Baru yang terbaru
+        
+        $items = $combined->orderByDesc('numVotes')      // Paling banyak divote
+                          ->orderByDesc('averageRating') // Rating tertinggi
+                          ->orderByDesc('startYear')     // Paling baru
+                          ->paginate(24)
+                          ->withQueryString();
 
         return \Inertia\Inertia::render('Guest/Explore', [
             'items' => $items,
             'filters' => $request->all(),
-            'genres' => $genres
+            // Ambil genre dari Middleware globalGenres (sudah dicache & benar)
+            // Tidak perlu query lagi ke 'genre_types'
+            'genres' => $request->get('globalGenres') 
         ]);
     }
 
@@ -816,24 +832,36 @@ public function showPersonDetail($nconst) {
         $creditCount = DB::connection('sqlsrv')->selectOne("SELECT COUNT(*) as total FROM title_principals WHERE nconst = ?", [$nconst]);
         $person->Total_Credits = $creditCount->total;
 
-        // 3. AMBIL FILMOGRAFI (FILTERED SQL)
-        // Disini kita membuang 'self' agar yang muncul hanya Film/Series sungguhan.
-        
-        $filmography = Cache::remember("person_films_filtered_{$nconst}", 60 * 60, function () use ($nconst) {
+// 3. AMBIL FILMOGRAFI (TOP 10 UNIK - ANTI DUPLIKAT)
+        $filmography = Cache::remember("person_films_top10_unique_{$nconst}", 60 * 60, function () use ($nconst) {
             $sql = "
-                SELECT DISTINCT TOP 100
-                    RTRIM(tb.tconst) as tconst, -- ID BERSIH (Anti Link Random)
-                    tb.primaryTitle,
-                    tb.startYear,
-                    tp.category
-                FROM title_principals tp
-                INNER JOIN title_basics tb ON tp.tconst = tb.tconst
-                WHERE tp.nconst = ?
-                -- FILTER PENTING: Hanya ambil peran seni, buang 'self' / 'archive'
-                AND tp.category NOT IN ('self', 'archive_footage', 'guest')
-                -- OPSIONAL: Hanya ambil Film dan TV Series (Buang episode talkshow)
-                AND tb.titleType IN ('movie', 'tvSeries', 'tvMiniSeries', 'short')
-                ORDER BY tb.startYear DESC
+                SELECT TOP 10 
+                    tconst, primaryTitle, startYear, category
+                FROM (
+                    SELECT 
+                        RTRIM(tb.tconst) as tconst,
+                        tb.primaryTitle,
+                        tb.startYear,
+                        tp.category,
+                        -- Prioritaskan peran: actor/actress dulu, baru yang lain
+                        ROW_NUMBER() OVER (
+                            PARTITION BY tb.tconst 
+                            ORDER BY 
+                                CASE 
+                                    WHEN tp.category IN ('actor', 'actress') THEN 1 
+                                    WHEN tp.category = 'director' THEN 2
+                                    WHEN tp.category = 'writer' THEN 3
+                                    ELSE 4 
+                                END ASC
+                        ) as role_priority
+                    FROM title_principals tp
+                    INNER JOIN title_basics tb WITH(FORCESEEK) ON tp.tconst = tb.tconst
+                    WHERE tp.nconst = ?
+                    AND tp.category NOT IN ('self', 'archive_footage', 'guest', 'himself', 'herself', 'thanks')
+                    AND tb.titleType IN ('movie', 'tvSeries', 'tvMiniSeries')
+                ) AS UniqueFilms
+                WHERE role_priority = 1 -- Hanya ambil 1 peran terbaik per film
+                ORDER BY startYear DESC
             ";
 
             return DB::connection('sqlsrv')->select($sql, [$nconst]);

@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import MainLayout from '../../Layouts/MainLayout';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 
-// KOMPONEN GAMBAR PENGGANTI (MURNI CSS - ANTI ERROR)
+// --- CONFIG API KEY ---
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || 'f19a5ce3a90ddee4579a9f37d5927676';
+
+// --- KOMPONEN FALLBACK GAMBAR (CSS ONLY) ---
 const ImageFallback = ({ text, icon = "movie" }) => (
     <div className="w-full h-full flex flex-col items-center justify-center bg-[#222] text-center select-none p-4">
         <span className="material-symbols-outlined text-5xl text-white/10 mb-2">
@@ -14,11 +17,92 @@ const ImageFallback = ({ text, icon = "movie" }) => (
     </div>
 );
 
+// --- KOMPONEN MOVIE CARD PINTAR (Fetch by ID) ---
+// Komponen ini akan mencari poster sendiri ke TMDB menggunakan ID (tconst)
+const MovieCard = ({ item }) => {
+    const [posterUrl, setPosterUrl] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!item.tconst) return;
+
+        // Fetch ke TMDB menggunakan ID (Pasti Akurat)
+        const url = `https://api.themoviedb.org/3/find/${item.tconst}?api_key=${TMDB_API_KEY}&external_source=imdb_id`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                let path = null;
+                // Cek Movie Results
+                if (data.movie_results?.length > 0) {
+                    path = data.movie_results[0].poster_path;
+                } 
+                // Cek TV Results
+                else if (data.tv_results?.length > 0) {
+                    path = data.tv_results[0].poster_path;
+                }
+
+                if (path) {
+                    setPosterUrl(`https://image.tmdb.org/t/p/w500${path}`);
+                }
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, [item.tconst]);
+
+    return (
+        <Link 
+            href={`/title/${item.tconst}`} 
+            className="group relative bg-[#181818] rounded-xl overflow-hidden border border-white/5 hover:border-pink-500/50 transition-all flex flex-col h-full shadow-lg hover:-translate-y-1"
+        >
+            {/* POSTER IMAGE CONTAINER */}
+            <div className="relative w-full bg-[#222] overflow-hidden" style={{ aspectRatio: '2/3' }}>
+                {loading ? (
+                    <div className="absolute inset-0 bg-gray-800 animate-pulse"></div>
+                ) : posterUrl ? (
+                    <img 
+                        src={posterUrl} 
+                        alt={item.primaryTitle}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        loading="lazy"
+                    />
+                ) : (
+                    // Fallback CSS
+                    <div className="absolute inset-0">
+                        <ImageFallback text={item.primaryTitle} icon="movie" />
+                    </div>
+                )}
+
+                {/* Badge Tahun */}
+                {item.startYear && (
+                    <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded text-xs font-mono text-white border border-white/10 shadow-md z-10">
+                        {item.startYear}
+                    </div>
+                )}
+                
+                {/* Overlay Kategori (Actor/Director) - Optional, UI Enhancement */}
+                <div className="absolute top-2 left-2 bg-pink-600/90 backdrop-blur-md px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider shadow-md z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {item.category || 'Cast'}
+                </div>
+            </div>
+
+            <div className="p-4 flex flex-col flex-1 justify-end z-10 relative bg-[#181818]">
+                <h4 className="text-gray-100 text-sm font-bold line-clamp-2 leading-snug group-hover:text-pink-500 transition-colors">
+                    {item.primaryTitle}
+                </h4>
+                <p className="text-gray-500 text-xs mt-1 capitalize border-t border-white/5 pt-2">
+                    {item.category || 'Cast'}
+                </p>
+            </div>
+        </Link>
+    );
+};
+
 export default function PersonDetail({ person, filmography }) { 
     const { auth = { user: null }, favorites = [] } = usePage().props;
     const [isFavorited, setIsFavorited] = useState(false);
 
-    // --- STATE ---
+    // --- STATE PROFILE ---
     const [tmdbProfile, setTmdbProfile] = useState({
         image: null,
         biography: "Loading details...",
@@ -28,7 +112,7 @@ export default function PersonDetail({ person, filmography }) {
         popularity: 0
     });
     
-    const [posterMap, setPosterMap] = useState({}); 
+    // HAPUS posterMap state yang lama
     const [isBioExpanded, setIsBioExpanded] = useState(false);
 
     // 1. SETUP FAVORITE
@@ -49,23 +133,19 @@ export default function PersonDetail({ person, filmography }) {
         }, { preserveScroll: true, onError: () => setIsFavorited(!isFavorited) });
     };
 
-    // 2. FETCH TMDB (MAPPING GAMBAR)
+    // 2. FETCH TMDB (HANYA UNTUK PROFIL ORANG)
     useEffect(() => {
-        const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY;
-        
-        if (!TMDB_KEY) {
-            console.error("TMDB API KEY MISSING!");
-            setTmdbProfile(prev => ({ ...prev, biography: "API Key Config Error." }));
-            return;
-        }
+        if (!TMDB_API_KEY) return;
 
         if (person && person.nconst) {
-            fetch(`https://api.themoviedb.org/3/find/${person.nconst}?api_key=${TMDB_KEY}&external_source=imdb_id`)
+            // Find Person ID
+            fetch(`https://api.themoviedb.org/3/find/${person.nconst}?api_key=${TMDB_API_KEY}&external_source=imdb_id`)
                 .then(r => r.json())
                 .then(data => {
                     const result = data.person_results?.[0];
                     if (result) {
-                        fetch(`https://api.themoviedb.org/3/person/${result.id}?api_key=${TMDB_KEY}&append_to_response=combined_credits`)
+                        // Get Person Details
+                        fetch(`https://api.themoviedb.org/3/person/${result.id}?api_key=${TMDB_API_KEY}`)
                             .then(r2 => r2.json())
                             .then(detail => {
                                 setTmdbProfile({
@@ -76,20 +156,7 @@ export default function PersonDetail({ person, filmography }) {
                                     gender: detail.gender === 1 ? 'Female' : detail.gender === 2 ? 'Male' : '-',
                                     popularity: detail.popularity
                                 });
-
-                                // Buat Map Gambar
-                                const map = {};
-                                if (detail.combined_credits?.cast) {
-                                    detail.combined_credits.cast.forEach(work => {
-                                        const title = work.title || work.name;
-                                        if (title && work.poster_path) {
-                                            const cleanTitle = title.toLowerCase().replace(/[^a-z0-9]/g, '');
-                                            map[cleanTitle] = work.poster_path;
-                                        }
-                                    });
-                                }
-                                console.log(`✅ Poster Map Ready: ${Object.keys(map).length} images found.`);
-                                setPosterMap(map);
+                                // KITA TIDAK LAGI MEMBUAT POSTER MAP DI SINI
                             });
                     } else {
                         setTmdbProfile(prev => ({ ...prev, biography: "Details not found in external database." }));
@@ -98,14 +165,6 @@ export default function PersonDetail({ person, filmography }) {
                 .catch(err => console.error("TMDB Error:", err));
         }
     }, [person]);
-
-    // Helper: Cari URL Poster
-    const getPoster = (originalTitle) => {
-        if (!originalTitle) return null;
-        const clean = originalTitle.toLowerCase().replace(/[^a-z0-9]/g, ''); 
-        if (posterMap[clean]) return `https://image.tmdb.org/t/p/w300${posterMap[clean]}`;
-        return null;
-    };
 
     return (
         <MainLayout>
@@ -126,7 +185,7 @@ export default function PersonDetail({ person, filmography }) {
                     {/* LEFT: PROFILE INFO */}
                     <div className="w-full md:w-80 shrink-0">
                         <div className="sticky top-24 space-y-6">
-                            {/* FOTO PROFIL (CSS Fallback jika null) */}
+                            {/* FOTO PROFIL */}
                             <div className="relative group rounded-3xl overflow-hidden shadow-2xl border-4 border-[#1A1A1A] bg-[#151515]" style={{ aspectRatio: '2/3' }}>
                                 {tmdbProfile.image ? (
                                     <img 
@@ -178,57 +237,17 @@ export default function PersonDetail({ person, filmography }) {
                             </div>
                         </section>
 
-                        {/* --- KNOWN FOR --- */}
+                        {/* --- KNOWN FOR (UPDATED: USING MOVIE CARD COMPONENT) --- */}
                         <section>
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-2xl font-bold text-white">Known For ({filmography.length} Works)</h3>
                             </div>
                             
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-                                {filmography.length > 0 ? filmography.map((item, index) => {
-                                    const posterUrl = getPoster(item.primaryTitle);
-
-                                    return (
-                                        <Link 
-                                            key={index} 
-                                            href={`/title/${item.tconst}`} 
-                                            className="group relative bg-[#181818] rounded-xl overflow-hidden border border-white/5 hover:border-pink-500/50 transition-all flex flex-col h-full shadow-lg"
-                                        >
-                                            {/* POSTER IMAGE CONTAINER (FIXED ASPECT RATIO & FALLBACK) */}
-                                            <div className="relative w-full bg-[#222] overflow-hidden" style={{ aspectRatio: '2/3' }}>
-                                                {posterUrl ? (
-                                                    <img 
-                                                        src={posterUrl} 
-                                                        alt={item.primaryTitle}
-                                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                                        loading="lazy"
-                                                    />
-                                                ) : (
-                                                    // CSS FALLBACK - NO EXTERNAL URL
-                                                    <div className="absolute inset-0">
-                                                        <ImageFallback text={item.primaryTitle} icon="movie" />
-                                                    </div>
-                                                )}
-
-                                                {/* Badge Tahun */}
-                                                {item.startYear && (
-                                                    <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-1 rounded text-xs font-mono text-white border border-white/10 shadow-md z-10">
-                                                        {item.startYear}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <div className="p-4 flex flex-col flex-1 justify-end z-10 relative bg-[#181818]">
-                                                <h4 className="text-gray-100 text-sm font-bold line-clamp-2 leading-snug group-hover:text-pink-500 transition-colors">
-                                                    {item.primaryTitle}
-                                                </h4>
-                                                <p className="text-gray-500 text-xs mt-1 capitalize border-t border-white/5 pt-2">
-                                                    {item.category || 'Cast'}
-                                                </p>
-                                            </div>
-                                        </Link>
-                                    );
-                                }) : (
+                                {filmography.length > 0 ? filmography.map((item, index) => (
+                                    // PANGGIL KOMPONEN MOVIE CARD (Fetch Poster Mandiri)
+                                    <MovieCard key={index} item={item} />
+                                )) : (
                                     <div className="col-span-full p-10 text-center border border-dashed border-white/10 rounded-2xl bg-white/5">
                                         <p className="text-gray-500">No major filmography found in local database.</p>
                                     </div>

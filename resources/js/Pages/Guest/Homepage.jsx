@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'; // Import useEffect
 import MainLayout from '../../Layouts/MainLayout';
 import { Head, Link } from '@inertiajs/react';
 
+
 // --- CONFIG API KEY ---
 // Pastikan VITE_TMDB_API_KEY ada di file .env Anda: VITE_TMDB_API_KEY=f19a5ce3a90ddee4579a9f37d5927676
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY || 'f19a5ce3a90ddee4579a9f37d5927676'; 
