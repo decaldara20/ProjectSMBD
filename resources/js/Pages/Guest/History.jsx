@@ -58,7 +58,7 @@ export default function History({ history }) {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4 border-b border-white/10 pb-6">
                         <div>
                             <h1 className="text-3xl md:text-4xl font-black text-white font-display mb-2 tracking-tight">
-                                Watch <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">History</span>
+                                Watch <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-600">History</span>
                             </h1>
                             <p className="text-gray-400 text-sm md:text-base font-medium">
                                 Timeline of movies and shows you've explored.
@@ -104,8 +104,8 @@ export default function History({ history }) {
                                             ) : (
                                                 // Fallback Placeholder (Gradient)
                                                 <div className={`w-full h-full flex items-center justify-center ${
-                                                    item.type === 'movie' ? 'bg-gradient-to-br from-cyan-900 to-blue-900' : 
-                                                    item.type === 'tv' ? 'bg-gradient-to-br from-purple-900 to-pink-900' : 'bg-gray-800'
+                                                    item.type === 'movie' ? 'bg-linear-to-br from-cyan-900 to-blue-900' : 
+                                                    item.type === 'tv' ? 'bg-linear-to-br from-purple-900 to-pink-900' : 'bg-gray-800'
                                                 }`}>
                                                     <span className="material-symbols-outlined text-white/30 text-2xl">
                                                         {item.type === 'movie' ? 'movie' : item.type === 'tv' ? 'tv' : 'person'}
