@@ -60,7 +60,7 @@ const LoginFormPanel = ({ switchToRegister, isActive }) => {
                 <div className="mb-10 text-left">
                     <h2 className="text-4xl font-black text-white tracking-tight mb-2 drop-shadow-lg">
                         Welcome <br/>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">Back!</span>
+                        <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-300 via-cyan-400 to-blue-500 drop-shadow-[0_0_10px_rgba(34,211,238,0.5)]">Back!</span>
                     </h2>
                     <p className="text-gray-400 text-sm font-medium">Please enter your details to sign in.</p>
                 </div>
@@ -97,7 +97,7 @@ const LoginFormPanel = ({ switchToRegister, isActive }) => {
                         <span className="text-sm text-gray-400">Remember me for 30 days</span>
                     </div>
 
-                    <button type="submit" disabled={processing} className="group relative w-full py-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-sm shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] transition-all duration-300 transform hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden">
+                    <button type="submit" disabled={processing} className="group relative w-full py-4 rounded-xl bg-linear-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-sm shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] transition-all duration-300 transform hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden">
                         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 blur-md"></div>
                         <span className="relative flex items-center justify-center gap-2">
                              {processing ? <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> : <>Sign In <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span></>}
@@ -139,7 +139,7 @@ const RegisterFormPanel = ({ switchToLogin, isActive }) => {
                 <div className="mb-8 text-left">
                     <h2 className="text-4xl font-black text-white tracking-tight mb-2 drop-shadow-lg">
                         Create <br/>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">Account</span>
+                        <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-purple-500 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">Account</span>
                     </h2>
                     <p className="text-gray-400 text-sm font-medium">Start your cinematic journey today.</p>
                 </div>
@@ -150,7 +150,7 @@ const RegisterFormPanel = ({ switchToLogin, isActive }) => {
                     <GlassInput icon="lock" type="password" value={data.password} onChange={(e) => setData('password', e.target.value)} placeholder="Password" error={errors.password} />
                     <GlassInput icon="verified_user" type="password" value={data.password_confirmation} onChange={(e) => setData('password_confirmation', e.target.value)} placeholder="Confirm Password" />
 
-                    <button type="submit" disabled={processing} className="group relative w-full py-4 mt-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_35px_rgba(147,51,234,0.6)] transition-all duration-300 transform hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden">
+                    <button type="submit" disabled={processing} className="group relative w-full py-4 mt-4 rounded-xl bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold text-sm shadow-[0_0_20px_rgba(147,51,234,0.3)] hover:shadow-[0_0_35px_rgba(147,51,234,0.6)] transition-all duration-300 transform hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden">
                         <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 blur-md"></div>
                         <span className="relative flex items-center justify-center gap-2">
                              {processing ? <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> : 'Get Started'}
@@ -232,9 +232,9 @@ export default function AuthSlider({ defaultView = 'login' }) {
                             ></div>
                             
                             {/* Gradient Overlay: Ringan & Cerah (Jangan hitam pekat) */}
-                            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-900/60 to-blue-900/60 mix-blend-multiply"></div>
+                            <div className="absolute inset-0 bg-linear-to-tr from-cyan-900/60 to-blue-900/60 mix-blend-multiply"></div>
                             {/* Highlight cerah di pojok untuk kedalaman */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-black/30"></div>
+                            <div className="absolute inset-0 bg-linear-to-b from-white/5 to-black/30"></div>
                         </div>
 
                         {/* B. TEKS DI DALAM OVERLAY (Beserta Logo) */}
