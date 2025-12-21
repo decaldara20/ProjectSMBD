@@ -20,7 +20,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarEleme
 // --- KOMPONEN KECIL: SUMMARY CARD ---
 const InsightCard = ({ label, value, subtext, icon, color, gradient }) => (
     <div className="relative overflow-hidden bg-[#1A1A1A] border border-white/5 rounded-2xl p-5 group hover:border-white/10 transition-all duration-300">
-        <div className={`absolute -right-4 -top-4 w-24 h-24 bg-gradient-to-br ${gradient} opacity-10 blur-2xl rounded-full group-hover:opacity-20 transition-opacity`}></div>
+        <div className={`absolute -right-4 -top-4 w-24 h-24 bg-linear-to-br ${gradient} opacity-10 blur-2xl rounded-full group-hover:opacity-20 transition-opacity`}></div>
         <div className="relative z-10">
             <div className="flex justify-between items-start mb-2">
                 <div className={`p-2 rounded-lg bg-white/5 ${color}`}>
@@ -186,7 +186,7 @@ export default function Trends({ reports }) {
                             <h2 className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em]">Market Intelligence</h2>
                         </div>
                         <h1 className="text-4xl font-black text-white tracking-tighter">
-                            Trend <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500">Analysis</span>
+                            Trend <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-pink-500">Analysis</span>
                         </h1>
                         <p className="text-gray-500 text-sm mt-2 max-w-2xl">
                             Monitoring historical content velocity, genre popularity shifts, and critical reception metrics to guide acquisition strategy.
