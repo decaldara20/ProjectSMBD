@@ -384,6 +384,7 @@ class GuestController extends Controller
                 'title' => $request->title,
                 'year' => $request->year,
                 'rating' => $request->rating,
+                'poster_path' => $request->poster_path,
                 'timestamp' => now()
             ];
         }

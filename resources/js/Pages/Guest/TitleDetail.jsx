@@ -31,7 +31,8 @@ export default function TitleDetail({ title }) {
             type: 'movie',
             title: title.primaryTitle,
             year: title.startYear,
-            rating: title.averageRating
+            rating: title.averageRating,
+            poster_path: title.poster_path
         }, {
             preserveScroll: true,
             onError: () => setIsFavorited(!isFavorited) // Balikin kalau error

@@ -27,7 +27,8 @@ export default function TvDetail({ title }) {
             type: 'tv',
             title: title.primaryTitle,
             year: title.startYear,
-            rating: title.averageRating
+            rating: title.averageRating,
+            poster_path: title.poster_path
         }, {
             preserveScroll: true,
             onError: () => setIsFavorited(!isFavorited)
