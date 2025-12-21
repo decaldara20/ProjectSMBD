@@ -38,7 +38,7 @@ export default function Favorites({ favorites }) {
                     <div className="mb-10 border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div>
                             <h1 className="text-3xl md:text-4xl font-black text-white font-display mb-2 tracking-tight">
-                                My <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-600">Collection</span>
+                                My <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-rose-600">Collection</span>
                             </h1>
                             <p className="text-gray-400 text-sm md:text-base font-medium">
                                 The movies and shows you love the most.
@@ -64,7 +64,7 @@ export default function Favorites({ favorites }) {
                                         {/* 1. CARD IMAGE */}
                                         <Link 
                                             href={getLink(item)} 
-                                            className="relative w-full aspect-[2/3] rounded-2xl overflow-hidden bg-gray-900 shadow-xl border border-white/5 group-hover:border-pink-500/50 transition-all duration-500 group-hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] group-hover:-translate-y-2"
+                                            className="relative w-full aspect-2/3 rounded-2xl overflow-hidden bg-gray-900 shadow-xl border border-white/5 group-hover:border-pink-500/50 transition-all duration-500 group-hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] group-hover:-translate-y-2"
                                         >
                                             {/* Poster */}
                                             {posterSrc ? (
@@ -77,7 +77,7 @@ export default function Favorites({ favorites }) {
                                             ) : (
                                                 // Fallback Gradient (Jika poster_path null)
                                                 <div className={`w-full h-full flex items-center justify-center ${
-                                                    item.type === 'movie' ? 'bg-gradient-to-br from-cyan-900 to-blue-900' : 'bg-gradient-to-br from-purple-900 to-pink-900'
+                                                    item.type === 'movie' ? 'bg-linear-to-br from-cyan-900 to-blue-900' : 'bg-linear-to-br from-purple-900 to-pink-900'
                                                 }`}>
                                                     <span className="material-symbols-outlined text-4xl text-white/20">
                                                         {item.type === 'movie' ? 'movie' : 'tv'}
@@ -86,7 +86,7 @@ export default function Favorites({ favorites }) {
                                             )}
 
                                             {/* Overlay Gradient */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
+                                            <div className="absolute inset-0 bg-linear-to-t from-black/90 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity"></div>
 
                                             {/* Remove Button */}
                                             <button 
