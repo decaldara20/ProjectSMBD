@@ -2,6 +2,68 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, usePage, router } from '@inertiajs/react';
 import axios from 'axios';
 
+const SuggestionItem = ({ item, onClick }) => {
+    const [poster, setPoster] = useState(null);
+
+    useEffect(() => {
+        if (!item.tconst) return;
+        
+        // Ambil API Key dari environment
+        const TMDB_KEY = import.meta.env.VITE_TMDB_API_KEY; 
+        
+        // Gunakan endpoint FIND (cari berdasarkan ID IMDb: tt1234567)
+        const url = `https://api.themoviedb.org/3/find/${item.tconst}?api_key=${TMDB_KEY}&external_source=imdb_id`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                // Coba ambil poster dari hasil movie atau tv results
+                const path = data.movie_results?.[0]?.poster_path || data.tv_results?.[0]?.poster_path;
+                if (path) setPoster(path);
+            })
+            .catch(err => console.error("Gagal ambil poster:", err));
+    }, [item.tconst]);
+
+    return (
+        <li>
+            <Link 
+                href={`/title/${item.tconst}`}
+                className="flex items-center gap-4 px-4 py-3 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-colors group border-b border-gray-100 dark:border-white/5 last:border-0"
+                onClick={onClick}
+            >
+                {/* Thumbnail Placeholder / Poster */}
+                <div className="w-10 h-14 bg-gray-800 rounded overflow-hidden shrink-0 flex items-center justify-center text-gray-500 relative">
+                    {poster ? (
+                        <img 
+                            src={`https://image.tmdb.org/t/p/w92${poster}`} // Pakai ukuran kecil w92 biar ringan
+                            alt={item.primaryTitle}
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <i className="fas fa-film"></i>
+                    )}
+                </div>
+                
+                <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
+                        {item.primaryTitle}
+                    </h4>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                        <span className="bg-gray-200 dark:bg-white/10 px-1.5 rounded text-[10px] uppercase font-bold">{item.titleType}</span>
+                        <span>{item.startYear}</span>
+                        {item.averageRating && (
+                            <span className="flex items-center gap-1 text-yellow-600 dark:text-yellow-500">
+                                <i className="fas fa-star text-[8px]"></i> {Number(item.averageRating).toFixed(1)}
+                            </span>
+                        )}
+                    </div>
+                </div>
+                <i className="fas fa-chevron-right text-gray-300 dark:text-gray-600 text-xs group-hover:text-cyan-500 group-hover:translate-x-1 transition-all"></i>
+            </Link>
+        </li>
+    );
+};
+
 export default function MainLayout({ children }) {
     // 1. Global Data & State
     const { url, props } = usePage();
@@ -13,7 +75,7 @@ export default function MainLayout({ children }) {
     const [isDark, setIsDark] = useState(true);
     const [showBackToTop, setShowBackToTop] = useState(false);
     
-    // --- DROPDOWN STATE (FIXED: Biar bisa dipencet) ---
+    // --- DROPDOWN STATE ---
     const [peopleOpen, setPeopleOpen] = useState(false);
     const [genresOpen, setGenresOpen] = useState(false);
     
@@ -173,7 +235,7 @@ export default function MainLayout({ children }) {
                                     <Link href="/films" className={`text-sm font-medium transition-colors duration-300 ${isActive('/films') ? 'text-cyan-600 dark:text-[#00FFFF] font-bold' : 'text-gray-600 dark:text-[#EAEAEA] hover:text-cyan-600 dark:hover:text-[#00FFFF]'}`}>Films</Link>
                                     <Link href="/tv-shows" className={`text-sm font-medium transition-colors duration-300 ${isActive('/tv-shows') ? 'text-cyan-600 dark:text-[#00FFFF] font-bold' : 'text-gray-600 dark:text-[#EAEAEA] hover:text-cyan-600 dark:hover:text-[#00FFFF]'}`}>TV Shows</Link>
                                     
-                                    {/* --- REVISI: PEOPLE DROPDOWN (CLICKABLE) --- */}
+                                    {/* PEOPLE DROPDOWN (CLICKABLE) */}
                                     <div className="relative" ref={peopleRef}>
                                         <button 
                                             onClick={() => setPeopleOpen(!peopleOpen)}
@@ -207,7 +269,7 @@ export default function MainLayout({ children }) {
                                         </div>
                                     </div>
                                     
-                                    {/* --- REVISI: GENRES DROPDOWN (CLICKABLE) --- */}
+                                    {/* GENRES DROPDOWN (CLICKABLE) */}
                                     <div className="relative" ref={genresRef}>
                                         <button 
                                             onClick={() => setGenresOpen(!genresOpen)}
@@ -267,7 +329,7 @@ export default function MainLayout({ children }) {
                                 </nav>
                             </div>
                             
-                            {/* TENGAH: Search Bar (TIDAK BERUBAH) */}
+                            {/* TENGAH: Search Bar */}
                             <div className="hidden md:flex flex-1 justify-center px-4 relative" ref={searchContainerRef}>
                                 <form onSubmit={handleSearchSubmit} className="relative group w-full flex justify-center">
                                     <div className="relative w-full max-w-[350px] group-focus-within:max-w-[600px] transition-all duration-500 ease-in-out">
@@ -293,32 +355,17 @@ export default function MainLayout({ children }) {
 
                                 {/* HASIL DROPDOWN SEARCH */}
                                 {showDropdown && suggestions.length > 0 && (
-                                    <div className="absolute top-full mt-2 w-full max-w-[600px] bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                                    <div className="absolute top-full mt-2 w-full max-w-[600px] bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden z-50 animate-fade-in-up">
                                         <div className="px-4 py-2 bg-gray-50 dark:bg-white/5 border-b border-gray-200 dark:border-white/10">
                                             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Top Results</span>
                                         </div>
                                         <ul>
                                             {suggestions.map((item) => (
-                                                <li key={item.tconst}>
-                                                    <Link 
-                                                        href={`/title/${item.tconst}`}
-                                                        className="flex items-center gap-4 px-4 py-3 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 transition-colors group border-b border-gray-100 dark:border-white/5 last:border-0"
-                                                        onClick={() => setShowDropdown(false)}
-                                                    >
-                                                        <div className="w-10 h-14 bg-gray-800 rounded overflow-hidden shrink-0 flex items-center justify-center text-gray-500">
-                                                            <i className="fas fa-film"></i>
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
-                                                                {item.primaryTitle}
-                                                            </h4>
-                                                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                                                                <span className="bg-gray-200 dark:bg-white/10 px-1.5 rounded text-[10px] uppercase font-bold">{item.titleType}</span>
-                                                                <span>{item.startYear}</span>
-                                                            </div>
-                                                        </div>
-                                                    </Link>
-                                                </li>
+                                                <SuggestionItem 
+                                                    key={item.tconst} 
+                                                    item={item} 
+                                                    onClick={() => setShowDropdown(false)} 
+                                                />
                                             ))}
                                         </ul>
                                         <Link 
@@ -332,7 +379,7 @@ export default function MainLayout({ children }) {
                                 )}
                             </div>
 
-                            {/* KANAN: Tombol Aksi (TIDAK BERUBAH) */}
+                            {/* KANAN: Tombol Aksi */}
                             <div className="flex items-center gap-3 shrink-0">
                                 {/* Theme Toggle */}
                                 <button onClick={toggleTheme} className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-[#1A1A1A] hover:bg-cyan-100 dark:hover:bg-[#00FFFF]/20 text-gray-600 dark:text-white transition-all duration-300 group border border-transparent hover:border-cyan-200 dark:hover:border-[#00FFFF]/30">
