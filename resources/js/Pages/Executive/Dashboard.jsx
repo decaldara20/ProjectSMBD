@@ -366,7 +366,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent }) {
                             )}
                         </div>
 
-                        <button className="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-800 text-white font-bold text-xs uppercase tracking-widest hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all flex items-center justify-center gap-2">
+                        <button className="mt-6 w-full py-3 rounded-xl bg-linear-to-r from-red-600 to-red-800 text-white font-bold text-xs uppercase tracking-widest hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all flex items-center justify-center gap-2">
                             <span className="material-symbols-outlined text-sm">add_task</span> Initiate Acquisition
                         </button>
                     </div>
