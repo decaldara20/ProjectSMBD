@@ -154,19 +154,29 @@ class ExecutiveController extends Controller
     // 3. TALENT ANALYTICS (Bankabilitas Artis)
     public function talents()
     {
-        // 1. KPI Cards (Hitung Cepat)
+        // 1. KPI Cards (FIX: Ambil dari tabel normalisasi 'name_professions')
         $kpi = [
-            'total_actors' => DB::connection('sqlsrv')->table('name_basics')->where('primaryProfession', 'LIKE', '%actor%')->count(),
-            'total_directors' => DB::connection('sqlsrv')->table('name_basics')->where('primaryProfession', 'LIKE', '%director%')->count(),
-            'avg_pro_rating' => 7.2, // Hardcoded dulu biar cepet (kalo query avg semua person berat)
+            'total_actors'    => DB::connection('sqlsrv')
+                                    ->table('name_professions')
+                                    ->where('profession_name', 'LIKE', '%actor%')
+                                    ->count(),
+                                    
+            'total_directors' => DB::connection('sqlsrv')
+                                    ->table('name_professions')
+                                    ->where('profession_name', 'LIKE', '%director%')
+                                    ->count(),
+                                    
+            'avg_pro_rating'  => 7.2, // Hardcoded (Ambil rata-rata semua orang terlalu berat query-nya)
         ];
 
         // 2. Chart: Distribusi Profesi
+        // Pastikan view ini sudah diperbaiki (Lihat poin 2 di bawah)
         $distribution = DB::connection('sqlsrv')
             ->table('v_Executive_Talent_Distribution')
             ->get();
 
         // 3. Highlight: Rising Stars
+        // Pastikan view ini sudah diperbaiki (Lihat poin 2 di bawah)
         $risingStars = DB::connection('sqlsrv')
             ->table('v_Executive_Rising_Stars')
             ->get();
@@ -176,7 +186,7 @@ class ExecutiveController extends Controller
             ->table('v_Executive_BankabilityReport_Base')
             ->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')
             ->orderByDesc('TotalNumVotes')
-            ->paginate(10); // Tetap paginate biar tabelnya rapi
+            ->paginate(10); 
 
         return Inertia::render('Executive/Talents', [
             'kpi' => $kpi,
