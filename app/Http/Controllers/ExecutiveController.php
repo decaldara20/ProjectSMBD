@@ -158,7 +158,10 @@ class ExecutiveController extends Controller
         $kpi = [
             'total_actors'    => DB::connection('sqlsrv')
                                     ->table('name_professions')
-                                    ->where('profession_name', 'LIKE', '%actor%')
+                                    ->where(function($query) {
+                                        $query->where('profession_name', 'LIKE', '%actor%')
+                                            ->orWhere('profession_name', 'LIKE', '%actress%');
+                                    })
                                     ->count(),
                                     
             'total_directors' => DB::connection('sqlsrv')
@@ -166,17 +169,18 @@ class ExecutiveController extends Controller
                                     ->where('profession_name', 'LIKE', '%director%')
                                     ->count(),
                                     
-            'avg_pro_rating'  => 7.2, // Hardcoded (Ambil rata-rata semua orang terlalu berat query-nya)
+            'total_writers'   => DB::connection('sqlsrv')
+                                    ->table('name_professions')
+                                    ->where('profession_name', 'LIKE', '%writer%')
+                                    ->count(),
         ];
 
         // 2. Chart: Distribusi Profesi
-        // Pastikan view ini sudah diperbaiki (Lihat poin 2 di bawah)
         $distribution = DB::connection('sqlsrv')
             ->table('v_Executive_Talent_Distribution')
             ->get();
 
         // 3. Highlight: Rising Stars
-        // Pastikan view ini sudah diperbaiki (Lihat poin 2 di bawah)
         $risingStars = DB::connection('sqlsrv')
             ->table('v_Executive_Rising_Stars')
             ->get();

@@ -8,14 +8,14 @@ import { Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
-// --- COMPONENT: MODERN KPI CARD ---
-const TalentStatCard = ({ label, value, icon, color }) => (
+// --- COMPONENT: MODERN KPI CARD (UPDATED) ---
+const TalentStatCard = ({ label, value, icon, textColor, glowColor }) => (
     <div className="relative overflow-hidden bg-[#1A1A1A] border border-white/5 rounded-2xl p-6 group hover:border-white/10 transition-all duration-300 shadow-xl">
-        {/* Ambient Glow */}
-        <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-[80px] opacity-20 transition-opacity group-hover:opacity-40 ${color.replace('text-', 'bg-')}`}></div>
+        {/* Ambient Glow: Gunakan glowColor langsung */}
+        <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-[80px] opacity-20 transition-opacity group-hover:opacity-40 ${glowColor}`}></div>
         
         <div className="relative z-10 flex items-center gap-5">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-[#111] border border-white/5 ${color} shadow-inner`}>
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-[#111] border border-white/5 ${textColor} shadow-inner`}>
                 <span className="material-symbols-outlined text-3xl">{icon}</span>
             </div>
             <div>
@@ -30,24 +30,28 @@ const TalentStatCard = ({ label, value, icon, color }) => (
 const RisingStarItem = ({ rank, name, role, rating, year }) => (
     <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-transparent hover:border-white/10 hover:bg-white/10 transition-all group cursor-default">
         {/* Rank Badge */}
-        <div className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-black text-sm ${
-            rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-black shadow-lg shadow-orange-500/20' : 
-            rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black shadow-lg' : 
-            rank === 3 ? 'bg-gradient-to-br from-orange-300 to-orange-400 text-black shadow-lg' : 'bg-[#222] text-gray-500'
+        <div className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-black text-sm ${
+            rank === 1 ? 'bg-linear-to-br from-yellow-400 to-orange-500 text-black shadow-lg shadow-orange-500/20' : 
+            rank === 2 ? 'bg-linear-to-br from-gray-300 to-gray-400 text-black shadow-lg' : 
+            rank === 3 ? 'bg-linear-to-br from-orange-300 to-orange-400 text-black shadow-lg' : 'bg-[#222] text-gray-500'
         }`}>
             {rank}
         </div>
         
-        {/* Avatar */}
+        {/* Avatar Placeholder */}
         <div className="relative">
-            <div className="w-10 h-10 rounded-full p-0.5 bg-gradient-to-b from-white/20 to-transparent">
-                <img src={`https://ui-avatars.com/api/?name=${name}&background=random&color=fff&size=128`} className="w-full h-full rounded-full object-cover" alt={name} />
+            <div className="w-10 h-10 rounded-full p-0.5 bg-linear-to-b from-white/20 to-transparent">
+                <img 
+                    src={`https://ui-avatars.com/api/?name=${name}&background=random&color=fff&size=128`} 
+                    className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all" 
+                    alt={name} 
+                />
             </div>
-            {rank <= 3 && <div className="absolute -top-1 -right-1 text-xs animate-bounce">👑</div>}
+            {rank <= 3 && <div className="absolute -top-2 -right-1 text-xs animate-bounce">👑</div>}
         </div>
 
         <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-bold text-gray-200 truncate group-hover:text-pink-400 transition-colors">{name}</h4>
+            <h4 className="text-sm font-bold text-gray-200 truncate group-hover:text-white transition-colors">{name}</h4>
             <p className="text-[10px] text-gray-500 uppercase tracking-wide">{role ? role.split(',')[0] : 'Artist'}</p>
         </div>
 
@@ -89,7 +93,7 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                             <h2 className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em]">Human Resources</h2>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">
-                            Talent <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-600">Analytics</span>
+                            Talent <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-purple-600">Analytics</span>
                         </h1>
                         <p className="text-gray-500 text-sm mt-2 max-w-xl">
                             Identifying high-value professionals and emerging stars to optimize casting and production recruitment.
@@ -101,11 +105,30 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                     </button>
                 </div>
 
-                {/* --- 1. KPI SECTION --- */}
+                {/* --- 1. KPI SECTION (UPDATED) --- */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <TalentStatCard label="Total Actors" value={kpi.total_actors.toLocaleString()} icon="theater_comedy" color="text-pink-500" />
-                    <TalentStatCard label="Directing Talent" value={kpi.total_directors.toLocaleString()} icon="videocam" color="text-purple-500" />
-                    <TalentStatCard label="Avg Star Power" value={kpi.avg_pro_rating} icon="hotel_class" color="text-yellow-500" />
+                    {/* Menggunakan label 'Acting Talent' (Actor + Actress) */}
+                    <TalentStatCard 
+                        label="Acting Talent" 
+                        value={kpi.total_actors.toLocaleString()} 
+                        icon="theater_comedy" 
+                        textColor="text-pink-500" 
+                        glowColor="bg-pink-500" 
+                    />
+                    <TalentStatCard 
+                        label="Directing Talent" 
+                        value={kpi.total_directors.toLocaleString()} 
+                        icon="videocam" 
+                        textColor="text-purple-500" 
+                        glowColor="bg-purple-500" 
+                    />
+                    <TalentStatCard 
+                        label="Scriptwriters" 
+                        value={kpi.total_writers.toLocaleString()} 
+                        icon="history_edu" 
+                        textColor="text-emerald-500" 
+                        glowColor="bg-emerald-500" 
+                    />
                 </div>
 
                 {/* --- 2. ANALYTICS GRID --- */}
@@ -118,7 +141,7 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                             Talent Composition
                         </h3>
                         
-                        <div className="w-[240px] h-[240px] relative z-10">
+                        <div className="w-240px h-240px relative z-10">
                             <Doughnut data={distData} options={{ cutout: '85%', plugins: { legend: { display: false } } }} />
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                                 <span className="text-4xl font-black text-white">{charts.distribution.length}</span>
@@ -140,7 +163,7 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                         </div>
                         
                         {/* Background Effect */}
-                        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 w-full h-full bg-linear-to-b from-blue-500/5 to-transparent pointer-events-none"></div>
                     </div>
 
                     {/* B. Rising Stars (Leaderboard) */}
@@ -153,7 +176,7 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                                 </h3>
                                 <p className="text-xs text-gray-500 mt-1">Breakout talents (Debut &gt; 2015) with exceptional ratings</p>
                             </div>
-                            <button className="text-[10px] font-bold text-pink-500 uppercase hover:text-pink-400 transition-colors">View All Candidates</button>
+                            <button className="text-[10px] font-bold text-pink-500 uppercase hover:text-pink-400 transition-colors">View All</button>
                         </div>
                         
                         <div className="flex-1 flex flex-col gap-2">
@@ -207,7 +230,7 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                             </thead>
                             <tbody className="divide-y divide-white/5 text-sm">
                                 {bankable.data.map((person, index) => (
-                                    <tr key={index} className="hover:bg-white/[0.02] transition-colors group">
+                                    <tr key={index} className="hover:bg-white/0.02 transition-colors group">
                                         <td className="px-6 py-4 text-center font-mono text-gray-600 text-xs">
                                             #{index + 1 + (bankable.current_page - 1) * bankable.per_page}
                                         </td>
