@@ -38,10 +38,10 @@ const TeamCard = ({ name, nim, role, desc, task, img, github, email, delay, colo
             className={`relative group bg-[#181818] border border-white/5 rounded-3xl p-8 flex flex-col items-center text-center transition-all duration-700 transform hover:-translate-y-3 hover:shadow-2xl ${colorClasses.glow} ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
             style={{ transitionDelay: `${delay}ms` }}
         >
-            <div className={`absolute inset-0 rounded-3xl bg-gradient-to-b ${colorClasses.bg} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}></div>
+            <div className={`absolute inset-0 rounded-3xl bg-linear-to-b ${colorClasses.bg} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`}></div>
             
             <div className="relative mb-6">
-                <div className={`absolute inset-0 rounded-full bg-gradient-to-tr ${color === 'pink' ? 'from-pink-600 to-purple-600' : 'from-cyan-600 to-blue-600'} blur-md opacity-50 group-hover:opacity-80 transition-opacity duration-500 animate-pulse`}></div>
+                <div className={`absolute inset-0 rounded-full bg-linear-to-tr ${color === 'pink' ? 'from-pink-600 to-purple-600' : 'from-cyan-600 to-blue-600'} blur-md opacity-50 group-hover:opacity-80 transition-opacity duration-500 animate-pulse`}></div>
                 <div className="relative w-40 h-40 rounded-full p-[3px] bg-[#121212] overflow-hidden z-10 ring-4 ring-transparent group-hover:ring-white/10 transition-all duration-500">
                     <img src={img} alt={name} className="w-full h-full rounded-full object-cover transition-transform duration-700 group-hover:scale-110" />
                 </div>
@@ -96,14 +96,14 @@ export default function About() {
                         transform: `translateY(${offset * 0.5}px) scale(1.1)`, 
                     }}
                 ></div>
-                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-[#121212]"></div>
+                <div className="absolute inset-0 bg-linear-to-b from-black/30 via-black/50 to-[#121212]"></div>
                 
                 <div className="relative z-10 text-center px-4 animate-fade-in-up">
                     <span className="inline-block py-1 px-3 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold tracking-[0.2em] mb-4 backdrop-blur-md">
                         THE ARCHITECTS
                     </span>
                     <h1 className="text-5xl md:text-8xl font-black text-white mb-6 tracking-tighter drop-shadow-2xl">
-                        ABOUT <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">IMTVDB</span>
+                        ABOUT <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-500">IMTVDB</span>
                     </h1>
                     <p className="text-lg md:text-2xl text-gray-300 max-w-2xl mx-auto font-light leading-relaxed">
                         Building the ultimate cinematic database universe,<br className="hidden md:block" /> one query at a time.
@@ -120,7 +120,7 @@ export default function About() {
                     <div className={`transition-all duration-1000 transform ${missionVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'}`}>
                         <h2 className="text-4xl font-bold text-white mb-8 relative">
                             Our Mission
-                            <span className="absolute -bottom-2 left-0 w-50 h-1 bg-gradient-to-r from-cyan-500 to-transparent"></span>
+                            <span className="absolute -bottom-2 left-0 w-50 h-1 bg-linear-to-r from-cyan-500 to-transparent"></span>
                         </h2>
                         <div className="space-y-6 text-gray-400 text-lg leading-relaxed">
                             <p>
@@ -138,7 +138,7 @@ export default function About() {
                                 <i className="fas fa-server text-9xl text-white"></i>
                             </div>
                             <div className="relative z-10">
-                                <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-cyan-500/20 mb-6">
+                                <div className="w-14 h-14 bg-linear-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-cyan-500/20 mb-6">
                                     <i className="fas fa-database"></i>
                                 </div>
                                 <h3 className="text-2xl font-bold text-white mb-3">Big Data Architecture</h3>
