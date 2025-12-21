@@ -290,7 +290,7 @@ class GuestController extends Controller
     // =======================================
     // 6. HISTORY MANAGEMENT
     // =======================================
-    private function addToHistory($type, $id, $title, $year, $rating) {
+    private function addToHistory($type, $id, $title, $year, $rating, $poster_path) {
         $history = session()->get('view_history', []);
 
         // Hapus duplikat
@@ -305,7 +305,9 @@ class GuestController extends Controller
             'title' => $title,
             'year' => $year,
             'rating' => $rating,
-            'timestamp' => now()
+            'timestamp' => now(),
+            'poster_path' => $poster_path,
+            'profile_path' => ($type === 'person') ? $poster_path : null,
         ]);
 
         // Limit 20
@@ -460,7 +462,14 @@ class GuestController extends Controller
         // Default Plot
         $title->plot = $title->plot ?? 'Sinopsis belum tersedia.';
 
-        $this->addToHistory('movie', trim($title->tconst), $title->primaryTitle, $title->startYear, $title->averageRating ?? 0);
+        $this->addToHistory(
+            'movie', 
+            trim($title->tconst), 
+            $title->primaryTitle, 
+            $title->startYear, 
+            $title->averageRating ?? 0,
+            $title->poster_path ?? null
+        );
 
         return Inertia::render('Guest/TitleDetail', [
             'title' => $title
@@ -506,11 +515,12 @@ class GuestController extends Controller
             $tvShow->show_id, 
             $tvShow->primaryTitle, 
             $year, 
-            $tvShow->averageRating
+            $tvShow->averageRating,
+            $tvShow->poster_path ?? null
         );
 
-        $tvShow->poster_path = null;
-        $tvShow->backdrop_path = null;
+        // $tvShow->poster_path = null;
+        // $tvShow->backdrop_path = null;
         
         // Render React Component
         return Inertia::render('Guest/TvDetail', [
@@ -574,7 +584,14 @@ class GuestController extends Controller
             return DB::connection('sqlsrv')->select($sql, [$nconst]);
         });
 
-        $this->addToHistory('person', $nconst, $person->primaryName, null, null);
+        $this->addToHistory(
+            'person', 
+            $nconst, 
+            $person->primaryName, 
+            null, 
+            null, 
+            $person->profile_path ?? null
+        );
 
         return Inertia::render('Guest/PersonDetail', [
             'person' => $person,
