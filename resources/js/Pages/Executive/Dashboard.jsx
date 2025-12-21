@@ -2,268 +2,376 @@ import React from 'react';
 import DashboardLayout from '../../Layouts/DashboardLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler
+    Chart as ChartJS, 
+    CategoryScale, 
+    LinearScale, 
+    PointElement, 
+    LineElement, 
+    BarElement, 
+    ArcElement, 
+    Title, 
+    Tooltip, 
+    Legend, 
+    Filler
 } from 'chart.js';
-import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { Doughnut, Line } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler);
 
-// KOMPONEN KPI CARD
-const KPICard = ({ title, value, subtext, icon, color }) => (
-    <div className="relative overflow-hidden bg-[#121212] border border-white/5 rounded-2xl p-6 group hover:border-white/10 transition-all duration-300">
-        <div className={`absolute -top-2 -right-2 p-4 opacity-5 group-hover:opacity-10 transition-opacity ${color} text-9xl pointer-events-none`}>
-            <span className="material-symbols-outlined transform rotate-12" style={{ fontSize: '120px' }}>{icon}</span>
-        </div>
-        <div className="relative z-10">
-            <div className="flex justify-between items-start mb-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color} bg-opacity-10 border border-white/5`}>
-                    <span className={`material-symbols-outlined text-2xl ${color.replace('bg-', 'text-')}`}>{icon}</span>
-                </div>
-            </div>
-            <h3 className="text-3xl font-black text-white tracking-tight mb-1">{value}</h3>
-            <p className="text-sm text-gray-400 font-medium">{title}</p>
-            {subtext && (
-                <div className="mt-3 flex items-center gap-1 text-xs font-bold">
-                    <span className={subtext.includes('+') ? 'text-green-400' : 'text-red-400'}>
-                        {subtext}
-                    </span>
-                    <span className="text-gray-600 ml-1">vs last period</span>
-                </div>
-            )}
-        </div>
-    </div>
-);
+// --- KOMPONEN: MODERN KPI CARD ---
+const StatCard = ({ title, value, subtext, icon, color }) => {
+    // Mapping warna untuk background glow agar tidak error di Tailwind JIT
+    const glowColors = {
+        'text-cyan-400': 'group-hover:shadow-[0_0_40px_-10px_rgba(34,211,238,0.3)] hover:border-cyan-500/30',
+        'text-yellow-400': 'group-hover:shadow-[0_0_40px_-10px_rgba(250,204,21,0.3)] hover:border-yellow-500/30',
+        'text-pink-400': 'group-hover:shadow-[0_0_40px_-10px_rgba(244,114,182,0.3)] hover:border-pink-500/30',
+        'text-purple-400': 'group-hover:shadow-[0_0_40px_-10px_rgba(192,132,252,0.3)] hover:border-purple-500/30',
+    };
 
-// KOMPONEN INSIGHT ROW
-const InsightRow = ({ term, count }) => (
-    <div className="flex items-center justify-between p-3 hover:bg-white/5 rounded-lg transition-colors border-b border-white/5 last:border-0 group">
-        <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center border border-red-500/20 group-hover:bg-red-500 group-hover:text-white transition-all">
-                <span className="material-symbols-outlined text-sm">priority_high</span>
+    const activeGlow = glowColors[color] || 'hover:border-white/20';
+
+    return (
+        <div className={`relative group p-6 rounded-3xl bg-[#151515] border border-white/5 transition-all duration-500 ease-out hover:-translate-y-2 ${activeGlow}`}>
+            
+            {/* Background Gradient Splash (Hidden by default, visible on hover) */}
+            <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 rounded-3xl transition-opacity duration-500 bg-gradient-to-br ${color.replace('text-', 'from-')} to-transparent`}></div>
+
+            {/* Floating Big Icon (Watermark) */}
+            <div className={`absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-10 transition-all duration-500 transform group-hover:rotate-12 group-hover:scale-125`}>
+                <span className="material-symbols-outlined" style={{ fontSize: '140px' }}>{icon}</span>
             </div>
+
+            <div className="relative z-10 flex flex-col justify-between h-full">
+                {/* Header: Icon & Badge */}
+                <div className="flex justify-between items-start mb-6">
+                    <div className="p-3.5 rounded-2xl bg-[#0F0F0F] border border-white/5 shadow-inner group-hover:bg-white/5 transition-colors">
+                        <span className={`material-symbols-outlined text-2xl ${color}`}>{icon}</span>
+                    </div>
+                    
+                    {subtext && (
+                        <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border backdrop-blur-sm ${
+                            subtext.includes('+') 
+                                ? 'bg-green-500/10 text-green-400 border-green-500/20' 
+                                : 'bg-white/5 text-gray-400 border-white/10'
+                        }`}>
+                            {subtext.includes('+') && <span className="material-symbols-outlined text-[10px]">trending_up</span>}
+                            {subtext}
+                        </div>
+                    )}
+                </div>
+
+                {/* Body: Value & Title */}
+                <div>
+                    <h3 className="text-4xl font-black text-white tracking-tight mb-1 group-hover:translate-x-1 transition-transform duration-300">
+                        {value}
+                    </h3>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-widest pl-0.5 group-hover:text-gray-300 transition-colors">
+                        {title}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- KOMPONEN: TALENT LIST ITEM (With Visual Bar) ---
+const TalentListItem = ({ rank, name, role, rating }) => {
+    // Hitung persentase rating (asumsi max 10)
+    const percentage = (rating / 10) * 100;
+    
+    return (
+        <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group cursor-default border border-transparent hover:border-white/5">
+            {/* Rank Badge */}
+            <div className={`flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-bold text-xs ${
+                rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-orange-600 text-black shadow-lg shadow-orange-500/20' 
+                : rank === 2 ? 'bg-gray-300 text-black'
+                : rank === 3 ? 'bg-orange-300 text-black'
+                : 'bg-white/5 text-gray-500'
+            }`}>
+                #{rank}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+                <div className="flex justify-between items-center mb-1">
+                    <h4 className="text-sm font-bold text-gray-200 truncate group-hover:text-white transition-colors">
+                        {name}
+                    </h4>
+                    <span className="text-xs font-bold text-yellow-500 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[10px]">star</span>
+                        {Number(rating).toFixed(1)}
+                    </span>
+                </div>
+                
+                <div className="flex justify-between items-center text-[10px] text-gray-500 mb-1.5">
+                    <span className="uppercase tracking-wider">{role ? role.split(',')[0] : 'Artist'}</span>
+                </div>
+
+                {/* Rating Bar Visual */}
+                <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
+                    <div 
+                        className="h-full bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-full" 
+                        style={{ width: `${percentage}%` }}
+                    ></div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- KOMPONEN: FAILED SEARCH ITEM ---
+const SearchGapItem = ({ term, count, trend }) => (
+    <div className="flex items-center justify-between p-3 border-b border-white/5 last:border-0 hover:bg-red-500/5 transition-colors rounded-lg group">
+        <div className="flex items-center gap-3">
+            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
             <div>
-                <p className="text-sm font-bold text-gray-200 group-hover:text-white">{term}</p>
-                <p className="text-[10px] text-gray-500">Not found in DB</p>
+                <p className="text-sm font-bold text-gray-300 group-hover:text-white">{term}</p>
+                <p className="text-[10px] text-gray-600">Missing from catalog</p>
             </div>
         </div>
         <div className="text-right">
-            <p className="text-sm font-bold text-white">{count}</p>
-            <p className="text-[10px] text-red-400">High Demand</p>
+            <span className="block text-sm font-bold text-white">{count}</span>
+            <span className={`text-[9px] uppercase tracking-wider font-bold ${
+                trend === 'Critical Demand' ? 'text-red-500' : 'text-red-300'
+            }`}>
+                {trend}
+            </span>
         </div>
     </div>
 );
 
-export default function Dashboard({ kpi, charts, bi, filters }) {
+export default function Dashboard({ kpi, charts, bi, filters, topTalent }) {
 
-    // 1. VALIDASI DATA (Mencegah Crash jika data kosong)
-    if (!kpi) {
-        return (
-            <DashboardLayout>
-                <div className="flex flex-col items-center justify-center h-[80vh] text-gray-500">
-                    <span className="material-symbols-outlined text-4xl animate-spin mb-2">sync</span>
-                    <p>Loading Dashboard Data...</p>
-                </div>
-            </DashboardLayout>
-        );
-    }
+    if (!kpi) return null;
 
-    // 2. HANDLE FILTER
     const handleFilter = (range) => {
         router.get('/executive/dashboard', { range }, { preserveState: true, preserveScroll: true });
     };
 
-    // 3. CHART DATA
-    const growthData = {
+    // --- CHART CONFIGURATION ---
+    const growthChartData = {
         labels: charts?.growth?.map(d => d.startYear) || [],
         datasets: [{
-            label: 'Releases',
-            data: charts?.growth?.map(d => d.total_titles) || [],
-            borderColor: '#06b6d4',
-            borderWidth: 3,
+            label: 'Titles Released',
+            data: charts?.growth?.map(d => d.total_released) || [],
+            borderColor: '#22d3ee', // Cyan-400
             backgroundColor: (context) => {
                 const ctx = context.chart.ctx;
-                const gradient = ctx.createLinearGradient(0, 0, 0, 350);
-                gradient.addColorStop(0, 'rgba(6, 182, 212, 0.3)');
-                gradient.addColorStop(1, 'rgba(6, 182, 212, 0)');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient.addColorStop(0, 'rgba(34, 211, 238, 0.4)');
+                gradient.addColorStop(1, 'rgba(34, 211, 238, 0)');
                 return gradient;
             },
-            fill: true,
+            borderWidth: 2,
             tension: 0.4,
-            pointRadius: 0,
+            pointBackgroundColor: '#000',
+            pointBorderColor: '#22d3ee',
+            pointBorderWidth: 2,
+            pointRadius: 4,
             pointHoverRadius: 6,
-            pointBackgroundColor: '#06b6d4',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2
+            fill: true,
         }]
     };
 
-    const genreData = {
-        labels: charts?.genres?.map(g => g.genre_name) || [],
-        datasets: [{
-            label: 'Total Votes',
-            data: charts?.genres?.map(g => g.total_votes) || [],
-            backgroundColor: ['#3b82f6', '#06b6d4', '#8b5cf6', '#ec4899', '#f43f5e'],
-            borderRadius: 6,
-            barThickness: 40,
-            hoverBackgroundColor: '#fff'
-        }]
-    };
-
-    const platformData = {
+    const platformChartData = {
         labels: charts?.platforms?.map(p => p.network_name) || [],
         datasets: [{
             data: charts?.platforms?.map(p => p.total_shows) || [],
-            backgroundColor: ['#E50914', '#00A8E1', '#113CCF', '#1CE783', '#FFF'],
+            backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#10b981', '#64748b'],
             borderWidth: 0,
-            hoverOffset: 15
+            hoverOffset: 20
         }]
-    };
-
-    const commonOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: { x: { display: false }, y: { display: false } },
-        layout: { padding: 10 }
     };
 
     return (
         <DashboardLayout>
-            <Head title="Executive Suite" />
+            <Head title="Executive Overview" />
 
-            <div className="space-y-8 pb-12">
+            <div className="min-h-screen pb-10">
                 
-                {/* HEADER */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                {/* --- HEADER SECTION --- */}
+                <div className="flex flex-col lg:flex-row justify-between items-end gap-6 mb-10">
                     <div>
-                        <h1 className="text-4xl font-black text-white tracking-tighter mb-1">
-                            Executive <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">Suite</span>
+                        <h2 className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] mb-2">Real-time Analytics</h2>
+                        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">
+                            Executive <span className="text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-600">Suite</span>
                         </h1>
-                        <p className="text-gray-400 text-sm">Welcome back, analyze your platform's performance metrics.</p>
                     </div>
-                    
-                    {/* Filter */}
-                    <div className="bg-[#121212] p-1 rounded-xl border border-white/10 flex items-center">
+
+                    {/* Filter Pills */}
+                    <div className="bg-[#1A1A1A] p-1.5 rounded-xl border border-white/10 flex shadow-lg">
                         {['30d', '1y', 'all'].map((range) => (
                             <button
                                 key={range}
                                 onClick={() => handleFilter(range)}
-                                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                                className={`px-5 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-300 ${
                                     filters?.range === range 
-                                    ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)]' 
+                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg' 
                                     : 'text-gray-500 hover:text-white hover:bg-white/5'
                                 }`}
                             >
-                                {range === '30d' ? '30 Days' : range === '1y' ? 'This Year' : 'Max'}
+                                {range === '30d' ? '30 Days' : range === '1y' ? 'This Year' : 'All Time'}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {/* KPI CARDS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <KPICard title="Total Titles" value={kpi.total_titles || 0} subtext="+12% Growth" icon="movie" color="text-cyan-400" />
-                    <KPICard title="Global IMDb Rating" value={kpi.avg_rating || 0} subtext="Quality Index" icon="star" color="text-yellow-400" />
-                    <KPICard title="Industry Pros" value={kpi.total_pros || 0} subtext="Talent Pool" icon="person_search" color="text-pink-400" />
-                    <KPICard title="TV Series Catalog" value={kpi.total_tv || 0} subtext="Episodes Tracked" icon="live_tv" color="text-purple-400" />
+                {/* --- KPI GRID --- */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                    <StatCard 
+                        title="Total Library" 
+                        value={kpi.total_titles} 
+                        subtext={kpi.growth_txt} // Contoh output: "+5.2% YoY"
+                        icon="movie_filter" 
+                        color="text-cyan-400" 
+                    />
+                    <StatCard 
+                        title="Avg Quality (IMDb)" 
+                        value={kpi.avg_rating} 
+                        subtext="Global Avg" // Text biasa (tanpa +) jadi abu-abu
+                        icon="hotel_class" 
+                        color="text-yellow-400" 
+                    />
+                    <StatCard 
+                        title="Talent Pool" 
+                        value={kpi.total_pros} 
+                        subtext="+12 New" // Contoh ada tanda +, jadi hijau
+                        icon="groups" 
+                        color="text-pink-400" 
+                    />
+                    <StatCard 
+                        title="TV Series" 
+                        value={kpi.total_tv} 
+                        subtext="On Air" 
+                        icon="live_tv" 
+                        color="text-purple-400" 
+                    />
                 </div>
 
-                {/* CHARTS */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Growth Chart */}
-                    <div className="lg:col-span-2 bg-[#121212] p-6 rounded-2xl border border-white/5 shadow-lg relative overflow-hidden group">
+                {/* --- MAIN CHARTS SECTION --- */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    
+                    {/* Left: Growth Chart */}
+                    <div className="lg:col-span-2 bg-[#1A1A1A] rounded-2xl p-6 border border-white/5 shadow-xl relative overflow-hidden">
                         <div className="flex justify-between items-center mb-6 relative z-10">
                             <div>
-                                <h3 className="text-lg font-bold text-white">Content Release Velocity</h3>
-                                <p className="text-xs text-gray-500">Yearly content acquisition trend</p>
+                                <h3 className="text-xl font-bold text-white">Acquisition Velocity</h3>
+                                <p className="text-xs text-gray-500 mt-1">Content released per year based on database entry</p>
                             </div>
-                            <Link href="/executive/trends" className="text-cyan-400 hover:text-white text-xs font-bold uppercase flex items-center gap-1 transition-colors">
-                                Full Report <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                            <Link href="/executive/trends" className="text-xs font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors">
+                                DETAILED REPORT <span className="material-symbols-outlined text-sm">arrow_forward</span>
                             </Link>
                         </div>
-                        <div className="h-[280px] relative z-10">
-                            <Line data={growthData} options={{...commonOptions, scales: { y: { display: true, grid: { color: '#222' } } }}} />
+                        <div className="h-[300px] w-full relative z-10">
+                            <Line 
+                                data={growthChartData} 
+                                options={{
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                                    scales: {
+                                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666', font: { size: 10 } } },
+                                        x: { grid: { display: false }, ticks: { color: '#666', font: { size: 10 } } }
+                                    },
+                                    interaction: { mode: 'nearest', axis: 'x', intersect: false }
+                                }} 
+                            />
                         </div>
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+                        {/* Background Decoration */}
+                        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-[100px] pointer-events-none"></div>
                     </div>
 
-                    {/* Platform Share */}
-                    <div className="bg-[#121212] p-6 rounded-2xl border border-white/5 shadow-lg flex flex-col items-center justify-center relative">
-                        <h3 className="text-lg font-bold text-white mb-6 w-full text-left">Network Market Share</h3>
-                        <div className="w-[200px] h-[200px] relative mb-4">
-                            <Doughnut data={platformData} options={{ cutout: '80%', plugins: { legend: { display: false } } }} />
+                    {/* Right: Platform Share */}
+                    <div className="bg-[#1A1A1A] rounded-2xl p-6 border border-white/5 shadow-xl flex flex-col relative overflow-hidden">
+                        <h3 className="text-xl font-bold text-white mb-2">Market Share</h3>
+                        <p className="text-xs text-gray-500 mb-6">Top performing networks</p>
+                        
+                        <div className="flex-1 flex items-center justify-center relative">
+                            <div className="w-[220px] h-[220px]">
+                                <Doughnut 
+                                    data={platformChartData} 
+                                    options={{ cutout: '75%', plugins: { legend: { display: false } } }} 
+                                />
+                            </div>
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span className="text-4xl font-black text-white">{charts?.platforms?.length || 0}</span>
+                                <span className="text-3xl font-black text-white">{charts?.platforms?.length || 0}</span>
                                 <span className="text-[10px] text-gray-500 uppercase tracking-widest">Networks</span>
                             </div>
                         </div>
-                        <div className="flex flex-wrap justify-center gap-2">
-                            {charts?.platforms?.slice(0, 3).map((p, i) => (
-                                <div key={i} className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
-                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: platformData.datasets[0].backgroundColor[i] }}></span>
+
+                        {/* Custom Legend */}
+                        <div className="mt-6 flex flex-wrap justify-center gap-2">
+                            {charts?.platforms?.slice(0, 4).map((p, i) => (
+                                <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: platformChartData.datasets[0].backgroundColor[i] }}></div>
                                     <span className="text-[10px] font-bold text-gray-300">{p.network_name}</span>
+                                    <span className="text-[10px] text-gray-500 border-l border-gray-700 pl-1.5 ml-1">{p.total_shows}</span>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                {/* BOTTOM ROW */}
+                {/* --- BOTTOM SECTION: TALENT & INSIGHTS --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Genre Chart */}
-                    <div className="bg-[#121212] p-6 rounded-2xl border border-white/5 shadow-lg">
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-white">Top Genres (By Votes)</h3>
-                            <p className="text-xs text-gray-500">Audience engagement analysis</p>
+                    
+                    {/* Top Talent Leaderboard */}
+                    <div className="bg-[#1A1A1A] rounded-2xl p-6 border border-white/5 shadow-xl">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <span className="material-symbols-outlined text-yellow-500">trophy</span>
+                                Bankable Stars
+                            </h3>
+                            <Link href="/executive/talents" className="text-xs text-gray-500 hover:text-white transition-colors">View All</Link>
                         </div>
-                        <div className="h-[250px]">
-                            <Bar 
-                                data={genreData} 
-                                options={{
-                                    ...commonOptions,
-                                    scales: { 
-                                        x: { display: true, grid: { display: false }, ticks: { color: '#666', font: { size: 10 } } },
-                                        y: { display: false } 
-                                    }
-                                }} 
-                            />
+                        <div className="space-y-1">
+                            {topTalent && topTalent.length > 0 ? (
+                                topTalent.map((person, idx) => (
+                                    <TalentListItem 
+                                        key={idx}
+                                        rank={idx + 1}
+                                        name={person.primaryName}
+                                        role={person.primaryProfession}
+                                        rating={person.AverageRating}
+                                    />
+                                ))
+                            ) : (
+                                <div className="p-8 text-center text-gray-600 text-sm italic">No data available</div>
+                            )}
                         </div>
                     </div>
 
-                    {/* BI Widget */}
-                    <div className="bg-[#121212] p-6 rounded-2xl border border-white/5 shadow-lg flex flex-col">
-                        <div className="flex justify-between items-start mb-4">
+                    {/* Content Gaps / Failed Searches */}
+                    <div className="bg-[#1A1A1A] rounded-2xl p-6 border border-white/5 shadow-xl flex flex-col border-t-4 border-t-red-500/50">
+                        <div className="flex justify-between items-start mb-6">
                             <div>
-                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                    <span className="w-2 h-6 bg-red-500 rounded-full"></span>
-                                    Content Gaps
-                                </h3>
-                                <p className="text-xs text-gray-500 mt-1">Items searched but <span className="text-red-400 font-bold">not found</span>.</p>
+                                <h3 className="text-lg font-bold text-white text-red-100">Content Demand Gaps</h3>
+                                <p className="text-xs text-red-400/70 mt-1">High volume searches with 0 results</p>
                             </div>
-                            <button className="bg-white/5 hover:bg-white/10 p-2 rounded-lg text-gray-400 hover:text-white transition-colors">
-                                <span className="material-symbols-outlined">more_horiz</span>
-                            </button>
+                            <div className="p-2 bg-red-500/10 rounded-lg">
+                                <span className="material-symbols-outlined text-red-500">warning</span>
+                            </div>
                         </div>
 
-                        <div className="flex-1 flex flex-col space-y-1 mb-4">
+                        <div className="flex-1 flex flex-col space-y-1">
                             {bi?.failed_searches && bi.failed_searches.length > 0 ? (
                                 bi.failed_searches.map((item, idx) => (
-                                    <InsightRow key={idx} term={item.term} count={item.count} />
+                                    <SearchGapItem key={idx} term={item.term} count={item.count} trend={item.trend} />
                                 ))
                             ) : (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-600">
-                                    <span className="material-symbols-outlined text-4xl mb-2 opacity-50">check_circle</span>
-                                    <p className="text-xs">No missing content reported.</p>
+                                <div className="flex flex-col items-center justify-center h-full text-gray-600 opacity-50">
+                                    <span className="material-symbols-outlined text-4xl mb-2">check_circle</span>
+                                    <p className="text-xs">No critical gaps found</p>
                                 </div>
                             )}
                         </div>
 
-                        <button className="mt-auto w-full py-3 rounded-xl bg-gradient-to-r from-red-600/20 to-red-600/10 border border-red-500/20 text-red-400 font-bold text-xs uppercase tracking-widest hover:bg-red-600/20 transition-all flex items-center justify-center gap-2">
-                            <span className="material-symbols-outlined text-sm">add_task</span> Assign Acquisition Team
+                        <button className="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-red-800 text-white font-bold text-xs uppercase tracking-widest hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all flex items-center justify-center gap-2">
+                            <span className="material-symbols-outlined text-sm">add_task</span> Initiate Acquisition
                         </button>
                     </div>
-                </div>
 
+                </div>
             </div>
         </DashboardLayout>
     );
