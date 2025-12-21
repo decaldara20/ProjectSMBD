@@ -429,7 +429,8 @@ class GuestController extends Controller
                 ->select(
                     'tb.tconst', 'tb.primaryTitle', 'tb.originalTitle', 
                     'tb.startYear', 'tb.runtimeMinutes', 'tb.titleType', 
-                    'tr.averageRating', 'tr.numVotes'
+                    'tr.averageRating', 'tr.numVotes',
+                    'tb.isAdult'
                 )
                 // PENTING: Gunakan whereIn juga disini
                 ->whereIn('tb.tconst', $searchIds)
