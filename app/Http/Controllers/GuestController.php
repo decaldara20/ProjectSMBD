@@ -687,14 +687,14 @@ public function homepage(Request $request) {
     // =========================================================================
     // 8. DETAIL PAGES (Film, TV, Person)
     // =========================================================================
-public function showTitleDetail($tconst) {
+    public function showTitleDetail($tconst) {
         // 1. Ambil ID Mentah & Bersihkan Spasi
         $rawId = trim((string) $tconst);
 
         // Validasi: Cegah ID kosong (biar gak error/random)
         if (empty($rawId)) return redirect('/')->with('error', 'ID tidak valid.');
 
-        // 2. LOGIKA PERBAIKAN ID (AUTO-FIX 'tt')
+        // 2. LOGIKA PERBAIKAN ID
         // Jika ID cuma "tt597" (pendek), kita coba juga cari versi "tt0000597" (panjang)
         $searchIds = [$rawId]; // Masukkan ID asli dulu
         
@@ -738,7 +738,7 @@ public function showTitleDetail($tconst) {
             return redirect('/')->with('error', 'Film tidak ditemukan.');
         }
 
-        // --- SISANYA SAMA ---
+        // 6. AMBIL GENRE (Jika View belum ada)
         if (isset($title->Genres_List)) {
             $title->genres = $title->Genres_List;
         } else {
