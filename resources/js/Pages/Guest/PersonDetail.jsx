@@ -174,7 +174,7 @@ export default function PersonDetail({ person, filmography }) {
                 
                 {/* HERO BANNER */}
                 <div className="absolute top-0 left-0 w-full h-[500px] overflow-hidden opacity-30 pointer-events-none">
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0a0a0a]/80 to-[#0a0a0a] z-10"></div>
+                    <div className="absolute inset-0 bg-linear-to-b from-transparent via-[#0a0a0a]/80 to-[#0a0a0a] z-10"></div>
                     {tmdbProfile.image && (
                         <img src={`https://image.tmdb.org/t/p/original${tmdbProfile.image}`} className="w-full h-full object-cover blur-3xl scale-110" alt="Backdrop" />
                     )}
