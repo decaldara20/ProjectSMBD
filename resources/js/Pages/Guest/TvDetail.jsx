@@ -148,7 +148,9 @@ export default function TvDetail({ title }) {
                         <div className="flex flex-wrap items-center gap-4 text-sm md:text-base text-gray-300 mb-6 font-mono">
                             <span className="flex items-center gap-1 text-yellow-400">
                                 <span className="material-symbols-outlined text-lg fill-1">star</span> 
-                                <span className="font-bold text-white">{title.averageRating || 'N/A'}</span>
+                                <span className="text-white text-2xl font-bold">
+                                    {title.averageRating ? Number(title.averageRating).toFixed(1) : 'N/A'}
+                                </span>
                             </span>
                             <span className="px-2 py-0.5 border border-white/20 rounded text-xs">{title.startYear}</span>
                             
