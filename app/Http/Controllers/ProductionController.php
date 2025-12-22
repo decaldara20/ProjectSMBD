@@ -10,20 +10,24 @@ class ProductionController extends Controller
 {
     public function dashboard()
     {
-        // 1. Ambil Statistik Input Data (Contoh)
+        // 1. Ambil Statistik Real dari DB
+        $currentYear = date('Y');
+
         $stats = [
-            'total_movies' => DB::connection('sqlsrv')->table('title_basics')->where('titleType', 'movie')->count(),
-            'total_tv' => DB::connection('sqlsrv')->table('shows')->count(),
-            'total_people' => DB::connection('sqlsrv')->table('name_basics')->count(),
-            'recent_adds' => 15, // Dummy: Data baru minggu ini
+        'total_movies' => DB::connection('sqlsrv')->table('title_basics')->where('titleType', 'movie')->count(),
+        'total_tv'     => DB::connection('sqlsrv')->table('shows')->count(),
+        'total_people' => DB::connection('sqlsrv')->table('name_basics')->count(),
+        'recent_adds'  => DB::connection('sqlsrv')->table('title_basics')->where('startYear', $currentYear)->count(),
         ];
 
-        // 2. Data "Recent Activity" (Film yang baru masuk database)
-        // Kita ambil berdasarkan tconst desc (asumsi tconst besar = data baru) atau startYear
+        // 2. Data "Recent Activity" 
+        // Mengambil 5 film terbaru berdasarkan Tahun Rilis
         $recentItems = DB::connection('sqlsrv')
-            ->table('v_DetailJudulIMDB')
-            ->select('primaryTitle', 'startYear', 'titleType', 'averageRating')
-            ->orderByDesc('startYear') // Atau created_at jika ada
+            ->table('v_DetailJudulIMDB') 
+            ->select('tconst', 'primaryTitle', 'startYear', 'titleType', 'averageRating')
+            ->whereNotNull('startYear') 
+            ->orderByDesc('startYear') 
+            ->orderByDesc('averageRating') 
             ->limit(5)
             ->get();
 
@@ -113,6 +117,4 @@ class ProductionController extends Controller
             'filters' => $request->all(['search'])
         ]);
     }
-    
-    // Nanti tambahkan method index(), create(), store() untuk Movies, TV, dll di sini
 }
