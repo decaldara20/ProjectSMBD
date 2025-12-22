@@ -835,7 +835,7 @@ public function showPersonDetail($nconst) {
 // 3. AMBIL FILMOGRAFI (TOP 10 UNIK - ANTI DUPLIKAT)
         $filmography = Cache::remember("person_films_top10_unique_{$nconst}", 60 * 60, function () use ($nconst) {
             $sql = "
-                SELECT TOP 10 
+                SELECT TOP 12 
                     tconst, primaryTitle, startYear, category
                 FROM (
                     SELECT 
