@@ -44,7 +44,7 @@ export default function GenreIndex({ genres, filters }) {
                             <span className="text-[10px] font-mono text-yellow-400 uppercase tracking-widest">Master Classification</span>
                         </div>
                         <h1 className="text-4xl font-black text-white tracking-tighter">
-                            Genre <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Tags</span>
+                            Genre <span className="text-transparent bg-clip-text bg-linear-to-r from-yellow-400 to-orange-500">Tags</span>
                         </h1>
                         <p className="text-gray-500 text-sm mt-2 max-w-xl">
                             Categorize content across {genres.total.toLocaleString('id-ID')} different genres. Monitor popularity and ratings per category.
@@ -79,7 +79,7 @@ export default function GenreIndex({ genres, filters }) {
                                 <div key={genre.genre_type_id} className={`group relative bg-[#121212] border rounded-2xl p-5 overflow-hidden transition-all hover:-translate-y-1 hover:shadow-xl ${style.split(' ')[2]}`}> {/* Ambil class border dari string style */}
                                     
                                     {/* Gradient Background Overlay */}
-                                    <div className={`absolute inset-0 bg-gradient-to-br ${style.split(' ').slice(0, 2).join(' ')} opacity-50 group-hover:opacity-70 transition-opacity`}></div>
+                                    <div className={`absolute inset-0 bg-linear-to-br ${style.split(' ').slice(0, 2).join(' ')} opacity-50 group-hover:opacity-70 transition-opacity`}></div>
 
                                     {/* Content */}
                                     <div className="relative z-10 flex flex-col h-full justify-between">
