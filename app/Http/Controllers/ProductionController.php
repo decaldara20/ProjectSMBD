@@ -77,13 +77,34 @@ class ProductionController extends Controller
 
     // --- 2. TV SHOWS LIST ---
     public function tvShows(Request $request) {
-        $query = DB::connection('sqlsrv')->table('v_DetailJudulTvShow');
+        $query = DB::connection('sqlsrv')
+            ->table('v_DetailJudulTvShow')
+            ->select(
+                'show_id as tconst',      
+                'primaryTitle', 
+                'startYear',              
+                'endYear',                 
+                'Genres_List as genres',   
+                'averageRating', 
+                'numVotes',
+                DB::raw("'tvSeries' as titleType") 
+            );
 
+        // Fitur Search
         if ($request->search) {
             $query->where('primaryTitle', 'LIKE', '%' . $request->search . '%');
         }
 
-        $shows = $query->orderByDesc('startYear')->paginate(10)->withQueryString();
+        // Pagination + Formatting Data
+        $shows = $query->orderByDesc('startYear')
+                        ->orderByDesc('averageRating')
+                        ->paginate(10)
+                        ->withQueryString()
+                        ->through(function ($item) {
+                            $item->startYear = $item->startYear ? substr((string)$item->startYear, 0, 4) : null;
+                            $item->endYear   = $item->endYear   ? substr((string)$item->endYear, 0, 4)   : null;
+                            return $item;
+                        });
 
         return Inertia::render('Production/TvShows/Index', [
             'shows' => $shows,
