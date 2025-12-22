@@ -36,7 +36,7 @@ export default function CompaniesIndex({ companies, filters }) {
                             <span className="text-[10px] font-mono text-blue-400 uppercase tracking-widest">Global Network Registry</span>
                         </div>
                         <h1 className="text-4xl font-black text-white tracking-tighter">
-                            Production <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Hub</span>
+                            Production <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-indigo-500">Hub</span>
                         </h1>
                         <p className="text-gray-500 text-sm mt-2 max-w-xl">
                             Curated database of {companies.total.toLocaleString('id-ID')} production houses, streaming networks, and creative studios.
@@ -76,12 +76,12 @@ export default function CompaniesIndex({ companies, filters }) {
                                     <div>
                                         {/* Header: Logo & Tier */}
                                         <div className="flex justify-between items-start mb-4">
-                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#1A1A1A] to-[#111] border border-white/10 flex items-center justify-center text-gray-500 group-hover:text-white group-hover:border-blue-500/50 transition-all shadow-inner">
+                                            <div className="w-12 h-12 rounded-xl bg-linear-to-br from-[#1A1A1A] to-[#111] border border-white/10 flex items-center justify-center text-gray-500 group-hover:text-white group-hover:border-blue-500/50 transition-all shadow-inner">
                                                 <span className="font-black text-xl select-none">
                                                     {company.company_name ? company.company_name.charAt(0).toUpperCase() : '?'}
                                                 </span>
                                             </div>
-                                            <span className={`px-2 py-0.5 rounded-[4px] text-[9px] font-bold font-mono tracking-wider border ${tier.color}`}>
+                                            <span className={`px-2 py-0.5 rounded-4px text-[9px] font-bold font-mono tracking-wider border ${tier.color}`}>
                                                 {tier.label}
                                             </span>
                                         </div>
@@ -115,7 +115,7 @@ export default function CompaniesIndex({ companies, filters }) {
                                     </div>
 
                                     {/* Bottom Action Line */}
-                                    <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                                    <div className="absolute inset-x-0 bottom-0 h-0.5 bg-linear-to-r from-blue-600 via-indigo-500 to-purple-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
                                 </div>
                             );
                         })}
