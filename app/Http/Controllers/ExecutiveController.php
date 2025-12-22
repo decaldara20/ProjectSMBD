@@ -202,27 +202,44 @@ class ExecutiveController extends Controller
         ]);
     }
 
-    // 4. PLATFORM INTELLIGENCE (TV Networks)
+    // 4. PLATFORM INTEL
     public function platforms()
     {
-        // Ambil Semua Data dari View Baru
-        $allData = DB::connection('sqlsrv')
-            ->table('v_Executive_Network_Analytics')
-            ->where('total_titles', '>', 5) // Filter network kecil biar grafik gak penuh
-            ->orderByDesc('total_titles')
-            ->limit(10) // Ambil Top 10 Raksasa
+        $platformData = DB::connection('sqlsrv')
+            ->table('v_Executive_Platform_Share')
+            ->select(
+                'network_name',
+                'total_shows as total_titles', // Alias agar match dengan JSX
+                'total_seasons',
+                'avg_rating'
+            )
+            ->orderByDesc('total_shows')
+            ->limit(10) // Top 10 Network
             ->get();
 
-        // 1. KPI Cards
+        // Tambahkan data dummy untuk 'top_title' karena di View belum ada
+        $platformData->transform(function ($item) {
+            $item->avg_rating = (float) $item->avg_rating; 
+            if ($item->avg_rating >= 8.5) {
+                $item->tier = 'Elite';
+            } elseif ($item->avg_rating >= 7.5) {
+                $item->tier = 'Strong';
+            } else {
+                $item->tier = 'Standard';
+            }
+            return $item;
+        });
+
+        // Hitung KPI
         $kpi = [
-            'dominant_network' => $allData->first()->network_name, // Yang paling banyak judulnya
-            'highest_quality'  => $allData->sortByDesc('avg_rating')->first()->network_name,
-            'total_networks'   => DB::connection('sqlsrv')->table('networks')->count(),
+            'dominant_network' => $platformData->first()->network_name ?? '-',
+            'highest_quality'  => $platformData->sortByDesc('avg_rating')->first()->network_name ?? '-',
+            'total_networks'   => DB::connection('sqlsrv')->table('v_Executive_Platform_Share')->count(),
         ];
 
         return Inertia::render('Executive/Platforms', [
             'kpi' => $kpi,
-            'data' => $allData
+            'data' => $platformData
         ]);
     }
 }
