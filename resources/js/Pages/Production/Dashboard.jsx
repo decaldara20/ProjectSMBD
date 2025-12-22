@@ -37,7 +37,7 @@ export default function Dashboard({ stats, recentItems }) {
                             <span className="text-[10px] font-mono text-green-500 uppercase tracking-widest">Live Database Connection</span>
                         </div>
                         <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-                            Production <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500">Console</span>
+                            Production <span className="text-transparent bg-clip-text bg-linear-to-r from-green-400 to-emerald-500">Console</span>
                         </h1>
                         <p className="text-gray-500 text-sm mt-1 max-w-lg">
                             Manage IMTVDB metadata registry. Input movies, update TV shows, and curate talent profiles.
@@ -105,7 +105,7 @@ export default function Dashboard({ stats, recentItems }) {
 
                         <div className="bg-[#121212] border border-white/5 rounded-2xl overflow-hidden shadow-2xl relative">
                             {/* Decorative Top Line */}
-                            <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-green-500/50 to-transparent"></div>
+                            <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-green-500/50 to-transparent"></div>
                             
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm text-gray-400">
@@ -120,7 +120,7 @@ export default function Dashboard({ stats, recentItems }) {
                                     <tbody className="divide-y divide-white/5">
                                         {recentItems.length > 0 ? (
                                             recentItems.map((item, idx) => (
-                                                <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                                                <tr key={idx} className="hover:bg-white/0.02 transition-colors group">
                                                     <td className="px-6 py-4">
                                                         <div className="flex items-center gap-4">
                                                             {/* Numbering Circle */}
@@ -204,7 +204,7 @@ export default function Dashboard({ stats, recentItems }) {
                         </div>
 
                         {/* System Status / Tip */}
-                        <div className="bg-gradient-to-br from-[#121212] to-[#0a0a0a] rounded-2xl border border-white/5 p-6 relative overflow-hidden group hover:border-blue-500/30 transition-colors">
+                        <div className="bg-linear-to-br from-[#121212] to-[#0a0a0a] rounded-2xl border border-white/5 p-6 relative overflow-hidden group hover:border-blue-500/30 transition-colors">
                             <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <span className="material-symbols-outlined text-6xl text-blue-500">dns</span>
                             </div>
@@ -232,7 +232,7 @@ export default function Dashboard({ stats, recentItems }) {
 // --- COMPONENTS ---
 
 const StatCard = ({ title, value, icon, color, gradient, borderColor }) => (
-    <div className={`relative p-6 rounded-2xl border ${borderColor} bg-gradient-to-br ${gradient} bg-[#121212] hover:scale-[1.02] transition-transform duration-300 shadow-xl overflow-hidden group`}>
+    <div className={`relative p-6 rounded-2xl border ${borderColor} bg-linear-to-br ${gradient} bg-[#121212] hover:scale-[1.02] transition-transform duration-300 shadow-xl overflow-hidden group`}>
         <div className="relative z-10 flex justify-between items-start">
             <div>
                 <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mb-1">{title}</p>
