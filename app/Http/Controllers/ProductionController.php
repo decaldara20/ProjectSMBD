@@ -146,16 +146,20 @@ class ProductionController extends Controller
         ]);
     }
 
-    // --- 4. COMPANIES (Placeholder Table) ---
+    // --- 4. COMPANIES ---
     public function companies(Request $request) {
-        // Asumsi ada tabel 'production_companies' atau 'network_types'
-        $query = DB::connection('sqlsrv')->table('network_types'); // Contoh pakai network dulu
+        $query = DB::connection('sqlsrv')->table('v_CompanyStats');
 
+        // 1. Filter Search
         if ($request->search) {
-            $query->where('network_name', 'LIKE', '%' . $request->search . '%');
+            $query->where('company_name', 'LIKE', '%' . $request->search . '%');
         }
 
-        $companies = $query->paginate(10)->withQueryString();
+        // Pagination
+        $companies = $query->orderByDesc('total_titles')
+                            ->orderByDesc('avg_rating')
+                            ->paginate(12)
+                            ->withQueryString();
 
         return Inertia::render('Production/Companies/Index', [
             'companies' => $companies,
