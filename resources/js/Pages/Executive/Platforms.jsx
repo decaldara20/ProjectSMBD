@@ -113,7 +113,7 @@ export default function Platforms({ kpi, data }) {
                             <h2 className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em]">Competitor Analysis</h2>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">
-                            Platform <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-400">Intel</span>
+                            Platform <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-500 to-cyan-400">Intel</span>
                         </h1>
                         <p className="text-gray-500 text-sm mt-2 max-w-xl">
                             Deep dive into streaming wars: Market share volume, content quality benchmarks, and catalog depth.
@@ -159,7 +159,7 @@ export default function Platforms({ kpi, data }) {
                             <span className="w-1 h-5 bg-blue-600 rounded-full"></span> 
                             Market Share
                         </h3>
-                        <div className="w-[240px] h-[240px] relative z-10">
+                        <div className="w-240px h-240px relative z-10">
                             <Doughnut 
                                 data={shareData} 
                                 options={{ 
@@ -181,7 +181,7 @@ export default function Platforms({ kpi, data }) {
                                 </div>
                             ))}
                         </div>
-                        <div className="absolute bottom-0 right-0 w-full h-full bg-gradient-to-t from-blue-900/10 to-transparent pointer-events-none"></div>
+                        <div className="absolute bottom-0 right-0 w-full h-full bg-linear-to-t from-blue-900/10 to-transparent pointer-events-none"></div>
                     </div>
 
                     {/* Quality Comparison (Bar) */}
@@ -226,7 +226,7 @@ export default function Platforms({ kpi, data }) {
                                     const visualPercentage = Math.min(100, (net.avg_rating / 7) * 100);
                                 
                                     return (
-                                        <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                                        <tr key={idx} className="hover:bg-white/0.02 transition-colors group">
                                             <td className="px-6 py-4 text-center font-mono text-gray-600">{idx + 1}</td>
                                             <td className="px-6 py-4">
                                                 <div className="font-bold text-white text-base group-hover:text-blue-400 transition-colors">
