@@ -97,7 +97,7 @@ Route::middleware(['auth', 'role:executive'])->prefix('executive')->group(functi
 // GROUP PRODUCTION
 Route::middleware(['auth', 'role:production'])->prefix('production')->group(function () {
     Route::get('/dashboard', [ProductionController::class, 'dashboard'])->name('production.dashboard');
-    Route::get('/movies', [ProductionController::class, 'movies'])->name('production.movies');
+    Route::get('/films', [ProductionController::class, 'films'])->name('production.films');
     Route::get('/tv-shows', [ProductionController::class, 'tvShows'])->name('production.tv_shows');
     Route::get('/people', [ProductionController::class, 'people'])->name('production.people');
     Route::get('/companies', [ProductionController::class, 'companies'])->name('production.companies');

@@ -37,19 +37,41 @@ class ProductionController extends Controller
         ]);
     }
 
-    // --- 1. MOVIES LIST ---
-    public function movies(Request $request) {
-        $query = DB::connection('sqlsrv')->table('v_DetailJudulIMDB')->where('titleType', 'movie');
+    // --- 1. FILMS LIST ---
+    public function films(Request $request) 
+    {
+        $query = DB::connection('sqlsrv')
+            ->table('v_DetailJudulIMDB') 
+            ->select(
+                'tconst', 
+                'primaryTitle', 
+                'startYear', 
+                'Genres_List as genres',
+                'runtimeMinutes', 
+                'averageRating', 
+                'numVotes',
+                'titleType' 
+            );
         
+        // 1. Filter Search (Judul)
         if ($request->search) {
             $query->where('primaryTitle', 'LIKE', '%' . $request->search . '%');
         }
 
-        $movies = $query->orderByDesc('startYear')->paginate(10)->withQueryString();
+        // 2. Filter Tipe (Dropdown)
+        if ($request->type) {
+            $query->where('titleType', $request->type);
+        }
 
-        return Inertia::render('Production/Movies/Index', [
-            'movies' => $movies,
-            'filters' => $request->all(['search'])
+        // Pagination
+        $films = $query->orderByDesc('startYear')
+                        ->orderByDesc('averageRating') 
+                        ->paginate(10)
+                        ->withQueryString();
+
+        return Inertia::render('Production/Films/Index', [
+            'films' => $films,
+            'filters' => $request->all(['search', 'type'])
         ]);
     }
 

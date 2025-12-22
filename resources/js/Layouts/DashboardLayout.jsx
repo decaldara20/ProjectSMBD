@@ -14,7 +14,7 @@ export default function DashboardLayout({ children }) {
         { name: 'Platform Intel', icon: 'pie_chart', route: '/executive/platforms' },
     ] : [
         { name: 'Dashboard', icon: 'dashboard', route: '/production/dashboard' },
-        { name: 'Movies', icon: 'movie', route: '/production/movies' },
+        { name: 'Films', icon: 'movie', route: '/production/films' },
         { name: 'TV Shows', icon: 'live_tv', route: '/production/tv-shows' },
         { name: 'People', icon: 'person', route: '/production/people' },
         { name: 'Companies', icon: 'domain', route: '/production/companies' },
