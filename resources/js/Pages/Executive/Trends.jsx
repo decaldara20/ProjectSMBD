@@ -2,157 +2,319 @@ import React from 'react';
 import DashboardLayout from '../../Layouts/DashboardLayout';
 import { Head } from '@inertiajs/react';
 import {
-  Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler
+  Chart as ChartJS, 
+  CategoryScale, 
+  LinearScale, 
+  PointElement, 
+  LineElement, 
+  BarElement, 
+  Title, 
+  Tooltip, 
+  Legend, 
+  Filler
 } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
+// --- KOMPONEN KECIL: SUMMARY CARD (TETAP SESUAI REQUEST) ---
+const InsightCard = ({ label, value, subtext, icon, color, gradient }) => (
+    <div className="relative overflow-hidden bg-[#1A1A1A] border border-white/5 rounded-2xl p-5 group hover:border-white/10 transition-all duration-300">
+        <div className={`absolute -right-4 -top-4 w-24 h-24 bg-linear-to-br ${gradient} opacity-10 blur-2xl rounded-full group-hover:opacity-20 transition-opacity`}></div>
+        <div className="relative z-10">
+            <div className="flex justify-between items-start mb-2">
+                <div className={`p-2 rounded-lg bg-white/5 ${color}`}>
+                    <span className="material-symbols-outlined text-xl">{icon}</span>
+                </div>
+            </div>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">{label}</p>
+            <h4 className="text-2xl font-black text-white">{value}</h4>
+            <p className="text-[10px] text-gray-400 mt-1">{subtext}</p>
+        </div>
+    </div>
+);
+
 export default function Trends({ reports }) {
 
-    // --- CHART CONFIGURATIONS ---
+    // --- 1. DATA PREPARATION ---
+    const latestGrowth = reports.growth[reports.growth.length - 1] || {};
+    const topPopGenre = reports.popular_genres[0] || {};
+    const topQualGenre = reports.quality_genres[0] || {};
 
-    // 1. CHART: Laporan 4A (Pertumbuhan Rilis)
+    // --- 2. CHART CONFIGURATIONS ---
+    
+    // Opsi Umum (Tanpa Legend - untuk Bar Chart)
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { 
+            legend: { display: false }, 
+            tooltip: {
+                backgroundColor: 'rgba(15, 15, 15, 0.95)',
+                titleColor: '#fff',
+                bodyColor: '#a3a3a3',
+                borderColor: 'rgba(255,255,255,0.1)',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: true,
+                callbacks: {
+                    label: (ctx) => {
+                        let val = Number(ctx.raw).toLocaleString();
+                        if (ctx.chart.canvas.id === 'popChart') return ` ${val} Votes`;
+                        if (ctx.chart.canvas.id === 'qualChart') return ` ⭐ ${Number(ctx.raw).toFixed(1)} Rating`;
+                        return ` ${ctx.dataset.label}: ${val} Titles`;
+                    }
+                }
+            }
+        },
+        scales: {
+            x: { 
+                grid: { display: false }, 
+                ticks: { color: '#525252', font: { size: 10, family: 'Inter' } } 
+            },
+            y: { 
+                grid: { color: 'rgba(255,255,255,0.03)' }, 
+                ticks: { color: '#525252', font: { size: 10, family: 'Inter' } },
+                border: { display: false }
+            }
+        },
+        layout: { padding: 0 }
+    };
+
+    // [REVISI] Opsi Khusus Line Chart: MENAMPILKAN LEGENDA
+    const lineChartOptions = {
+        ...commonOptions,
+        plugins: {
+            ...commonOptions.plugins,
+            legend: {
+                display: true, // AKTIFKAN LEGEND
+                position: 'top',
+                align: 'end', // Pojok Kanan Atas
+                labels: {
+                    color: '#9ca3af', // Warna teks abu-abu terang
+                    font: { size: 11, family: "'Inter', sans-serif" },
+                    usePointStyle: true, // Pakai titik bulat/kotak kecil
+                    boxWidth: 6
+                }
+            }
+        }
+    };
+
+    // --- DATA: INDUSTRY GROWTH ---
     const growthData = {
         labels: reports.growth.map(d => d.startYear),
         datasets: [
             {
-                label: 'Total Movies',
-                data: reports.growth.map(d => d.total_movies),
-                borderColor: '#06b6d4', // Cyan
-                backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                label: 'Movies',
+                data: reports.growth.map(d => d.total_movies || 0), 
+                borderColor: '#c084fc', // Purple Neon
+                backgroundColor: (context) => {
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradient.addColorStop(0, 'rgba(192, 132, 252, 0.4)'); 
+                    gradient.addColorStop(1, 'rgba(192, 132, 252, 0)');
+                    return gradient;
+                },
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 4, 
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#121212',
+                pointBorderColor: '#c084fc', 
+                pointBorderWidth: 2,
             },
             {
-                label: 'Total TV Shows',
-                data: reports.growth.map(d => d.total_tv),
-                borderColor: '#a855f7', // Purple
-                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                label: 'TV Shows',
+                data: reports.growth.map(d => d.total_tv || 0), 
+                borderColor: '#22d3ee', // Cyan Neon
+                backgroundColor: (context) => {
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradient.addColorStop(0, 'rgba(34, 211, 238, 0.4)'); 
+                    gradient.addColorStop(1, 'rgba(34, 211, 238, 0)');
+                    return gradient;
+                },
                 fill: true,
-                tension: 0.4
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 4,
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#121212',
+                pointBorderColor: '#22d3ee',
+                pointBorderWidth: 2,
             }
         ]
     };
 
-    // 2. CHART: Laporan 2A (Genre Populer)
+    // --- DATA: POPULAR GENRE (BAR) ---
     const popularGenreData = {
         labels: reports.popular_genres.map(g => g.genre_name),
         datasets: [{
-            label: 'Total Votes',
+            label: 'Votes',
             data: reports.popular_genres.map(g => g.total_votes),
-            backgroundColor: '#3b82f6',
-            borderRadius: 6,
-            barThickness: 25
+            backgroundColor: (context) => {
+                const ctx = context.chart.ctx;
+                const gradient = ctx.createLinearGradient(0, 0, 300, 0); 
+                gradient.addColorStop(0, '#2563eb'); 
+                gradient.addColorStop(1, '#60a5fa'); 
+                return gradient;
+            },
+            borderRadius: 4,
+            barThickness: 20,
         }]
     };
 
-    // 3. CHART: Laporan 2B (Genre Kualitas)
+    // --- DATA: QUALITY GENRE (BAR) ---
     const qualityGenreData = {
         labels: reports.quality_genres.map(g => g.genre_name),
         datasets: [{
-            label: 'Avg Rating',
+            label: 'Rating',
             data: reports.quality_genres.map(g => g.avg_rating),
-            backgroundColor: '#10b981', // Emerald Green
-            borderRadius: 6,
-            barThickness: 25
+            backgroundColor: (context) => {
+                const ctx = context.chart.ctx;
+                const gradient = ctx.createLinearGradient(0, 0, 300, 0);
+                gradient.addColorStop(0, '#059669'); 
+                gradient.addColorStop(1, '#34d399'); 
+                return gradient;
+            },
+            borderRadius: 4,
+            barThickness: 20,
         }]
-    };
-
-    // Common Options
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { labels: { color: '#999' } } },
-        scales: {
-            x: { grid: { display: false }, ticks: { color: '#666' } },
-            y: { grid: { color: '#222' }, ticks: { color: '#666' } }
-        }
     };
 
     return (
         <DashboardLayout>
-            <Head title="Market Trends Analysis" />
+            <Head title="Market Trends" />
 
-            <div className="space-y-8 pb-12">
+            <div className="min-h-screen pb-12 space-y-8">
                 
-                {/* HEADER */}
-                <div className="flex justify-between items-end">
+                {/* --- HEADER & SUMMARY --- */}
+                <div className="flex flex-col gap-8">
                     <div>
-                        <h1 className="text-3xl font-black text-white tracking-tight">
-                            Market <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-pink-500">Trends</span>
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                            <h2 className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em]">Market Intelligence</h2>
+                        </div>
+                        <h1 className="text-4xl font-black text-white tracking-tighter">
+                            Trend <span className="text-transparent bg-clip-text bg-linear-to-r from-purple-400 to-pink-500">Analysis</span>
                         </h1>
-                        <p className="text-gray-400 text-sm mt-1">Deep dive into genre performance and content growth.</p>
+                        <p className="text-gray-500 text-sm mt-2 max-w-2xl">
+                            Monitoring historical content velocity, genre popularity shifts, and critical reception metrics to guide acquisition strategy.
+                        </p>
                     </div>
-                    <div className="flex gap-2">
-                        <span className="px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-bold uppercase">Laporan 2A</span>
-                        <span className="px-3 py-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded-lg text-xs font-bold uppercase">Laporan 2B</span>
-                        <span className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-xs font-bold uppercase">Laporan 4A</span>
+
+                    {/* AT A GLANCE (KPI TETAP) */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <InsightCard 
+                            label="Current Velocity" 
+                            value={latestGrowth.total_released || 0} 
+                            subtext={`New Titles in ${latestGrowth.startYear}`}
+                            icon="rocket_launch" 
+                            color="text-purple-400"
+                            gradient="from-purple-500 to-pink-500"
+                        />
+                        <InsightCard 
+                            label="Dominant Genre" 
+                            value={topPopGenre.genre_name || '-'} 
+                            subtext="Most Voted by Audience"
+                            icon="campaign" 
+                            color="text-blue-400"
+                            gradient="from-blue-500 to-cyan-500"
+                        />
+                        <InsightCard 
+                            label="Premium Niche" 
+                            value={topQualGenre.genre_name || '-'} 
+                            subtext={`Avg Rating: ${topQualGenre.avg_rating}`}
+                            icon="diamond" 
+                            color="text-emerald-400"
+                            gradient="from-emerald-500 to-green-500"
+                        />
                     </div>
                 </div>
 
-                {/* --- SECTION 1: CONTENT GROWTH (Laporan 4A) --- */}
-                <div className="bg-[#121212] p-6 rounded-2xl border border-white/5 shadow-lg">
-                    <div className="flex justify-between items-center mb-6">
+                {/* --- MAIN CHART: GROWTH (MOVIES vs TV) --- */}
+                <div className="bg-[#121212] p-6 md:p-8 rounded-3xl border border-white/5 shadow-2xl relative overflow-hidden group">
+                    <div className="flex justify-between items-center mb-6 relative z-10">
                         <div>
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
-                                Content Release Growth
+                            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                <span className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 material-symbols-outlined text-lg">stacked_line_chart</span>
+                                Content Production Velocity
                             </h3>
-                            <p className="text-xs text-gray-500">Total Movies vs TV Shows released (Last 10 Years)</p>
+                        </div>
+                        <div className="px-3 py-1 rounded-full bg-white/5 border border-white/5">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Last 10 Years</span>
                         </div>
                     </div>
-                    <div className="h-[350px]">
-                        <Line data={growthData} options={chartOptions} />
+
+                    <div className="h-[350px] w-full relative z-10">
+                        {/* REVISI: Menggunakan lineChartOptions yang sudah ada Legend-nya */}
+                        <Line id="growthChart" data={growthData} options={lineChartOptions} />
                     </div>
+
+                    {/* Background Ambient Glow */}
+                    <div className="absolute -top-[50%] -right-[20%] w-[80%] h-[150%] bg-purple-600/5 rounded-full blur-[120px] pointer-events-none"></div>
                 </div>
 
-                {/* --- SECTION 2: GENRE ANALYSIS (Grid Layout) --- */}
+                {/* --- GRID: GENRES --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     
-                    {/* Laporan 2A: Popularitas */}
-                    <div className="bg-[#121212] p-6 rounded-2xl border border-white/5 shadow-lg">
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
-                                Most Popular Genres
-                            </h3>
-                            <p className="text-xs text-gray-500">Based on Total User Votes (Engagement)</p>
+                    {/* Popularity Card */}
+                    <div className="bg-[#121212] p-6 md:p-8 rounded-3xl border border-white/5 shadow-xl hover:border-white/10 transition-all">
+                        <div className="mb-6 flex justify-between items-center">
+                            <div>
+                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                    <span className="text-blue-400 material-symbols-outlined">trending_up</span>
+                                    Most Popular Genres
+                                </h3>
+                                <p className="text-xs text-gray-500 ml-8 mt-1">Based on total audience votes</p>
+                            </div>
                         </div>
                         <div className="h-[300px]">
                             <Bar 
+                                id="popChart"
                                 data={popularGenreData} 
                                 options={{
-                                    ...chartOptions,
-                                    indexAxis: 'y', // Horizontal Bar
+                                    ...commonOptions,
+                                    indexAxis: 'y',
+                                    scales: {
+                                        x: { display: false },
+                                        y: { grid: { display: false }, ticks: { color: '#a3a3a3', font: { weight: '600' } } }
+                                    }
                                 }} 
                             />
                         </div>
                     </div>
 
-                    {/* Laporan 2B: Kualitas */}
-                    <div className="bg-[#121212] p-6 rounded-2xl border border-white/5 shadow-lg">
-                        <div className="mb-6">
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                <span className="w-1 h-6 bg-green-500 rounded-full"></span>
-                                Highest Rated Genres
-                            </h3>
-                            <p className="text-xs text-gray-500">Based on Average IMDb Rating (Min. 500 Titles)</p>
+                    {/* Quality Card */}
+                    <div className="bg-[#121212] p-6 md:p-8 rounded-3xl border border-white/5 shadow-xl hover:border-white/10 transition-all">
+                        <div className="mb-6 flex justify-between items-center">
+                            <div>
+                                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                    <span className="text-emerald-400 material-symbols-outlined">verified</span>
+                                    Critical Acclaim
+                                </h3>
+                                <p className="text-xs text-gray-500 ml-8 mt-1">Genres with highest average ratings</p>
+                            </div>
                         </div>
                         <div className="h-[300px]">
                             <Bar 
+                                id="qualChart"
                                 data={qualityGenreData} 
                                 options={{
-                                    ...chartOptions,
+                                    ...commonOptions,
                                     indexAxis: 'y',
-                                    scales: { x: { min: 5, max: 10, grid: { display: false } } } // Fokus skala rating 5-10
+                                    scales: {
+                                        x: { display: false, min: 0, max: 10 }, 
+                                        y: { grid: { display: false }, ticks: { color: '#a3a3a3', font: { weight: '600' } } }
+                                    }
                                 }} 
                             />
                         </div>
                     </div>
 
                 </div>
-
             </div>
         </DashboardLayout>
     );

@@ -18,11 +18,11 @@ class DatabaseSeeder extends Seeder
     {
        // 1. AKUN EXECUTIVE (Untuk Dashboard Grafik/Analisa)
         User::updateOrCreate(
-            ['email' => 'admin@imtvdb.com'], // Kunci pencarian (biar gak duplikat)
+            ['email' => 'admin@imtvdb.com'], 
             [
                 'name' => 'Boss Executive',
-                'password' => Hash::make('password123'), // Password selalu 'password123'
-                'role' => 'executive', // <--- PENTING: Sesuai Middleware
+                'password' => Hash::make('password123'), 
+                'role' => 'executive', 
                 'email_verified_at' => now(),
             ]
         );
@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Production Lead',
                 'password' => Hash::make('password123'),
-                'role' => 'production', // <--- PENTING: Sesuai Middleware
+                'role' => 'production', 
                 'email_verified_at' => now(),
             ]
         );

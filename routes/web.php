@@ -76,6 +76,8 @@ Route::get('/api/search/suggestions', [GuestController::class, 'getSuggestions']
 // Route Autentikasi Custom
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+
+Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
 // Route Logout (Wajib POST demi keamanan)
@@ -95,7 +97,7 @@ Route::middleware(['auth', 'role:executive'])->prefix('executive')->group(functi
 // GROUP PRODUCTION
 Route::middleware(['auth', 'role:production'])->prefix('production')->group(function () {
     Route::get('/dashboard', [ProductionController::class, 'dashboard'])->name('production.dashboard');
-    Route::get('/movies', [ProductionController::class, 'movies'])->name('production.movies');
+    Route::get('/films', [ProductionController::class, 'films'])->name('production.films');
     Route::get('/tv-shows', [ProductionController::class, 'tvShows'])->name('production.tv_shows');
     Route::get('/people', [ProductionController::class, 'people'])->name('production.people');
     Route::get('/companies', [ProductionController::class, 'companies'])->name('production.companies');

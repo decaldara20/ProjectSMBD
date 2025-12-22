@@ -11,61 +11,70 @@ class ExecutiveController extends Controller
     // 1. DASHBOARD UTAMA (Overview)
     public function dashboard(Request $request)
     {
-        // 1. SETUP FILTER WAKTU (REAL)
+        // SETUP FILTER WAKTU
         $range = $request->input('range', 'all'); 
         
-        // Tentukan batas tanggal (Start Date)
         $startDate = match($range) {
             '30d' => now()->subDays(30),
             '1y'  => now()->subYear(),
             default => null, // All Time
         };
 
-        // 2. KPI DASHBOARD (REAL COUNT)
-        // Kita hitung total saat ini
-        $kpi = [
-            'total_titles' => DB::connection('sqlsrv')->table('title_basics')->count(),
-            // Hitung rata-rata rating (opsional: filter berdasarkan tahun rilis jika mau lebih spesifik)
-            'avg_rating'   => number_format(DB::connection('sqlsrv')->table('title_ratings')->avg('averageRating'), 1),
-            'total_pros'   => DB::connection('sqlsrv')->table('name_basics')->count(),
-            'total_tv'     => DB::connection('sqlsrv')->table('shows')->count(),
-        ];
-
-        // 3. CHART: GENRE TRENDS (REAL FROM VIEW)
-        // View v_Executive_Genre_Stats sudah matang, kita ambil Top 5
-        $genreData = DB::connection('sqlsrv')
-            ->table('v_Executive_Genre_Stats')
-            ->orderByDesc('total_votes')
-            ->limit(5)
+        // --- A. HITUNG PERTUMBUHAN (REAL Y-o-Y GROWTH) ---
+        // Kita ambil 2 tahun terakhir dari view pertumbuhan untuk dibandingkan
+        $growthStats = DB::connection('sqlsrv')
+            ->table('v_Executive_Yearly_Growth')
+            ->orderByDesc('startYear')
+            ->limit(2)
             ->get();
 
-        // 4. CHART: PLATFORM ANALYTICS (REAL FROM VIEW)
+        $currentYearCount = $growthStats->first()->total_released ?? 0;
+        $lastYearCount    = $growthStats->last()->total_released ?? 1; // Hindari bagi 0
+        
+        // Rumus Growth: ((Sekarang - Lalu) / Lalu) * 100
+        $growthPct = (($currentYearCount - $lastYearCount) / $lastYearCount) * 100;
+        $growthLabel = ($growthPct >= 0 ? '+' : '') . number_format($growthPct, 1) . '% YoY';
+
+        // --- B. KPI DASHBOARD ---
+        $kpi = [
+            'total_titles' => number_format(DB::connection('sqlsrv')->table('title_basics')->count(), 0, ',', '.'),
+            'growth_txt'   => $growthLabel,
+            'avg_rating'   => number_format(DB::connection('sqlsrv')->table('title_ratings')->avg('averageRating'), 1),
+            'total_pros'   => number_format(DB::connection('sqlsrv')->table('name_basics')->count(), 0, ',', '.'),
+            'total_tv'     => number_format(DB::connection('sqlsrv')->table('shows')->count(), 0, ',', '.'),
+        ];
+
+        // --- C. CHART: PLATFORM ANALYTICS ---
         $platformData = DB::connection('sqlsrv')
             ->table('v_Executive_Platform_Share')
             ->orderByDesc('total_shows')
-            ->limit(7)
+            ->limit(5)
             ->get();
 
-        // 5. CHART: YEARLY GROWTH (REAL FROM VIEW)
+        // --- D. CHART: YEARLY GROWTH ---
         $growthQuery = DB::connection('sqlsrv')
             ->table('v_Executive_Yearly_Growth')
-            ->where('startYear', '>=', 2010); // Default 15 tahun terakhir
+            ->where('startYear', '>=', 2010); 
         
-        // Jika filter 1y/30d aktif, kita persempit datanya
-        if ($range !== 'all') {
-             // Logic khusus untuk chart tahunan, kalau filter 30 hari mungkin grafiknya flat
-             // Jadi kita biarkan grafik pertumbuhan tetap tahunan, atau sesuaikan jika perlu.
+        if ($range === '1y') {
+        $growthQuery->where('startYear', '>=', date('Y'));
         }
+
         $growthData = $growthQuery->orderBy('startYear')->get();
 
+        // --- E. TOP TALENT ---
+        $topTalent = DB::connection('sqlsrv')
+            ->table('v_Executive_BankabilityReport_Base')
+            ->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')
+            ->orderByDesc('TotalNumVotes') 
+            ->limit(4) 
+            ->get();
 
-        // 6. BUSINESS INTELLIGENCE: FAILED SEARCHES (REAL DATA!)
-        // Mengambil keyword yang hasilnya 0, dikelompokkan, dan dihitung jumlahnya
+        // --- F. BUSINESS INTELLIGENCE: FAILED SEARCHES ---
         $failedQuery = DB::table('search_logs')
             ->select('keyword as term', DB::raw('count(*) as count'))
-            ->where('results_count', 0); // Hanya yang GAGAL (hasil 0)
+            ->where('results_count', 0); 
 
-        // Terapkan Filter Waktu pada Log Pencarian
         if ($startDate) {
             $failedQuery->where('created_at', '>=', $startDate);
         }
@@ -76,21 +85,22 @@ class ExecutiveController extends Controller
             ->limit(5)
             ->get()
             ->map(function($item) {
-                // Tambahkan data dummy trend karena kita belum punya data bulan lalu untuk dibandingkan
-                // Nanti bisa dikembangkan lagi
-                $item->trend = 'New Alert'; 
+                // Label Dinamis berdasarkan jumlah pencarian
+                if ($item->count > 50) $item->trend = 'Critical Demand';
+                elseif ($item->count > 10) $item->trend = 'High Interest';
+                else $item->trend = 'New Signal';
                 return $item;
             });
 
         return Inertia::render('Executive/Dashboard', [
             'kpi' => $kpi,
             'charts' => [
-                'genres' => $genreData,
                 'platforms' => $platformData,
                 'growth' => $growthData,
             ],
+            'topTalent' => $topTalent,
             'bi' => [
-                'failed_searches' => $failedSearches // Data Asli dari tabel search_logs
+                'failed_searches' => $failedSearches 
             ],
             'filters' => [
                 'range' => $range
@@ -103,11 +113,18 @@ class ExecutiveController extends Controller
     {
         // --- LAPORAN 4A: Pertumbuhan Rilis Konten (10 Tahun Terakhir) ---
         $yearlyTrend = DB::connection('sqlsrv')
-            ->table('v_Executive_Yearly_Growth')
-            ->where('startYear', '>=', date('Y') - 10)
-            ->where('startYear', '<=', date('Y'))
-            ->orderBy('startYear')
-            ->get();
+        ->table('title_basics')
+        ->select('startYear')
+        // Hitung Total Semua (Untuk Single Line Chart)
+        ->selectRaw("COUNT(*) as total_released")
+        // Hitung Split per Tipe (Untuk cadangan/analisis lebih dalam)
+        ->selectRaw("COUNT(CASE WHEN titleType = 'movie' THEN 1 END) as total_movies")
+        ->selectRaw("COUNT(CASE WHEN titleType = 'tvSeries' THEN 1 END) as total_tv")
+        ->where('startYear', '>=', date('Y') - 10)
+        ->where('startYear', '<=', date('Y'))
+        ->groupBy('startYear')
+        ->orderBy('startYear')
+        ->get();
 
         // --- LAPORAN 2A: Genre Paling Populer (By Total Votes) ---
         $topGenresByVotes = DB::connection('sqlsrv')
@@ -120,7 +137,7 @@ class ExecutiveController extends Controller
         // Filter: Hanya genre yang punya minimal 500 judul agar data valid (tidak bias)
         $topGenresByRating = DB::connection('sqlsrv')
             ->table('v_Executive_Genre_Stats')
-            ->where('total_titles', '>', 500) 
+            ->where('total_titles', '>', 50) 
             ->orderByDesc('avg_rating')
             ->limit(10)
             ->get();
@@ -137,11 +154,25 @@ class ExecutiveController extends Controller
     // 3. TALENT ANALYTICS (Bankabilitas Artis)
     public function talents()
     {
-        // 1. KPI Cards (Hitung Cepat)
+        // 1. KPI Cards (FIX: Ambil dari tabel normalisasi 'name_professions')
         $kpi = [
-            'total_actors' => DB::connection('sqlsrv')->table('name_basics')->where('primaryProfession', 'LIKE', '%actor%')->count(),
-            'total_directors' => DB::connection('sqlsrv')->table('name_basics')->where('primaryProfession', 'LIKE', '%director%')->count(),
-            'avg_pro_rating' => 7.2, // Hardcoded dulu biar cepet (kalo query avg semua person berat)
+            'total_actors'    => DB::connection('sqlsrv')
+                                    ->table('name_professions')
+                                    ->where(function($query) {
+                                        $query->where('profession_name', 'LIKE', '%actor%')
+                                            ->orWhere('profession_name', 'LIKE', '%actress%');
+                                    })
+                                    ->count(),
+                                    
+            'total_directors' => DB::connection('sqlsrv')
+                                    ->table('name_professions')
+                                    ->where('profession_name', 'LIKE', '%director%')
+                                    ->count(),
+                                    
+            'total_writers'   => DB::connection('sqlsrv')
+                                    ->table('name_professions')
+                                    ->where('profession_name', 'LIKE', '%writer%')
+                                    ->count(),
         ];
 
         // 2. Chart: Distribusi Profesi
@@ -159,7 +190,7 @@ class ExecutiveController extends Controller
             ->table('v_Executive_BankabilityReport_Base')
             ->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')
             ->orderByDesc('TotalNumVotes')
-            ->paginate(10); // Tetap paginate biar tabelnya rapi
+            ->paginate(10); 
 
         return Inertia::render('Executive/Talents', [
             'kpi' => $kpi,
@@ -171,27 +202,44 @@ class ExecutiveController extends Controller
         ]);
     }
 
-    // 4. PLATFORM INTELLIGENCE (TV Networks)
+    // 4. PLATFORM INTEL
     public function platforms()
     {
-        // Ambil Semua Data dari View Baru
-        $allData = DB::connection('sqlsrv')
-            ->table('v_Executive_Network_Analytics')
-            ->where('total_titles', '>', 5) // Filter network kecil biar grafik gak penuh
-            ->orderByDesc('total_titles')
-            ->limit(10) // Ambil Top 10 Raksasa
+        $platformData = DB::connection('sqlsrv')
+            ->table('v_Executive_Platform_Share')
+            ->select(
+                'network_name',
+                'total_shows as total_titles', // Alias agar match dengan JSX
+                'total_seasons',
+                'avg_rating'
+            )
+            ->orderByDesc('total_shows')
+            ->limit(10) // Top 10 Network
             ->get();
 
-        // 1. KPI Cards
+        // Tambahkan data dummy untuk 'top_title' karena di View belum ada
+        $platformData->transform(function ($item) {
+            $item->avg_rating = (float) $item->avg_rating; 
+            if ($item->avg_rating >= 8.5) {
+                $item->tier = 'Elite';
+            } elseif ($item->avg_rating >= 7.5) {
+                $item->tier = 'Strong';
+            } else {
+                $item->tier = 'Standard';
+            }
+            return $item;
+        });
+
+        // Hitung KPI
         $kpi = [
-            'dominant_network' => $allData->first()->network_name, // Yang paling banyak judulnya
-            'highest_quality'  => $allData->sortByDesc('avg_rating')->first()->network_name,
-            'total_networks'   => DB::connection('sqlsrv')->table('networks')->count(),
+            'dominant_network' => $platformData->first()->network_name ?? '-',
+            'highest_quality'  => $platformData->sortByDesc('avg_rating')->first()->network_name ?? '-',
+            'total_networks'   => DB::connection('sqlsrv')->table('v_Executive_Platform_Share')->count(),
         ];
 
         return Inertia::render('Executive/Platforms', [
             'kpi' => $kpi,
-            'data' => $allData
+            'data' => $platformData
         ]);
     }
 }

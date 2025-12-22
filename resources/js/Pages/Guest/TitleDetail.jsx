@@ -31,7 +31,8 @@ export default function TitleDetail({ title }) {
             type: 'movie',
             title: title.primaryTitle,
             year: title.startYear,
-            rating: title.averageRating
+            rating: title.averageRating,
+            poster_path: title.poster_path
         }, {
             preserveScroll: true,
             onError: () => setIsFavorited(!isFavorited) // Balikin kalau error
@@ -240,8 +241,8 @@ export default function TitleDetail({ title }) {
                             </div>
                             <div className="flex justify-between border-b border-white/5 pb-3">
                                 <span className="text-gray-500 text-sm">Content Rating</span>
-                                <span className={`text-xs font-bold px-2 py-1 rounded ${title.isAdult ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
-                                    {title.isAdult ? '18+' : 'PG-13'}
+                                <span className={`text-xs font-bold px-2 py-1 rounded ${title.isAdult == 1 ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
+                                    {title.isAdult == 1 ? '18+' : 'PG-13'}
                                 </span>
                             </div>
                             <div className="flex justify-between border-b border-white/5 pb-3">
