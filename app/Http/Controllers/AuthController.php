@@ -49,7 +49,6 @@ class AuthController extends Controller
             if ($role === 'production') {
                 return redirect()->intended(route('production.dashboard'));
             }
-            // ----------------------------------------
 
             // Default user biasa ke Homepage
             return redirect()->intended('/');
