@@ -169,13 +169,15 @@ class ProductionController extends Controller
 
     // --- 5. GENRES ---
     public function genres(Request $request) {
-        $query = DB::connection('sqlsrv')->table('genre_types');
+        $query = DB::connection('sqlsrv')->table('v_GenreStats');
 
         if ($request->search) {
             $query->where('genre_name', 'LIKE', '%' . $request->search . '%');
         }
 
-        $genres = $query->paginate(10)->withQueryString();
+        $genres = $query->orderByDesc('total_titles')
+                        ->paginate(12)
+                        ->withQueryString();
 
         return Inertia::render('Production/Genres/Index', [
             'genres' => $genres,
