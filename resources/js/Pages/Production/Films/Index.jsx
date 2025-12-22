@@ -65,7 +65,7 @@ export default function FilmIndex({ films, filters }) {
                             <span className="text-[10px] font-mono text-blue-400 uppercase tracking-widest">SQL Master Database</span>
                         </div>
                         <h1 className="text-4xl font-black text-white tracking-tighter">
-                            Content <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Registry</span>
+                            Content <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-indigo-500">Registry</span>
                         </h1>
                         <p className="text-gray-500 text-sm mt-2 max-w-2xl">
                             {/* UPDATE 1: Pakai 'id-ID' disini */}
@@ -115,7 +115,7 @@ export default function FilmIndex({ films, filters }) {
 
                 {/* --- DATA TABLE --- */}
                 <div className="bg-[#121212] rounded-2xl border border-white/5 overflow-hidden shadow-2xl relative flex flex-col min-h-[500px]">
-                    <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
+                    <div className="absolute top-0 left-0 w-full h-0.5 bg-linear-to-r from-transparent via-blue-500/50 to-transparent"></div>
 
                     <div className="overflow-x-auto flex-1">
                         <table className="w-full text-left text-sm text-gray-400">
@@ -132,7 +132,7 @@ export default function FilmIndex({ films, filters }) {
                             <tbody className="divide-y divide-white/5">
                                 {films.data.length > 0 ? (
                                     films.data.map((film) => (
-                                        <tr key={film.tconst} className="hover:bg-white/[0.02] transition-colors group">
+                                        <tr key={film.tconst} className="hover:bg-white/0.02 transition-colors group">
                                             
                                             {/* Column 1: Title & ID */}
                                             <td className="px-6 py-4">
