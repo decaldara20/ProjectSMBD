@@ -112,19 +112,37 @@ class ProductionController extends Controller
         ]);
     }
 
-    // --- 3. PEOPLE LIST ---
+    // --- 3. PEOPLE / TALENT LIST ---
     public function people(Request $request) {
-        $query = DB::connection('sqlsrv')->table('name_basics');
+        $query = DB::connection('sqlsrv')
+            ->table('v_DetailAktor')
+            ->select(
+                'nconst',
+                'primaryName',
+                'birthYear',
+                'deathYear',
+                'profession as primaryProfession', 
+                'known_for_titles as knownFor'
+            );
 
+        // Filter Search (Nama)
         if ($request->search) {
             $query->where('primaryName', 'LIKE', '%' . $request->search . '%');
         }
 
-        $people = $query->orderBy('primaryName')->paginate(10)->withQueryString();
+        // Filter Profesi (Dropdown)
+        if ($request->role && $request->role !== 'all') {
+            $query->where('primaryProfession', 'LIKE', '%' . $request->role . '%');
+        }
+
+        // Pagination
+        $people = $query->orderBy('primaryName')
+                        ->paginate(10)
+                        ->withQueryString();
 
         return Inertia::render('Production/People/Index', [
             'people' => $people,
-            'filters' => $request->all(['search'])
+            'filters' => $request->all(['search', 'role'])
         ]);
     }
 
