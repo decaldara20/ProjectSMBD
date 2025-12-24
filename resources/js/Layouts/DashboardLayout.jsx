@@ -48,7 +48,7 @@ export default function DashboardLayout({ children }) {
                 className={`relative z-40 transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) flex flex-col border-r border-white/5 bg-[#0a0a0a] ${isSidebarOpen ? 'w-72' : 'w-24'}`}
             >
                 {/* Background Gradient Subtle */}
-                <div className="absolute inset-0 bg-gradient-to-b from-cyan-900/5 to-transparent pointer-events-none"></div>
+                <div className="absolute inset-0 bg-linear-to-b from-cyan-900/5 to-transparent pointer-events-none"></div>
 
                 {/* --- LOGO AREA --- */}
                 <div className={`flex items-center justify-center border-b border-white/5 relative z-10 overflow-hidden transition-all duration-500 ${isSidebarOpen ? 'h-40 py-6' : 'h-24 py-0'}`}>
@@ -212,7 +212,7 @@ export default function DashboardLayout({ children }) {
                 {/* Content Scrollable - Responsive Padding */}
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative scroll-smooth">
                     {/* Background Glow Spot */}
-                    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-cyan-900/10 via-[#050505] to-[#050505] pointer-events-none"></div>
+                    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,var(--tw-gradient-stops))] from-cyan-900/10 via-[#050505] to-[#050505] pointer-events-none"></div>
                     
                     <div className="relative z-10 animate-fade-in-up">
                         {children}
