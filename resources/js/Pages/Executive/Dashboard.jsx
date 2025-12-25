@@ -63,7 +63,7 @@ const StatCard = ({ title, value, subtext, icon, color }) => {
     );
 };
 
-// --- KOMPONEN: LIST ITEM (Reused for Talent & Assets) ---
+// --- KOMPONEN: LIST ITEM ---
 const TalentListItem = ({ rank, name, role, rating, isAsset }) => {
     const percentage = (rating / 10) * 100;
 
@@ -482,7 +482,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                             </Link>
                         </div>
 
-                        {/* LIST CONTENT (Space dikurangi jadi space-y-1) */}
+                        {/* LIST CONTENT */}
                         <div className="flex-1 overflow-y-auto pr-1 custom-scrollbar space-y-1.5">
                             {topTalent && topTalent.length > 0 ? (
                                 topTalent.map((person, idx) => (
@@ -503,165 +503,261 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                         </div>
                     </div>
 
-                    {/* BI SECTION: Failed Searches (Hanya di Global Mode) */}
                     {!isCompanyMode ? (
-                        <div className="bg-[#1A1A1A] rounded-2xl p-6 border border-white/5 shadow-xl flex flex-col border-t-4 border-t-red-500/50">
-                            <div className="flex justify-between items-start mb-6">
-                                <div>
-                                    <h3 className="text-lg font-bold text-white">Content Demand Gaps</h3>
-                                    <p className="text-xs text-red-400/70 mt-1">High volume searches with 0 results</p>
-                                </div>
-                                <div className="p-2 bg-red-500/10 rounded-lg">
-                                    <span className="material-symbols-outlined text-red-500">warning</span>
-                                </div>
-                            </div>
-
-                            <div className="flex-1 flex flex-col space-y-1">
-                                {bi?.failed_searches && bi.failed_searches.length > 0 ? (
-                                    bi.failed_searches.map((item, idx) => (
-                                        <SearchGapItem key={idx} term={item.term} count={item.count} trend={item.trend} />
-                                    ))
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-gray-600 opacity-50">
-                                        <span className="material-symbols-outlined text-4xl mb-2">check_circle</span>
-                                        <p className="text-xs">No critical gaps found</p>
-                                    </div>
-                                )}
-                            </div>
-                            <button className="mt-6 w-full py-3 rounded-xl bg-linear-to-r from-red-600 to-red-800 text-white font-bold text-xs uppercase tracking-widest hover:shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all flex items-center justify-center gap-2">
-                                <span className="material-symbols-outlined text-sm">add_task</span> Initiate Acquisition
-                            </button>
-                        </div>
-                    ) : (
-                        // --- MODE COMPANY: STUDIO DNA ---
-                        <div className="bg-[#1A1A1A] rounded-2xl p-4 md:p-6 border border-white/5 shadow-xl flex flex-col h-full relative overflow-hidden">
+                        // --- GLOBAL MODE: MARKET PULSE (Cyan Theme) ---
+                        <div className="bg-[#1A1A1A] rounded-2xl p-6 border border-white/5 shadow-xl flex flex-col h-full relative overflow-hidden">
                             
                             {/* Background Pattern */}
-                            <div className="absolute inset-0 bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [bg-size:16px_16px] opacity-20 pointer-events-none"></div>
+                            <div className="absolute inset-0 bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [background-size:16px_16px] opacity-20 pointer-events-none"></div>
 
                             {/* Header */}
-                            <div className="flex justify-between items-start mb-4 md:mb-6 relative z-10">
+                            <div className="flex justify-between items-start mb-6 relative z-10">
                                 <div>
-                                    <h3 className="text-lg md:text-xl font-bold text-white tracking-tight">Studio DNA</h3>
-                                    <p className="text-[10px] md:text-xs text-purple-400 font-medium mt-1 flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
-                                        Key Performance Markers
+                                    <h3 className="text-xl font-bold text-white tracking-tight">Global Market Pulse</h3>
+                                    <p className="text-xs text-cyan-400 font-medium mt-1 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                                        Real-time Industry Stats
                                     </p>
                                 </div>
-                                <div className="p-2 bg-linear-to-br from-purple-500/20 to-purple-900/10 rounded-xl border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
-                                    <span className="material-symbols-outlined text-purple-400 text-lg md:text-xl">insights</span>
+                                <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 to-cyan-900/10 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.15)]">
+                                    <span className="material-symbols-outlined text-cyan-400">public</span>
                                 </div>
                             </div>
 
                             {/* Insight Grid (4 Kotak) */}
-                            <div className="grid grid-cols-2 gap-3 md:gap-4 flex-1 relative z-10">
+                            <div className="grid grid-cols-2 gap-4 flex-1 relative z-10">
+                                
+                                {/* 1. Peak Production (Global) */}
+                                <div className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-cyan-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
+                                    <div className="absolute top-3 right-3 text-white/20 group-hover:text-cyan-400 transition-colors">
+                                        <span className="material-symbols-outlined text-lg">arrow_outward</span>
+                                    </div>
+                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/[0.03] group-hover:text-cyan-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                        factory
+                                    </span>
+                                    
+                                    <div className="relative z-10">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Peak Output</span>
+                                        <div className="text-4xl font-black text-white tracking-tight leading-none">{bi?.market_insights?.peak?.startYear || '-'}</div>
+                                    </div>
+                                    <div className="relative z-10 mt-4">
+                                        <div className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 backdrop-blur-sm">
+                                            <span className="material-symbols-outlined text-sm text-cyan-400">production_quantity_limits</span>
+                                            <span className="text-[11px] font-bold text-cyan-200">{bi?.market_insights?.peak?.total_released || 0} Titles</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 2. Dominant Genre (Global) */}
+                                <div className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-teal-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
+                                    <div className="absolute top-3 right-3 text-white/20 group-hover:text-teal-400 transition-colors">
+                                        <span className="material-symbols-outlined text-lg">arrow_outward</span>
+                                    </div>
+                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/[0.03] group-hover:text-teal-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                        theater_comedy
+                                    </span>
+                                    
+                                    <div className="relative z-10">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Global Trend</span>
+                                        <div className="text-2xl font-black text-white leading-tight tracking-tight line-clamp-2" title={bi?.market_insights?.topGenre?.network_name}>
+                                            {bi?.market_insights?.topGenre?.network_name || '-'}
+                                        </div>
+                                    </div>
+                                    <div className="relative z-10 mt-2">
+                                        <div className="flex items-end gap-1">
+                                            <span className="text-3xl font-black text-teal-500 leading-none">{bi?.market_insights?.genreShare || 0}%</span>
+                                            <span className="text-[10px] text-gray-500 font-medium mb-1">Market Share</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
+                                            <div className="h-full bg-gradient-to-r from-teal-600 to-teal-400 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min(bi?.market_insights?.genreShare || 0, 100)}%` }}></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 3. Industry History */}
+                                <div className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
+                                    <div className="absolute top-3 right-3 text-white/20 group-hover:text-blue-400 transition-colors">
+                                        <span className="material-symbols-outlined text-lg">arrow_outward</span>
+                                    </div>
+                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/[0.03] group-hover:text-blue-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                        public
+                                    </span>
+                                    
+                                    <div className="relative z-10">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Data History</span>
+                                        <div className="flex items-baseline gap-1">
+                                            <span className="text-4xl font-black text-white tracking-tight">{bi?.market_insights?.activeYears || 0}</span>
+                                            <span className="text-sm font-bold text-gray-500">Years</span>
+                                        </div>
+                                    </div>
+                                    <div className="relative z-10 mt-2">
+                                        <div className="flex items-center gap-2 text-[10px] text-blue-300 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 w-fit">
+                                            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                                            Global Archives
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 4. Global Avg Impact */}
+                                <div className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-indigo-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
+                                    <div className="absolute top-3 right-3 text-white/20 group-hover:text-indigo-400 transition-colors">
+                                        <span className="material-symbols-outlined text-lg">arrow_outward</span>
+                                    </div>
+                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/[0.03] group-hover:text-indigo-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                        bar_chart
+                                    </span>
+                                    
+                                    <div className="relative z-10">
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Avg. Global Votes</span>
+                                        <div className="text-3xl font-black text-white tracking-tight truncate" title={bi?.market_insights?.avgImpact}>
+                                            {bi?.market_insights?.avgImpact || 0}
+                                        </div>
+                                    </div>
+                                    <div className="relative z-10 mt-2">
+                                        <p className="text-[10px] text-indigo-400 font-bold flex items-center gap-1 mb-1">
+                                            <span className="material-symbols-outlined text-sm">groups</span>
+                                            Audience Volume
+                                        </p>
+                                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-indigo-500/10 border border-indigo-500/20">
+                                            <span className="material-symbols-outlined text-[10px] text-indigo-400">equalizer</span>
+                                            <span className="text-[9px] font-bold text-indigo-200 uppercase tracking-wide">Standard Metric</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        // --- MODE COMPANY: STUDIO DNA ---
+                        <div className="bg-[#1A1A1A] rounded-2xl p-4 md:p-5 border border-white/5 shadow-xl flex flex-col h-full relative overflow-hidden">
+                            
+                            {/* Background Pattern */}
+                            <div className="absolute inset-0 bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [background-size:16px_16px] opacity-20 pointer-events-none"></div>
+
+                            {/* Header */}
+                            <div className="flex justify-between items-start mb-4 relative z-10">
+                                <div>
+                                    <h3 className="text-base md:text-lg font-bold text-white tracking-tight">Studio DNA</h3>
+                                    <p className="text-[10px] text-purple-400 font-medium mt-0.5 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                                        Key Performance Markers
+                                    </p>
+                                </div>
+                                <div className="p-1.5 bg-gradient-to-br from-purple-500/20 to-purple-900/10 rounded-lg border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+                                    <span className="material-symbols-outlined text-purple-400 text-lg">insights</span>
+                                </div>
+                            </div>
+
+                            {/* Insight Grid (4 Kotak - Compact) */}
+                            <div className="grid grid-cols-2 gap-3 flex-1 relative z-10">
                                 
                                 {/* 1. Peak Year */}
-                                <div className="p-3 md:p-5 rounded-2xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-purple-500/30 hover:bg-white/8 transition-all duration-300 min-h-[120px] md:min-h-[140px]">
+                                <div className="p-3 md:p-4 rounded-xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-purple-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
                                     
-                                    <div className="absolute top-2 right-2 md:top-3 md:right-3 text-white/20 group-hover:text-purple-400 transition-colors">
-                                        <span className="material-symbols-outlined text-base md:text-lg">arrow_outward</span>
+                                    <div className="absolute top-2 right-2 text-white/20 group-hover:text-purple-400 transition-colors">
+                                        <span className="material-symbols-outlined text-base">arrow_outward</span>
                                     </div>
 
-                                    <span className="absolute -right-4 -bottom-4 md:-right-8 md:-bottom-8 text-[5rem] md:text-[9rem] text-white/3 group-hover:text-purple-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    {/* WATERMARK (Kecilin dikit) */}
+                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/[0.03] group-hover:text-purple-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         calendar_month
                                     </span>
                                     
                                     <div className="relative z-10">
-                                        <span className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Peak Output</span>
-                                        <div className="text-2xl md:text-4xl font-black text-white tracking-tight leading-none">{insights?.peak?.startYear || '-'}</div>
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-0.5">Peak Output</span>
+                                        {/* Font lebih kecil dan rapat */}
+                                        <div className="text-2xl md:text-3xl font-black text-white tracking-tight leading-none">{insights?.peak?.startYear || '-'}</div>
                                     </div>
 
-                                    <div className="relative z-10 mt-2 md:mt-4">
-                                        <div className="inline-flex items-center gap-1.5 md:gap-2 px-2 py-1 md:px-2.5 md:py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 backdrop-blur-sm">
-                                            <span className="material-symbols-outlined text-xs md:text-sm text-purple-400">stacked_bar_chart</span>
-                                            <span className="text-[9px] md:text-[11px] font-bold text-purple-200">{insights?.peak?.total_released || 0} Titles</span>
+                                    <div className="relative z-10 mt-2">
+                                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-purple-500/10 border border-purple-500/20 backdrop-blur-sm">
+                                            <span className="material-symbols-outlined text-xs text-purple-400">stacked_bar_chart</span>
+                                            <span className="text-[9px] font-bold text-purple-200">{insights?.peak?.total_released || 0} Titles</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* 2. Core Genre */}
-                                <div className="p-3 md:p-5 rounded-2xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-pink-500/30 hover:bg-white/8 transition-all duration-300 min-h-[120px] md:min-h-[140px]">
+                                <div className="p-3 md:p-4 rounded-xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-pink-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
                                     
-                                    <div className="absolute top-2 right-2 md:top-3 md:right-3 text-white/20 group-hover:text-pink-400 transition-colors">
-                                        <span className="material-symbols-outlined text-base md:text-lg">arrow_outward</span>
+                                    <div className="absolute top-2 right-2 text-white/20 group-hover:text-pink-400 transition-colors">
+                                        <span className="material-symbols-outlined text-base">arrow_outward</span>
                                     </div>
 
-                                    <span className="absolute -right-4 -bottom-4 md:-right-8 md:-bottom-8 text-[5rem] md:text-[9rem] text-white/3 group-hover:text-pink-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/[0.03] group-hover:text-pink-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         category
                                     </span>
                                     
                                     <div className="relative z-10">
-                                        <span className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Core Genre</span>
-                                        <div className="text-lg md:text-2xl font-black text-white leading-tight tracking-tight line-clamp-2" title={insights?.topGenre?.network_name}>
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-0.5">Core Genre</span>
+                                        <div className="text-lg md:text-xl font-black text-white leading-tight tracking-tight line-clamp-2 pr-4" title={insights?.topGenre?.network_name}>
                                             {insights?.topGenre?.network_name || '-'}
                                         </div>
                                     </div>
 
                                     <div className="relative z-10 mt-2">
                                         <div className="flex items-end gap-1">
-                                            <span className="text-2xl md:text-3xl font-black text-pink-500 leading-none">{insights?.genreShare || 0}%</span>
-                                            <span className="text-[9px] md:text-[10px] text-gray-500 font-medium mb-1">of Library</span>
+                                            <span className="text-xl md:text-2xl font-black text-pink-500 leading-none">{insights?.genreShare || 0}%</span>
+                                            <span className="text-[9px] text-gray-500 font-medium mb-0.5">of Library</span>
                                         </div>
-                                        <div className="w-full h-1 md:h-1.5 bg-white/10 rounded-full mt-1.5 md:mt-2 overflow-hidden">
-                                            <div className="h-full bg-linear-to-r from-pink-600 to-pink-400 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min(insights?.genreShare || 0, 100)}%` }}></div>
+                                        <div className="w-full h-1 bg-white/10 rounded-full mt-1.5 overflow-hidden">
+                                            <div className="h-full bg-gradient-to-r from-pink-600 to-pink-400 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min(insights?.genreShare || 0, 100)}%` }}></div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* 3. Active Era */}
-                                <div className="p-3 md:p-5 rounded-2xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/30 hover:bg-white/8 transition-all duration-300 min-h-[120px] md:min-h-[140px]">
+                                <div className="p-3 md:p-4 rounded-xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
                                     
-                                    <div className="absolute top-2 right-2 md:top-3 md:right-3 text-white/20 group-hover:text-blue-400 transition-colors">
-                                        <span className="material-symbols-outlined text-base md:text-lg">arrow_outward</span>
+                                    <div className="absolute top-2 right-2 text-white/20 group-hover:text-blue-400 transition-colors">
+                                        <span className="material-symbols-outlined text-base">arrow_outward</span>
                                     </div>
 
-                                    <span className="absolute -right-4 -bottom-4 md:-right-8 md:-bottom-8 text-[5rem] md:text-[9rem] text-white/3 group-hover:text-blue-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/[0.03] group-hover:text-blue-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         history
                                     </span>
                                     
                                     <div className="relative z-10">
-                                        <span className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Active Era</span>
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-0.5">Active Era</span>
                                         <div className="flex items-baseline gap-1">
-                                            <span className="text-3xl md:text-4xl font-black text-white tracking-tight">{insights?.activeYears || 0}</span>
-                                            <span className="text-xs md:text-sm font-bold text-gray-500">Years</span>
+                                            <span className="text-2xl md:text-3xl font-black text-white tracking-tight">{insights?.activeYears || 0}</span>
+                                            <span className="text-[10px] md:text-xs font-bold text-gray-500">Years</span>
                                         </div>
                                     </div>
                                     
                                     <div className="relative z-10 mt-2">
-                                        <div className="flex items-center gap-1.5 md:gap-2 text-[9px] md:text-[10px] text-blue-300 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 w-fit">
-                                            <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-blue-400 animate-pulse"></span>
+                                        <div className="flex items-center gap-1.5 text-[9px] text-blue-300 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20 w-fit">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
                                             Since {new Date().getFullYear() - (insights?.activeYears || 0)}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* 4. Market Impact */}
-                                <div className="p-3 md:p-5 rounded-2xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-yellow-500/30 hover:bg-white/8 transition-all duration-300 min-h-[120px] md:min-h-[140px]">
+                                <div className="p-3 md:p-4 rounded-xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-yellow-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
                                     
-                                    <div className="absolute top-2 right-2 md:top-3 md:right-3 text-white/20 group-hover:text-yellow-400 transition-colors">
-                                        <span className="material-symbols-outlined text-base md:text-lg">arrow_outward</span>
+                                    <div className="absolute top-2 right-2 text-white/20 group-hover:text-yellow-400 transition-colors">
+                                        <span className="material-symbols-outlined text-base">arrow_outward</span>
                                     </div>
 
-                                    <span className="absolute -right-4 -bottom-4 md:-right-8 md:-bottom-8 text-[5rem] md:text-[9rem] text-white/3 group-hover:text-yellow-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/[0.03] group-hover:text-yellow-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         trending_up
                                     </span>
                                     
                                     <div className="relative z-10">
-                                        <span className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest block mb-1">Avg. Impact</span>
+                                        <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest block mb-0.5">Avg. Impact</span>
                                         <div className="text-2xl md:text-3xl font-black text-white tracking-tight truncate" title={insights?.avgImpact}>
                                             {insights?.avgImpact || 0}
                                         </div>
                                     </div>
 
                                     <div className="relative z-10 mt-2">
-                                        <p className="text-[9px] md:text-[10px] text-yellow-500 font-bold flex items-center gap-1 mb-1">
-                                            <span className="material-symbols-outlined text-xs md:text-sm">bolt</span>
+                                        <p className="text-[9px] text-yellow-500 font-bold flex items-center gap-1 mb-1">
+                                            <span className="material-symbols-outlined text-xs">bolt</span>
                                             Votes / Title
                                         </p>
-                                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-yellow-500/10 border border-yellow-500/20">
-                                            <span className="material-symbols-outlined text-[10px] text-yellow-400">verified</span>
-                                            <span className="text-[8px] md:text-[9px] font-bold text-yellow-200 uppercase tracking-wide">High Engagement</span>
+                                        <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-yellow-500/10 border border-yellow-500/20">
+                                            <span className="material-symbols-outlined text-[9px] text-yellow-400">verified</span>
+                                            <span className="text-[8px] font-bold text-yellow-200 uppercase tracking-wide">High Engagement</span>
                                         </div>
                                     </div>
                                 </div>
