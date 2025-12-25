@@ -8,89 +8,132 @@ use Inertia\Inertia;
 
 class ExecutiveController extends Controller
 {
-    // 1. DASHBOARD UTAMA (Overview)
+// 1. DASHBOARD UTAMA (Overview)
     public function dashboard(Request $request)
     {
-        // SETUP FILTER WAKTU
-        $range = $request->input('range', 'all'); 
-        
-        $startDate = match($range) {
-            '30d' => now()->subDays(30),
-            '1y'  => now()->subYear(),
-            default => null, // All Time
-        };
+        $companyId = $request->input('company_id'); // Cek apakah ada filter company
 
-        // --- A. HITUNG PERTUMBUHAN (REAL Y-o-Y GROWTH) ---
-        // Kita ambil 2 tahun terakhir dari view pertumbuhan untuk dibandingkan
-        $growthStats = DB::connection('sqlsrv')
-            ->table('v_Executive_Yearly_Growth')
-            ->orderByDesc('startYear')
-            ->limit(2)
-            ->get();
+        if ($companyId) {
+            // 1. KPI: Statistik Studio
+            $stats = DB::connection('sqlsrv')
+                ->table('shows as s')
+                ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                ->leftJoin('show_votes as sv', 's.show_id', '=', 'sv.show_id')
+                ->where('pc.production_company_type_id', $companyId)
+                ->select(
+                    DB::raw('COUNT(DISTINCT s.show_id) as total_titles'),
+                    DB::raw('AVG(sv.vote_average) as avg_rating'),
+                    DB::raw('SUM(sv.vote_count) as total_votes'),
+                    DB::raw('SUM(s.number_of_seasons) as total_seasons')
+                )
+                ->first();
 
-        $currentYearCount = $growthStats->first()->total_released ?? 0;
-        $lastYearCount    = $growthStats->last()->total_released ?? 1; // Hindari bagi 0
-        
-        // Rumus Growth: ((Sekarang - Lalu) / Lalu) * 100
-        $growthPct = (($currentYearCount - $lastYearCount) / $lastYearCount) * 100;
-        $growthLabel = ($growthPct >= 0 ? '+' : '') . number_format($growthPct, 1) . '% YoY';
+            $kpi = [
+                'total_titles' => number_format($stats->total_titles, 0, ',', '.'),
+                'growth_txt'   => 'Studio Total', 
+                'avg_rating'   => number_format($stats->avg_rating, 1),
+                'total_pros'   => number_format($stats->total_votes, 0, ',', '.'), // Total Engagement
+                'total_tv'     => number_format($stats->total_seasons, 0, ',', '.'), // Total Seasons
+            ];
 
-        // --- B. KPI DASHBOARD ---
-        $kpi = [
-            'total_titles' => number_format(DB::connection('sqlsrv')->table('title_basics')->count(), 0, ',', '.'),
-            'growth_txt'   => $growthLabel,
-            'avg_rating'   => number_format(DB::connection('sqlsrv')->table('title_ratings')->avg('averageRating'), 1),
-            'total_pros'   => number_format(DB::connection('sqlsrv')->table('name_basics')->count(), 0, ',', '.'),
-            'total_tv'     => number_format(DB::connection('sqlsrv')->table('shows')->count(), 0, ',', '.'),
-        ];
+            // 2. CHART: Growth (Produksi per Tahun)
+            // Menggunakan tabel 'shows' (14) join 'air_dates' (16)
+            $growthData = DB::connection('sqlsrv')
+                ->table('shows as s')
+                ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                ->join('air_dates as ad', 's.show_id', '=', 'ad.show_id')
+                ->where('pc.production_company_type_id', $companyId)
+                ->where('ad.is_first', 1) // Ambil tanggal tayang perdana
+                ->whereYear('ad.date', '>=', 1970) // Filter tahun wajar
+                ->select(DB::raw('YEAR(ad.date) as startYear'), DB::raw('COUNT(DISTINCT s.show_id) as total_released'))
+                ->groupBy(DB::raw('YEAR(ad.date)'))
+                ->orderBy('startYear')
+                ->get();
 
-        // --- C. CHART: PLATFORM ANALYTICS ---
-        $platformData = DB::connection('sqlsrv')
-            ->table('v_Executive_Platform_Share')
-            ->orderByDesc('total_shows')
-            ->limit(5)
-            ->get();
+            // 3. CHART: Top Genres
+            $platformData = DB::connection('sqlsrv')
+                ->table('shows as s')
+                ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                ->join('genres as g', 's.show_id', '=', 'g.show_id') // Tabel 29 (Penghubung)
+                ->join('genre_types as gt', 'g.genre_type_id', '=', 'gt.genre_type_id') // Tabel 18 (Nama Genre)
+                ->where('pc.production_company_type_id', $companyId)
+                ->select('gt.genre_name as network_name', DB::raw('COUNT(DISTINCT s.show_id) as total_shows'))
+                ->groupBy('gt.genre_name')
+                ->orderByDesc('total_shows')
+                ->limit(5)
+                ->get();
 
-        // --- D. CHART: YEARLY GROWTH ---
-        $growthQuery = DB::connection('sqlsrv')
-            ->table('v_Executive_Yearly_Growth')
-            ->where('startYear', '>=', 2010); 
-        
-        if ($range === '1y') {
-        $growthQuery->where('startYear', '>=', date('Y'));
+            // 4. LIST: Top Performing Assets
+            $topTalent = DB::connection('sqlsrv')
+                ->table('shows as s')
+                ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                ->leftJoin('show_votes as sv', 's.show_id', '=', 'sv.show_id')
+                ->where('pc.production_company_type_id', $companyId)
+                ->where('sv.vote_count', '>', 50) // Filter anti bias (minimal 50 votes)
+                ->select(
+                    's.name as primaryName', 
+                    DB::raw("CONCAT(s.number_of_seasons, ' Seasons • ', s.number_of_episodes, ' Eps') as primaryProfession"),
+                    'sv.vote_average as AverageRating'
+                )
+                ->orderByDesc('sv.vote_average')
+                ->limit(5)
+                ->get();
+
+            // BI & Filters
+            $failedSearches = []; 
+            $range = 'all';
+
+        } else {
+            // ==========================================
+            // LOGIKA MODE GLOBAL (KODE LAMA KAMU)
+            // ==========================================
+            $range = $request->input('range', 'all'); 
+            $startDate = match($range) {
+                '30d' => now()->subDays(30),
+                '1y'  => now()->subYear(),
+                default => null,
+            };
+
+            // Hitung Growth Global
+            $growthStats = DB::connection('sqlsrv')->table('v_Executive_Yearly_Growth')->orderByDesc('startYear')->limit(2)->get();
+            $currentYearCount = $growthStats->first()->total_released ?? 0;
+            $lastYearCount    = $growthStats->last()->total_released ?? 1;
+            $growthPct = (($currentYearCount - $lastYearCount) / $lastYearCount) * 100;
+            $growthLabel = ($growthPct >= 0 ? '+' : '') . number_format($growthPct, 1) . '% YoY';
+
+            // KPI Global
+            $kpi = [
+                'total_titles' => number_format(DB::connection('sqlsrv')->table('title_basics')->count(), 0, ',', '.'),
+                'growth_txt'   => $growthLabel,
+                'avg_rating'   => number_format(DB::connection('sqlsrv')->table('title_ratings')->avg('averageRating'), 1),
+                'total_pros'   => number_format(DB::connection('sqlsrv')->table('name_basics')->count(), 0, ',', '.'),
+                'total_tv'     => number_format(DB::connection('sqlsrv')->table('shows')->count(), 0, ',', '.'),
+            ];
+
+            // Chart Platform Global
+            $platformData = DB::connection('sqlsrv')->table('v_Executive_Platform_Share')->orderByDesc('total_shows')->limit(5)->get();
+
+            // Chart Growth Global
+            $growthQuery = DB::connection('sqlsrv')->table('v_Executive_Yearly_Growth')->where('startYear', '>=', 2010); 
+            if ($range === '1y') { $growthQuery->where('startYear', '>=', date('Y')); }
+            $growthData = $growthQuery->orderBy('startYear')->get();
+
+            // Top Talent Global
+            $topTalent = DB::connection('sqlsrv')->table('v_Executive_BankabilityReport_Base')
+                ->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')
+                ->orderByDesc('TotalNumVotes')->limit(4)->get();
+
+            // BI Failed Searches
+            $failedQuery = DB::table('search_logs')->select('keyword as term', DB::raw('count(*) as count'))->where('results_count', 0); 
+            if ($startDate) { $failedQuery->where('created_at', '>=', $startDate); }
+            $failedSearches = $failedQuery->groupBy('keyword')->orderByDesc('count')->limit(5)->get()
+                ->map(function($item) {
+                    if ($item->count > 50) $item->trend = 'Critical Demand';
+                    elseif ($item->count > 10) $item->trend = 'High Interest';
+                    else $item->trend = 'New Signal';
+                    return $item;
+                });
         }
-
-        $growthData = $growthQuery->orderBy('startYear')->get();
-
-        // --- E. TOP TALENT ---
-        $topTalent = DB::connection('sqlsrv')
-            ->table('v_Executive_BankabilityReport_Base')
-            ->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')
-            ->orderByDesc('TotalNumVotes') 
-            ->limit(4) 
-            ->get();
-
-        // --- F. BUSINESS INTELLIGENCE: FAILED SEARCHES ---
-        $failedQuery = DB::table('search_logs')
-            ->select('keyword as term', DB::raw('count(*) as count'))
-            ->where('results_count', 0); 
-
-        if ($startDate) {
-            $failedQuery->where('created_at', '>=', $startDate);
-        }
-
-        $failedSearches = $failedQuery
-            ->groupBy('keyword')
-            ->orderByDesc('count')
-            ->limit(5)
-            ->get()
-            ->map(function($item) {
-                // Label Dinamis berdasarkan jumlah pencarian
-                if ($item->count > 50) $item->trend = 'Critical Demand';
-                elseif ($item->count > 10) $item->trend = 'High Interest';
-                else $item->trend = 'New Signal';
-                return $item;
-            });
 
         return Inertia::render('Executive/Dashboard', [
             'kpi' => $kpi,
@@ -104,7 +147,9 @@ class ExecutiveController extends Controller
             ],
             'filters' => [
                 'range' => $range
-            ]
+            ],
+            // Kirim Flag ke Frontend biar UI tau ini lagi mode apa
+            'isCompanyMode' => !!$companyId 
         ]);
     }
 
