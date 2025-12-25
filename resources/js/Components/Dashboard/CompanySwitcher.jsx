@@ -25,7 +25,7 @@ export default function CompanySwitcher({ currentCompany }) {
                 } ${isOpen ? 'ring-2 ring-cyan-500/30 border-cyan-500/50' : ''}`}
             >
                 {/* Efek Shine Bergerak (Hanya aktif jika salah satu mode dipilih) */}
-                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent z-0 pointer-events-none"></div>
+                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-linear-to-r from-transparent via-white/5 to-transparent z-0 pointer-events-none"></div>
 
                 {/* Icon Circle */}
                 <div className={`relative z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-500 ${
@@ -111,7 +111,7 @@ export default function CompanySwitcher({ currentCompany }) {
                                 }`}
                             >
                                 {/* Subtle Shimmer on Hover */}
-                                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                                <div className="absolute inset-0 bg-linear-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
                                 <div className={`relative z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-inner ${
                                     currentCompany === '9538' ? 'bg-cyan-500 text-black shadow-cyan-500/40' : 'bg-[#1A1A1A] text-gray-500 group-hover:text-cyan-400'
