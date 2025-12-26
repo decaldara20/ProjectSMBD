@@ -94,7 +94,7 @@ const LoginFormPanel = ({ switchToRegister, isActive }) => {
                              <input type="checkbox" checked={data.remember} onChange={(e) => setData('remember', e.target.checked)} className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-white/20 bg-white/5 checked:border-cyan-500 checked:bg-cyan-500 transition-all" />
                              <span className="material-symbols-outlined absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[16px] text-white opacity-0 peer-checked:opacity-100 pointer-events-none">check</span>
                         </div>
-                        <span className="text-sm text-gray-400">Remember me for 30 days</span>
+                        <span className="text-sm text-gray-400">Remember me</span>
                     </div>
 
                     <button type="submit" disabled={processing} className="group relative w-full py-4 rounded-xl bg-linear-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-sm shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] transition-all duration-300 transform hover:scale-[1.02] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden">
