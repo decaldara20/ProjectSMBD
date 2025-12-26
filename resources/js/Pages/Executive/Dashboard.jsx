@@ -263,7 +263,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                     </div>
 
                     {/* Filter Pills (Disembunyikan di Mode Company karena datanya statis sejarah) */}
-                    {!isCompanyMode && (
+                    {/* {!isCompanyMode && (
                         <div className="bg-[#1A1A1A] p-1.5 rounded-xl border border-white/10 flex shadow-lg">
                             {['30d', '1y', 'all'].map((range) => (
                                 <button
@@ -279,7 +279,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                 </button>
                             ))}
                         </div>
-                    )}
+                    )} */}
                 </div>
 
                 {/* --- KPI GRID --- */}
