@@ -508,7 +508,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                         <div className="bg-[#1A1A1A] rounded-2xl p-6 border border-white/5 shadow-xl flex flex-col h-full relative overflow-hidden">
                             
                             {/* Background Pattern */}
-                            <div className="absolute inset-0 bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [background-size:16px_16px] opacity-20 pointer-events-none"></div>
+                            <div className="absolute inset-0 bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [bg-size:16px_16px] opacity-20 pointer-events-none"></div>
 
                             {/* Header */}
                             <div className="flex justify-between items-start mb-6 relative z-10">
@@ -519,7 +519,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                         Real-time Industry Stats
                                     </p>
                                 </div>
-                                <div className="p-2.5 bg-gradient-to-br from-cyan-500/20 to-cyan-900/10 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.15)]">
+                                <div className="p-2.5 bg-linear-to-br from-cyan-500/20 to-cyan-900/10 rounded-xl border border-cyan-500/20 shadow-[0_0_15px_rgba(34,211,238,0.15)]">
                                     <span className="material-symbols-outlined text-cyan-400">public</span>
                                 </div>
                             </div>
@@ -528,11 +528,11 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                             <div className="grid grid-cols-2 gap-4 flex-1 relative z-10">
                                 
                                 {/* 1. Peak Production (Global) */}
-                                <div className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-cyan-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
+                                <div className="p-5 rounded-2xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-cyan-500/30 hover:bg-white/8 transition-all duration-300 min-h-[140px]">
                                     <div className="absolute top-3 right-3 text-white/20 group-hover:text-cyan-400 transition-colors">
                                         <span className="material-symbols-outlined text-lg">arrow_outward</span>
                                     </div>
-                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/[0.03] group-hover:text-cyan-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/3 group-hover:text-cyan-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         factory
                                     </span>
                                     
@@ -549,11 +549,11 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                 </div>
 
                                 {/* 2. Dominant Genre (Global) */}
-                                <div className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-teal-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
+                                <div className="p-5 rounded-2xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-teal-500/30 hover:bg-white/8 transition-all duration-300 min-h-[140px]">
                                     <div className="absolute top-3 right-3 text-white/20 group-hover:text-teal-400 transition-colors">
                                         <span className="material-symbols-outlined text-lg">arrow_outward</span>
                                     </div>
-                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/[0.03] group-hover:text-teal-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/3 group-hover:text-teal-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         theater_comedy
                                     </span>
                                     
@@ -569,17 +569,17 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                             <span className="text-[10px] text-gray-500 font-medium mb-1">Market Share</span>
                                         </div>
                                         <div className="w-full h-1.5 bg-white/10 rounded-full mt-2 overflow-hidden">
-                                            <div className="h-full bg-gradient-to-r from-teal-600 to-teal-400 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min(bi?.market_insights?.genreShare || 0, 100)}%` }}></div>
+                                            <div className="h-full bg-linear-to-r from-teal-600 to-teal-400 rounded-full transition-all duration-1000 ease-out" style={{ width: `${Math.min(bi?.market_insights?.genreShare || 0, 100)}%` }}></div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* 3. Industry History */}
-                                <div className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
+                                <div className="p-5 rounded-2xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
                                     <div className="absolute top-3 right-3 text-white/20 group-hover:text-blue-400 transition-colors">
                                         <span className="material-symbols-outlined text-lg">arrow_outward</span>
                                     </div>
-                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/[0.03] group-hover:text-blue-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/3 group-hover:text-blue-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         public
                                     </span>
                                     
@@ -599,7 +599,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                 </div>
 
                                 {/* 4. Global Avg Impact */}
-                                <div className="p-5 rounded-2xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-indigo-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
+                                <div className="p-5 rounded-2xl bg-linear-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-indigo-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
                                     <div className="absolute top-3 right-3 text-white/20 group-hover:text-indigo-400 transition-colors">
                                         <span className="material-symbols-outlined text-lg">arrow_outward</span>
                                     </div>
@@ -631,7 +631,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                         <div className="bg-[#1A1A1A] rounded-2xl p-4 md:p-5 border border-white/5 shadow-xl flex flex-col h-full relative overflow-hidden">
                             
                             {/* Background Pattern */}
-                            <div className="absolute inset-0 bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [background-size:16px_16px] opacity-20 pointer-events-none"></div>
+                            <div className="absolute inset-0 bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [bg-size:16px_16px] opacity-20 pointer-events-none"></div>
 
                             {/* Header */}
                             <div className="flex justify-between items-start mb-4 relative z-10">
@@ -642,7 +642,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                         Key Performance Markers
                                     </p>
                                 </div>
-                                <div className="p-1.5 bg-gradient-to-br from-purple-500/20 to-purple-900/10 rounded-lg border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+                                <div className="p-1.5 bg-linear-to-br from-purple-500/20 to-purple-900/10 rounded-lg border border-purple-500/20 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
                                     <span className="material-symbols-outlined text-purple-400 text-lg">insights</span>
                                 </div>
                             </div>
@@ -651,7 +651,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                             <div className="grid grid-cols-2 gap-3 flex-1 relative z-10">
                                 
                                 {/* 1. Peak Year */}
-                                <div className="p-3 md:p-4 rounded-xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-purple-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
+                                <div className="p-3 md:p-4 rounded-xl bg-linear-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-purple-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
                                     
                                     <div className="absolute top-2 right-2 text-white/20 group-hover:text-purple-400 transition-colors">
                                         <span className="material-symbols-outlined text-base">arrow_outward</span>
@@ -677,7 +677,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                 </div>
 
                                 {/* 2. Core Genre */}
-                                <div className="p-3 md:p-4 rounded-xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-pink-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
+                                <div className="p-3 md:p-4 rounded-xl bg-linear-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-pink-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
                                     
                                     <div className="absolute top-2 right-2 text-white/20 group-hover:text-pink-400 transition-colors">
                                         <span className="material-symbols-outlined text-base">arrow_outward</span>
@@ -706,13 +706,13 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                 </div>
 
                                 {/* 3. Active Era */}
-                                <div className="p-3 md:p-4 rounded-xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
+                                <div className="p-3 md:p-4 rounded-xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
                                     
                                     <div className="absolute top-2 right-2 text-white/20 group-hover:text-blue-400 transition-colors">
                                         <span className="material-symbols-outlined text-base">arrow_outward</span>
                                     </div>
 
-                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/[0.03] group-hover:text-blue-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/3 group-hover:text-blue-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         history
                                     </span>
                                     
@@ -733,13 +733,13 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                 </div>
 
                                 {/* 4. Market Impact */}
-                                <div className="p-3 md:p-4 rounded-xl bg-gradient-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-yellow-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
+                                <div className="p-3 md:p-4 rounded-xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-yellow-500/30 hover:bg-white/8 transition-all duration-300 min-h-[110px] md:min-h-[130px]">
                                     
                                     <div className="absolute top-2 right-2 text-white/20 group-hover:text-yellow-400 transition-colors">
                                         <span className="material-symbols-outlined text-base">arrow_outward</span>
                                     </div>
 
-                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/[0.03] group-hover:text-yellow-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/3 group-hover:text-yellow-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         trending_up
                                     </span>
                                     
