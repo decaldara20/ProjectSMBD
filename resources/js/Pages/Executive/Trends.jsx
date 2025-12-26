@@ -25,7 +25,7 @@ const formatNum = (num) => new Intl.NumberFormat('id-ID').format(num);
 const StatCard = ({ label, value, subtext, icon, trend, theme }) => (
     <div className="relative overflow-hidden bg-[#1A1A1A] border border-white/5 rounded-2xl p-6 group hover:border-white/20 transition-all duration-300 shadow-xl">
         {/* Ambient Glow */}
-        <div className={`absolute -right-6 -top-6 w-40 h-40 bg-gradient-to-br ${theme.gradient} opacity-5 blur-[60px] rounded-full group-hover:opacity-10 transition-opacity duration-500`}></div>
+        <div className={`absolute -right-6 -top-6 w-40 h-40 bg-linear-to-br ${theme.gradient} opacity-5 blur-[60px] rounded-full group-hover:opacity-10 transition-opacity duration-500`}></div>
         
         <div className="relative z-10">
             <div className="flex justify-between items-start mb-4">
