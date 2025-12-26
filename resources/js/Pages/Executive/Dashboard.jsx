@@ -599,11 +599,11 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                                 </div>
 
                                 {/* 4. Global Avg Impact */}
-                                <div className="p-5 rounded-2xl bg-linear-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-indigo-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[140px]">
+                                <div className="p-5 rounded-2xl bg-linear-to-br from-white/5 to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-indigo-500/30 hover:bg-white/8 transition-all duration-300 min-h-[140px]">
                                     <div className="absolute top-3 right-3 text-white/20 group-hover:text-indigo-400 transition-colors">
                                         <span className="material-symbols-outlined text-lg">arrow_outward</span>
                                     </div>
-                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/[0.03] group-hover:text-indigo-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-8 -bottom-8 text-[9rem] text-white/3 group-hover:text-indigo-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         bar_chart
                                     </span>
                                     
@@ -651,14 +651,14 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                             <div className="grid grid-cols-2 gap-3 flex-1 relative z-10">
                                 
                                 {/* 1. Peak Year */}
-                                <div className="p-3 md:p-4 rounded-xl bg-linear-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-purple-500/30 hover:bg-white/[0.08] transition-all duration-300 min-h-[110px] md:min-h-[130px]">
+                                <div className="p-3 md:p-4 rounded-xl bg-linear-to-br from-white/[0.05] to-transparent border border-white/5 flex flex-col justify-between relative overflow-hidden group hover:border-purple-500/30 hover:bg-white/8 transition-all duration-300 min-h-[110px] md:min-h-[130px]">
                                     
                                     <div className="absolute top-2 right-2 text-white/20 group-hover:text-purple-400 transition-colors">
                                         <span className="material-symbols-outlined text-base">arrow_outward</span>
                                     </div>
 
                                     {/* WATERMARK (Kecilin dikit) */}
-                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/[0.03] group-hover:text-purple-500/[0.08] group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
+                                    <span className="absolute -right-4 -bottom-4 md:-right-6 md:-bottom-6 text-[4rem] md:text-[7rem] text-white/3 group-hover:text-purple-500/8 group-hover:scale-105 group-hover:-rotate-12 transition-all duration-500 material-symbols-outlined pointer-events-none select-none">
                                         calendar_month
                                     </span>
                                     
