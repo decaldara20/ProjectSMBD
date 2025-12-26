@@ -8,26 +8,33 @@ import { Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
-// --- COMPONENT: MODERN KPI CARD (UPDATED) ---
-const TalentStatCard = ({ label, value, icon, textColor, glowColor }) => (
-    <div className="relative overflow-hidden bg-[#1A1A1A] border border-white/5 rounded-2xl p-6 group hover:border-white/10 transition-all duration-300 shadow-xl">
-        {/* Ambient Glow: Gunakan glowColor langsung */}
-        <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-[80px] opacity-20 transition-opacity group-hover:opacity-40 ${glowColor}`}></div>
+// --- HELPER: FORMAT ANGKA INDONESIA ---
+const formatNum = (num) => new Intl.NumberFormat('id-ID').format(num);
+
+// --- COMPONENT: STAT CARD (Themed) ---
+const TalentStatCard = ({ label, value, icon, theme, colorClass, isZero }) => (
+    <div className={`relative overflow-hidden bg-[#1A1A1A] border border-white/5 rounded-2xl p-6 group transition-all duration-300 shadow-xl ${isZero ? 'opacity-60 grayscale' : 'hover:border-white/10'}`}>
+        {/* Glow Effect only if value > 0 */}
+        {!isZero && (
+            <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-[80px] opacity-10 transition-opacity group-hover:opacity-30 ${colorClass}`}></div>
+        )}
         
         <div className="relative z-10 flex items-center gap-5">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-[#111] border border-white/5 ${textColor} shadow-inner`}>
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-white/5 border border-white/5 ${isZero ? 'text-gray-500' : theme.text} shadow-inner`}>
                 <span className="material-symbols-outlined text-3xl">{icon}</span>
             </div>
             <div>
-                <h4 className="text-4xl font-black text-white tracking-tighter">{value}</h4>
+                <h4 className={`text-4xl font-black tracking-tighter ${isZero ? 'text-gray-500' : 'text-white'}`}>
+                    {typeof value === 'number' ? formatNum(value) : value}
+                </h4>
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-[0.15em] mt-1">{label}</p>
             </div>
         </div>
     </div>
 );
 
-// --- COMPONENT: RISING STAR ITEM (LEADERBOARD STYLE) ---
-const RisingStarItem = ({ rank, name, role, rating, year }) => (
+// --- COMPONENT: RISING STAR ITEM ---
+const RisingStarItem = ({ rank, name, role, rating, year, theme }) => (
     <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-transparent hover:border-white/10 hover:bg-white/10 transition-all group cursor-default">
         {/* Rank Badge */}
         <div className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-black text-sm ${
@@ -40,10 +47,10 @@ const RisingStarItem = ({ rank, name, role, rating, year }) => (
         
         {/* Avatar Placeholder */}
         <div className="relative">
-            <div className="w-10 h-10 rounded-full p-0.5 bg-linear-to-b from-white/20 to-transparent">
+            <div className={`w-10 h-10 rounded-full p-0.5 bg-linear-to-b ${theme.gradient}`}>
                 <img 
                     src={`https://ui-avatars.com/api/?name=${name}&background=random&color=fff&size=128`} 
-                    className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all" 
+                    className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all border-2 border-[#121212]" 
                     alt={name} 
                 />
             </div>
@@ -65,121 +72,163 @@ const RisingStarItem = ({ rank, name, role, rating, year }) => (
     </div>
 );
 
-export default function Talents({ kpi, charts, risingStars, bankable }) {
+export default function Talents({ kpi, charts, risingStars, bankable, isCompanyMode }) {
+
+    // --- 1. THEME ENGINE ---
+    const theme = isCompanyMode ? {
+        mode: 'Studio',
+        primary: '#c084fc',
+        text: 'text-purple-400',
+        bg: 'bg-purple-500',
+        gradient: 'from-purple-600 to-pink-500',
+        chartColors: ['#c084fc', '#e879f9', '#f472b6', '#fb7185', '#818cf8'] // Purple-Pink Spectrum
+    } : {
+        mode: 'Global',
+        primary: '#22d3ee',
+        text: 'text-cyan-400',
+        bg: 'bg-cyan-500',
+        gradient: 'from-cyan-500 to-blue-600',
+        chartColors: ['#22d3ee', '#3b82f6', '#0ea5e9', '#6366f1', '#14b8a6'] // Cyan-Blue Spectrum
+    };
 
     // Chart Data Config
     const distData = {
         labels: charts.distribution.map(d => d.primaryProfession.replace(/_/g, ' ')),
         datasets: [{
             data: charts.distribution.map(d => d.total_count),
-            backgroundColor: ['#ec4899', '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b'],
-            borderColor: '#121212',
-            borderWidth: 4,
-            hoverOffset: 20
+            backgroundColor: theme.chartColors,
+            borderColor: '#1A1A1A',
+            borderWidth: 5,
+            hoverOffset: 10
         }]
     };
 
     return (
         <DashboardLayout>
-            <Head title="Talent Analytics" />
+            <Head title={`${theme.mode} Talent Analytics`} />
 
-            <div className="space-y-10 pb-16">
+            <div className="min-h-screen pb-12 space-y-8 font-sans">
                 
                 {/* --- HEADER --- */}
-                <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+                <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-8">
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-pink-500 animate-pulse"></span>
-                            <h2 className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em]">Human Resources</h2>
+                        <div className="flex items-center gap-3 mb-2">
+                            <span className={`flex h-3 w-3 relative`}>
+                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${theme.bg}`}></span>
+                                <span className={`relative inline-flex rounded-full h-3 w-3 ${theme.bg}`}></span>
+                            </span>
+                            <span className={`text-xs font-bold uppercase tracking-[0.3em] ${theme.text} opacity-80`}>
+                                Human Resources
+                            </span>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">
-                            Talent <span className="text-transparent bg-clip-text bg-linear-to-r from-pink-500 to-purple-600">Analytics</span>
+                        <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
+                            {theme.mode} <span className="text-neutral-400">Talent Analytics</span>
                         </h1>
-                        <p className="text-gray-500 text-sm mt-2 max-w-xl">
-                            Identifying high-value professionals and emerging stars to optimize casting and production recruitment.
+                        <p className="text-neutral-500 text-sm mt-3 max-w-xl leading-relaxed">
+                            {isCompanyMode 
+                                ? "Internal assessment of showrunners and creative leads based on production history."
+                                : "Identifying high-value professionals and emerging stars to optimize recruitment."}
                         </p>
                     </div>
-                    <button className="group bg-[#1A1A1A] hover:bg-pink-600 border border-white/10 hover:border-pink-500 text-white text-xs font-bold py-3 px-6 rounded-xl transition-all shadow-xl hover:shadow-pink-500/20 flex items-center gap-3">
-                        <span className="material-symbols-outlined text-lg group-hover:animate-pulse">print</span> 
-                        EXPORT REPORT
+                    
+                    <button className="group bg-[#1A1A1A] border border-white/10 hover:border-white/20 text-white text-xs font-bold py-3 px-6 rounded-xl transition-all shadow-xl hover:shadow-2xl flex items-center gap-3">
+                        <span className={`material-symbols-outlined text-lg ${theme.text} group-hover:scale-110 transition-transform`}>download</span> 
+                        EXPORT DATA
                     </button>
                 </div>
 
-                {/* --- 1. KPI SECTION (UPDATED) --- */}
+                {/* --- 1. KPI SECTION --- */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Menggunakan label 'Acting Talent' (Actor + Actress) */}
                     <TalentStatCard 
                         label="Acting Talent" 
-                        value={kpi.total_actors.toLocaleString()} 
+                        value={kpi.total_actors} 
                         icon="theater_comedy" 
-                        textColor="text-pink-500" 
-                        glowColor="bg-pink-500" 
+                        theme={theme}
+                        colorClass={isCompanyMode ? "bg-purple-500" : "bg-cyan-500"}
+                        isZero={kpi.total_actors === 0}
                     />
                     <TalentStatCard 
                         label="Directing Talent" 
-                        value={kpi.total_directors.toLocaleString()} 
+                        value={kpi.total_directors} 
                         icon="videocam" 
-                        textColor="text-purple-500" 
-                        glowColor="bg-purple-500" 
+                        theme={theme}
+                        colorClass={isCompanyMode ? "bg-pink-500" : "bg-blue-500"}
+                        isZero={kpi.total_directors === 0}
                     />
                     <TalentStatCard 
-                        label="Scriptwriters" 
-                        value={kpi.total_writers.toLocaleString()} 
-                        icon="history_edu" 
-                        textColor="text-emerald-500" 
-                        glowColor="bg-emerald-500" 
+                        // Jika mode company, label berubah jadi 'Creators / Showrunners' karena datanya diambil dari 'created_by'
+                        label={isCompanyMode ? "Creators / Writers" : "Scriptwriters"} 
+                        value={kpi.total_writers} 
+                        icon={isCompanyMode ? "engineering" : "history_edu"} 
+                        theme={theme}
+                        colorClass={isCompanyMode ? "bg-rose-500" : "bg-teal-500"}
+                        isZero={kpi.total_writers === 0}
                     />
                 </div>
 
                 {/* --- 2. ANALYTICS GRID --- */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
-                    {/* A. Profession Distribution (Pie) */}
-                    <div className="bg-[#121212] p-8 rounded-3xl border border-white/5 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
+                    {/* A. Profession / Genre Distribution (Pie) */}
+                    <div className="bg-[#1A1A1A] p-8 rounded-3xl border border-white/5 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
                         <h3 className="text-lg font-bold text-white w-full mb-6 flex items-center gap-2">
-                            <span className="w-1 h-5 bg-blue-500 rounded-full"></span> 
-                            Talent Composition
+                            <span className={`w-1 h-6 rounded-full ${theme.bg}`}></span> 
+                            {/* Judul dinamis: Genre (Company) vs Role (Global) */}
+                            {isCompanyMode ? 'Creative Focus (Genres)' : 'Talent Composition'}
                         </h3>
                         
-                        <div className="w-240px h-240px relative z-10">
-                            <Doughnut data={distData} options={{ cutout: '85%', plugins: { legend: { display: false } } }} />
+                        <div className="w-[220px] h-[220px] relative z-10">
+                            <Doughnut 
+                                data={distData} 
+                                options={{ 
+                                    cutout: '80%', 
+                                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#000', padding: 12 } } 
+                                }} 
+                            />
                             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                                 <span className="text-4xl font-black text-white">{charts.distribution.length}</span>
-                                <span className="text-[10px] text-gray-500 uppercase tracking-widest">Roles</span>
+                                <span className="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">
+                                    {isCompanyMode ? 'Genres' : 'Roles'}
+                                </span>
                             </div>
                         </div>
 
                         {/* Custom Legend */}
-                        <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-2 w-full px-4">
+                        <div className="mt-8 grid grid-cols-1 gap-3 w-full px-2">
                             {charts.distribution.map((d, i) => (
-                                <div key={i} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full shadow-[0_0_10px_currentColor]" style={{ backgroundColor: distData.datasets[0].backgroundColor[i], color: distData.datasets[0].backgroundColor[i] }}></span>
-                                        <span className="text-[10px] font-bold text-gray-400 capitalize">{d.primaryProfession.split(',')[0]}</span>
+                                <div key={i} className="flex items-center justify-between group">
+                                    <div className="flex items-center gap-3">
+                                        <span className="w-2.5 h-2.5 rounded-full transition-all group-hover:scale-125" style={{ backgroundColor: distData.datasets[0].backgroundColor[i] }}></span>
+                                        <span className="text-xs font-bold text-neutral-400 group-hover:text-white transition-colors capitalize">
+                                            {d.primaryProfession.split(',')[0]}
+                                        </span>
                                     </div>
-                                    <span className="text-[10px] font-mono text-gray-600">{d.total_count}</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-1 w-12 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="h-full rounded-full" style={{ width: '60%', backgroundColor: distData.datasets[0].backgroundColor[i] }}></div>
+                                        </div>
+                                        <span className="text-[10px] font-mono text-neutral-500">{formatNum(d.total_count)}</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
-                        
-                        {/* Background Effect */}
-                        <div className="absolute top-0 right-0 w-full h-full bg-linear-to-b from-blue-500/5 to-transparent pointer-events-none"></div>
                     </div>
 
                     {/* B. Rising Stars (Leaderboard) */}
-                    <div className="lg:col-span-2 bg-[#121212] p-8 rounded-3xl border border-white/5 shadow-2xl flex flex-col">
+                    <div className="lg:col-span-2 bg-[#1A1A1A] p-8 rounded-3xl border border-white/5 shadow-2xl flex flex-col">
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                                     <span className="material-symbols-outlined text-yellow-400">trending_up</span> 
                                     Rising Stars
                                 </h3>
-                                <p className="text-xs text-gray-500 mt-1">Breakout talents (Debut &gt; 2015) with exceptional ratings</p>
+                                <p className="text-xs text-neutral-500 mt-1">
+                                    {isCompanyMode ? 'Top rated internal showrunners since 2015' : 'Breakout talents (Debut > 2015) with exceptional ratings'}
+                                </p>
                             </div>
-                            <button className="text-[10px] font-bold text-pink-500 uppercase hover:text-pink-400 transition-colors">View All</button>
                         </div>
                         
-                        <div className="flex-1 flex flex-col gap-2">
+                        <div className="flex-1 flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-2 max-h-[380px]">
                             {risingStars.map((star, idx) => (
                                 <RisingStarItem 
                                     key={idx}
@@ -188,29 +237,38 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                                     role={star.primaryProfession}
                                     rating={star.averageRating}
                                     year={star.startYear}
+                                    theme={theme}
                                 />
                             ))}
+                            {risingStars.length === 0 && (
+                                <div className="flex flex-col items-center justify-center h-full text-neutral-600">
+                                    <span className="material-symbols-outlined text-4xl mb-2">sentiment_dissatisfied</span>
+                                    <p className="text-sm">No rising stars data available.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
 
                 {/* --- 3. BANKABLE TABLE --- */}
-                <div className="bg-[#121212] rounded-3xl border border-white/5 shadow-2xl overflow-hidden flex flex-col">
+                <div className="bg-[#1A1A1A] rounded-3xl border border-white/5 shadow-2xl overflow-hidden flex flex-col">
                     {/* Table Toolbar */}
                     <div className="p-6 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#161616]">
                         <div>
                             <h3 className="text-xl font-bold text-white flex items-center gap-3">
-                                <span className="p-2 rounded-lg bg-pink-500/10 text-pink-500 material-symbols-outlined text-lg">verified</span>
+                                <span className={`p-2 rounded-lg bg-white/5 ${theme.text} material-symbols-outlined text-lg`}>verified</span>
                                 Top Bankable Professionals
                             </h3>
-                            <p className="text-xs text-gray-500 mt-1 ml-11">Highly rated veterans with proven track record</p>
+                            <p className="text-xs text-neutral-500 mt-1 ml-11">
+                                Highly rated veterans with proven track record ({theme.mode} Market)
+                            </p>
                         </div>
                         <div className="relative group">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-gray-500 text-lg group-focus-within:text-pink-500 transition-colors">search</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-neutral-600 text-lg group-focus-within:text-white transition-colors">search</span>
                             <input 
                                 type="text" 
-                                placeholder="Search by name..." 
-                                className="bg-[#0a0a0a] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold text-white focus:border-pink-500 focus:ring-1 focus:ring-pink-500 outline-none w-64 transition-all" 
+                                placeholder="Search talent..." 
+                                className="bg-[#0a0a0a] border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold text-white focus:border-white/30 focus:ring-0 outline-none w-64 transition-all placeholder-neutral-700" 
                             />
                         </div>
                     </div>
@@ -218,7 +276,7 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                     {/* Table Content */}
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
-                            <thead className="bg-[#1a1a1a] text-[10px] uppercase font-bold text-gray-500 tracking-wider">
+                            <thead className="bg-[#141414] text-[10px] uppercase font-bold text-neutral-500 tracking-wider">
                                 <tr>
                                     <th className="px-6 py-4 w-20 text-center">Rank</th>
                                     <th className="px-6 py-4">Professional</th>
@@ -230,22 +288,22 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                             </thead>
                             <tbody className="divide-y divide-white/5 text-sm">
                                 {bankable.data.map((person, index) => (
-                                    <tr key={index} className="hover:bg-white/0.02 transition-colors group">
-                                        <td className="px-6 py-4 text-center font-mono text-gray-600 text-xs">
+                                    <tr key={index} className="hover:bg-white/5 transition-colors group">
+                                        <td className="px-6 py-4 text-center font-mono text-neutral-600 text-xs">
                                             #{index + 1 + (bankable.current_page - 1) * bankable.per_page}
                                         </td>
                                         <td className="px-6 py-4">
-                                            <div className="font-bold text-white group-hover:text-pink-400 transition-colors text-base">
+                                            <div className={`font-bold text-white group-hover:${theme.text} transition-colors text-base`}>
                                                 {person.primaryName}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="px-2 py-1 rounded bg-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-wide border border-white/5">
+                                            <span className="px-2.5 py-1 rounded bg-white/5 text-[10px] font-bold text-neutral-400 uppercase tracking-wide border border-white/5">
                                                 {person.primaryProfession ? person.primaryProfession.replace(/_/g, ' ').split(',')[0] : 'N/A'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right font-mono text-cyan-400 font-bold">
-                                            {(person.TotalNumVotes / 1000).toFixed(1)}k
+                                        <td className={`px-6 py-4 text-right font-mono font-bold ${isCompanyMode ? 'text-pink-400' : 'text-cyan-400'}`}>
+                                            {formatNum(person.TotalNumVotes)}
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-500 font-bold text-xs">
@@ -254,8 +312,8 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 text-[9px] font-bold uppercase tracking-wider">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-bold uppercase tracking-wider">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                                                 Bankable
                                             </span>
                                         </td>
@@ -267,8 +325,8 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
 
                     {/* Footer / Pagination */}
                     <div className="p-6 border-t border-white/5 bg-[#161616] flex justify-between items-center">
-                        <span className="text-xs text-gray-500 font-medium">
-                            Showing <span className="text-white">{bankable.from}</span> to <span className="text-white">{bankable.to}</span> of {bankable.total} results
+                        <span className="text-xs text-neutral-500 font-medium">
+                            Showing <span className="text-white">{bankable.from}</span> to <span className="text-white">{bankable.to}</span> of {formatNum(bankable.total)} results
                         </span>
                         <div className="flex gap-2">
                             {bankable.links.map((link, i) => (
@@ -277,12 +335,12 @@ export default function Talents({ kpi, charts, risingStars, bankable }) {
                                         key={i} href={link.url}
                                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
                                             link.active 
-                                            ? 'bg-pink-600 border-pink-600 text-white shadow-lg shadow-pink-600/20' 
-                                            : 'bg-[#1A1A1A] border-white/10 text-gray-400 hover:bg-white/5 hover:text-white'
+                                            ? `${theme.bg} border-transparent text-white shadow-lg` 
+                                            : 'bg-[#1A1A1A] border-white/10 text-neutral-400 hover:bg-white/5 hover:text-white'
                                         }`}
                                         dangerouslySetInnerHTML={{ __html: link.label }}
                                     />
-                                ) : <span key={i} className="px-3 py-1.5 text-xs text-gray-700 opacity-50 cursor-not-allowed" dangerouslySetInnerHTML={{ __html: link.label }}></span>
+                                ) : <span key={i} className="px-3 py-1.5 text-xs text-neutral-700 opacity-50 cursor-not-allowed" dangerouslySetInnerHTML={{ __html: link.label }}></span>
                             ))}
                         </div>
                     </div>

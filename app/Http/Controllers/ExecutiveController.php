@@ -210,7 +210,7 @@ class ExecutiveController extends Controller
     public function trends(Request $request)
     {
         $companyId = $request->input('company_id');
-        $cacheKey = $companyId ? "trends_company_{$companyId}_v5" : "trends_global_v5";
+        $cacheKey = $companyId ? "trends_company_{$companyId}_v1" : "trends_global_v1";
 
         // Cache 12 Jam
         $reports = Cache::remember($cacheKey, 43200, function() use ($companyId) {
@@ -324,53 +324,125 @@ class ExecutiveController extends Controller
     }
 
     // 3. TALENT ANALYTICS (Bankabilitas Artis)
-    public function talents()
+    public function talents(Request $request)
     {
-        // 1. KPI Cards (FIX: Ambil dari tabel normalisasi 'name_professions')
-        $kpi = [
-            'total_actors'    => DB::connection('sqlsrv')
-                                    ->table('name_professions')
-                                    ->where(function($query) {
-                                        $query->where('profession_name', 'LIKE', '%actor%')
-                                            ->orWhere('profession_name', 'LIKE', '%actress%');
-                                    })
-                                    ->count(),
-                                    
-            'total_directors' => DB::connection('sqlsrv')
-                                    ->table('name_professions')
-                                    ->where('profession_name', 'LIKE', '%director%')
-                                    ->count(),
-                                    
-            'total_writers'   => DB::connection('sqlsrv')
-                                    ->table('name_professions')
-                                    ->where('profession_name', 'LIKE', '%writer%')
-                                    ->count(),
-        ];
+        $companyId = $request->input('company_id');
+        
+        // Cache Key unik
+        $cacheKey = $companyId ? "talents_company_{$companyId}_v3" : "talents_global_v3";
 
-        // 2. Chart: Distribusi Profesi
-        $distribution = DB::connection('sqlsrv')
-            ->table('v_Executive_Talent_Distribution')
-            ->get();
+        // Cache 12 Jam
+        $data = Cache::remember($cacheKey, 43200, function() use ($companyId) {
+            $conn = DB::connection('sqlsrv');
 
-        // 3. Highlight: Rising Stars
-        $risingStars = DB::connection('sqlsrv')
-            ->table('v_Executive_Rising_Stars')
-            ->get();
+            if ($companyId) {
+                // --- A. MODE COMPANY (Internal DB TV Show) ---
+                // Sumber: shows, production_companies, created_by, show_votes
+                
+                // 1. KPI (Hanya data Creator yang tersedia di Schema)
+                // Karena tidak ada tabel actors, kita set 0 atau kita anggap 'talent' = creator
+                $totalCreators = $conn->table('shows as s')
+                    ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                    ->join('created_by as cb', 's.show_id', '=', 'cb.show_id')
+                    ->where('pc.production_company_type_id', $companyId)
+                    ->distinct('cb.created_by_type_id')
+                    ->count('cb.created_by_type_id');
 
-        // 4. MAIN REPORT (Laporan 3A - Bankable)
-        $bankableList = DB::connection('sqlsrv')
-            ->table('v_Executive_BankabilityReport_Base')
-            ->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')
-            ->orderByDesc('TotalNumVotes')
-            ->paginate(10); 
+                $kpi = [
+                    'total_actors'    => 0, // Data tidak tersedia di schema
+                    'total_directors' => 0, 
+                    'total_writers'   => $totalCreators, // Mapping Creator ke Writer/Showrunner
+                ];
+
+                // 2. Rising Stars (Top Creators by Rating in Company)
+                $risingStars = $conn->table('shows as s')
+                    ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                    ->join('created_by as cb', 's.show_id', '=', 'cb.show_id')
+                    ->join('created_by_types as cbt', 'cb.created_by_type_id', '=', 'cbt.created_by_type_id')
+                    ->join('show_votes as sv', 's.show_id', '=', 'sv.show_id')
+                    ->join('air_dates as ad', 's.show_id', '=', 'ad.show_id')
+                    ->where('pc.production_company_type_id', $companyId)
+                    ->where('ad.is_first', 1)
+                    ->whereYear('ad.date', '>=', 2015) // Anggap Rising Star jika show rilis > 2015
+                    ->select(
+                        'cbt.created_by_name as primaryName',
+                        DB::raw("'Creator' as primaryProfession"),
+                        DB::raw('AVG(sv.vote_average) as averageRating'),
+                        DB::raw('MIN(YEAR(ad.date)) as startYear')
+                    )
+                    ->groupBy('cbt.created_by_name')
+                    ->orderByDesc('averageRating')
+                    ->limit(5)
+                    ->get();
+
+                // 3. Bankable List (Internal Creators sorted by Total Votes/Popularity)
+                $bankableList = $conn->table('shows as s')
+                    ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                    ->join('created_by as cb', 's.show_id', '=', 'cb.show_id')
+                    ->join('created_by_types as cbt', 'cb.created_by_type_id', '=', 'cbt.created_by_type_id')
+                    ->join('show_votes as sv', 's.show_id', '=', 'sv.show_id')
+                    ->where('pc.production_company_type_id', $companyId)
+                    ->select(
+                        'cbt.created_by_name as primaryName',
+                        DB::raw("'Creator' as primaryProfession"),
+                        DB::raw('SUM(sv.vote_count) as TotalNumVotes'),
+                        DB::raw('AVG(sv.vote_average) as AverageRating')
+                    )
+                    ->groupBy('cbt.created_by_name')
+                    ->orderByDesc('TotalNumVotes')
+                    ->paginate(10);
+
+                // 4. Distribution (Disiasati dengan Genre Distribution Shows Company tersebut)
+                // Karena kita cuma punya 1 profesi (Creator), pie chart profesi jadi tidak relevan.
+                // Kita ganti jadi distribusi GENRE yang dikerjakan company ini.
+                $distribution = $conn->table('shows as s')
+                    ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                    ->join('genres as g', 's.show_id', '=', 'g.show_id')
+                    ->join('genre_types as gt', 'g.genre_type_id', '=', 'gt.genre_type_id')
+                    ->where('pc.production_company_type_id', $companyId)
+                    ->select('gt.genre_name as primaryProfession', DB::raw('COUNT(s.show_id) as total_count')) // Alias profession biar match UI
+                    ->groupBy('gt.genre_name')
+                    ->orderByDesc('total_count')
+                    ->limit(5)
+                    ->get();
+
+            } else {
+                // --- B. MODE GLOBAL (IMDb Market Intelligence) ---
+                // Tetap pakai View yang sudah ada
+                
+                $kpi = [
+                    'total_actors'    => $conn->table('name_professions')
+                                            ->where('profession_name', 'LIKE', '%actor%')
+                                            ->orWhere('profession_name', 'LIKE', '%actress%')->count(),
+                    'total_directors' => $conn->table('name_professions')
+                                            ->where('profession_name', 'LIKE', '%director%')->count(),
+                    'total_writers'   => $conn->table('name_professions')
+                                            ->where('profession_name', 'LIKE', '%writer%')->count(),
+                ];
+
+                $distribution = $conn->table('v_Executive_Talent_Distribution')->get();
+                $risingStars = $conn->table('v_Executive_Rising_Stars')->get();
+                
+                $bankableList = $conn->table('v_Executive_BankabilityReport_Base')
+                    ->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')
+                    ->orderByDesc('TotalNumVotes')
+                    ->paginate(10); 
+            }
+
+            return [
+                'kpi' => $kpi,
+                'charts' => ['distribution' => $distribution],
+                'risingStars' => $risingStars,
+                'bankable' => $bankableList
+            ];
+        });
 
         return Inertia::render('Executive/Talents', [
-            'kpi' => $kpi,
-            'charts' => [
-                'distribution' => $distribution
-            ],
-            'risingStars' => $risingStars,
-            'bankable' => $bankableList
+            'kpi' => $data['kpi'],
+            'charts' => $data['charts'],
+            'risingStars' => $data['risingStars'],
+            'bankable' => $data['bankable'],
+            'isCompanyMode' => !!$companyId
         ]);
     }
 
