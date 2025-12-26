@@ -302,7 +302,7 @@ export default function Dashboard({ kpi, charts, bi, filters, topTalent, isCompa
                     <StatCard 
                         title={isCompanyMode ? "Total Engagement" : "Talent Pool"} 
                         value={kpi.total_pros} 
-                        subtext={isCompanyMode ? "Audience Votes" : "+12 New"} 
+                        subtext={isCompanyMode ? "Audience Votes" : "+ new"} 
                         icon={isCompanyMode ? "thumb_up" : "groups"} 
                         color="text-pink-400" 
                     />
