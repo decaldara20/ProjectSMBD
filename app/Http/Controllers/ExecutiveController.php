@@ -207,45 +207,119 @@ class ExecutiveController extends Controller
     }
 
     // 2. MARKET TRENDS
-    public function trends()
+    public function trends(Request $request)
     {
-        // --- LAPORAN 4A: Pertumbuhan Rilis Konten (10 Tahun Terakhir) ---
-        $yearlyTrend = DB::connection('sqlsrv')
-        ->table('title_basics')
-        ->select('startYear')
-        // Hitung Total Semua (Untuk Single Line Chart)
-        ->selectRaw("COUNT(*) as total_released")
-        // Hitung Split per Tipe (Untuk cadangan/analisis lebih dalam)
-        ->selectRaw("COUNT(CASE WHEN titleType = 'movie' THEN 1 END) as total_movies")
-        ->selectRaw("COUNT(CASE WHEN titleType = 'tvSeries' THEN 1 END) as total_tv")
-        ->where('startYear', '>=', date('Y') - 10)
-        ->where('startYear', '<=', date('Y'))
-        ->groupBy('startYear')
-        ->orderBy('startYear')
-        ->get();
+        $companyId = $request->input('company_id');
+        $cacheKey = $companyId ? "trends_company_{$companyId}_v5" : "trends_global_v5";
 
-        // --- LAPORAN 2A: Genre Paling Populer (By Total Votes) ---
-        $topGenresByVotes = DB::connection('sqlsrv')
-            ->table('v_Executive_Genre_Stats')
-            ->orderByDesc('total_votes')
-            ->limit(10)
-            ->get();
+        // Cache 12 Jam
+        $reports = Cache::remember($cacheKey, 43200, function() use ($companyId) {
+            $conn = DB::connection('sqlsrv');
 
-        // --- LAPORAN 2B: Genre Kualitas Terbaik (By Avg Rating) ---
-        // Filter: Hanya genre yang punya minimal 500 judul agar data valid (tidak bias)
-        $topGenresByRating = DB::connection('sqlsrv')
-            ->table('v_Executive_Genre_Stats')
-            ->where('total_titles', '>', 50) 
-            ->orderByDesc('avg_rating')
-            ->limit(10)
-            ->get();
+            $growth = collect();
+            $genres = collect();
+
+            if ($companyId) {
+                // --- A. MODE COMPANY ---
+                
+                // 1. Growth (15 Tahun Terakhir)
+                $growth = $conn->table('shows as s')
+                    ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                    ->join('air_dates as ad', 's.show_id', '=', 'ad.show_id')
+                    ->join('show_votes as sv', 's.show_id', '=', 'sv.show_id')
+                    ->where('pc.production_company_type_id', $companyId)
+                    ->where('ad.is_first', 1)
+                    ->whereYear('ad.date', '>=', date('Y') - 15)
+                    ->select(
+                        DB::raw('YEAR(ad.date) as startYear'),
+                        DB::raw('COUNT(DISTINCT s.show_id) as total_released'),
+                        DB::raw('AVG(sv.vote_average) as avg_rating'),
+                        DB::raw('SUM(sv.vote_count) as total_votes')
+                    )
+                    ->groupBy(DB::raw('YEAR(ad.date)'))
+                    ->orderBy('startYear', 'asc')
+                    ->get();
+
+                // 2. Genre Performance
+                $genres = $conn->table('shows as s')
+                    ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                    ->join('genres as g', 's.show_id', '=', 'g.show_id')
+                    ->join('genre_types as gt', 'g.genre_type_id', '=', 'gt.genre_type_id')
+                    ->join('show_votes as sv', 's.show_id', '=', 'sv.show_id')
+                    ->where('pc.production_company_type_id', $companyId)
+                    ->select(
+                        'gt.genre_name',
+                        DB::raw('COUNT(DISTINCT s.show_id) as total_titles'),
+                        DB::raw('SUM(sv.vote_count) as total_votes'),
+                        DB::raw('AVG(sv.vote_average) as avg_rating')
+                    )
+                    ->groupBy('gt.genre_name')
+                    ->orderByDesc('total_votes') // Default sort by popularity
+                    ->limit(10)
+                    ->get();
+            } else {
+                // --- B. MODE GLOBAL ---
+                
+                // 1. Growth (15 Tahun Terakhir)
+                $growth = $conn->table('title_basics as tb')
+                    ->join('title_ratings as tr', 'tb.tconst', '=', 'tr.tconst')
+                    ->select(
+                        'tb.startYear',
+                        DB::raw('COUNT(tb.tconst) as total_released'),
+                        DB::raw('AVG(tr.averageRating) as avg_rating'),
+                        DB::raw('SUM(tr.numVotes) as total_votes')
+                    )
+                    ->where('tb.startYear', '>=', date('Y') - 15)
+                    ->where('tb.startYear', '<=', date('Y'))
+                    ->groupBy('tb.startYear')
+                    ->orderBy('tb.startYear')
+                    ->get();
+
+                // 2. Popular Genres (Global View)
+                $genres = $conn->table('v_Executive_Genre_Stats')
+                    ->select('genre_name', 'total_titles', 'total_votes', 'avg_rating')
+                    ->orderByDesc('total_votes')
+                    ->limit(10)
+                    ->get();
+
+                $popular = $conn->table('v_Executive_Genre_Stats')
+                    ->select('genre_name', 'total_votes')
+                    ->orderByDesc('total_votes')
+                    ->limit(10)
+                    ->get();
+            }
+
+            // --- LOGIC: HITUNG YoY GROWTH (Insight) ---
+            $currentYear = $growth->isNotEmpty() ? $growth->last() : null;
+            $prevYear = $growth->count() > 1 ? $growth->get($growth->count() - 2) : null;
+            
+            $volumeGrowth = 0;
+            $qualityGrowth = 0;
+
+            if ($prevYear && $currentYear && $currentYear->total_released > 0) {
+                if ($prevYear->total_released > 0) {
+                    $volumeGrowth = (($currentYear->total_released - $prevYear->total_released) / $prevYear->total_released) * 100;
+                }
+                if ($prevYear->avg_rating > 0) {
+                    $qualityGrowth = (($currentYear->avg_rating - $prevYear->avg_rating) / $prevYear->avg_rating) * 100;
+                }
+            }
+
+            return [
+                'growth_history' => $growth,
+                'genre_stats' => $genres,
+                'insights' => [
+                    'volume_yoy' => round($volumeGrowth, 1),
+                    'quality_yoy' => round($qualityGrowth, 1),
+                    'current_year_vol' => $currentYear ? $currentYear->total_released : 0,
+                    'current_year_rating' => $currentYear ? number_format($currentYear->avg_rating, 1) : 0,
+                ]
+            ];
+        });
 
         return Inertia::render('Executive/Trends', [
-            'reports' => [
-                'growth' => $yearlyTrend,
-                'popular_genres' => $topGenresByVotes,
-                'quality_genres' => $topGenresByRating
-            ]
+            'reports' => $reports,
+            'isCompanyMode' => !!$companyId
         ]);
     }
 
