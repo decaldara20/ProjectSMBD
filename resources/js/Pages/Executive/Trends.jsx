@@ -117,8 +117,9 @@ export default function Trends({ reports, isCompanyMode }) {
                 },
                 borderRadius: 4,
                 barThickness: 'flex',
-                maxBarThickness: 50, // Sedikit lebih tebal
+                maxBarThickness: 50, 
                 yAxisID: 'y',
+                order: 2
             }
         ]
     };
