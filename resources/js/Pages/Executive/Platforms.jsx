@@ -271,7 +271,7 @@ export default function Platforms({ kpi, data, isCompanyMode }) {
                             {data.data.map((item, idx) => {
                                 const rank = (data.current_page - 1) * data.per_page + idx + 1;
                                 return (
-                                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl bg-white/[0.02] hover:bg-white/5 border border-transparent hover:border-white/5 transition-all group cursor-default">
+                                    <div key={idx} className="flex items-center justify-between p-3.5 rounded-xl bg-white/2 hover:bg-white/5 border border-transparent hover:border-white/5 transition-all group cursor-default">
                                         <div className="flex items-center gap-4 overflow-hidden">
                                             <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs border transition-colors ${
                                                 rank <= 3 
