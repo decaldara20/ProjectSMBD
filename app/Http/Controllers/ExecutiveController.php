@@ -323,38 +323,53 @@ class ExecutiveController extends Controller
         ]);
     }
 
-    // 3. TALENT ANALYTICS (Bankabilitas Artis)
+    // 3. TALENT ANALYTICS
     public function talents(Request $request)
     {
         $companyId = $request->input('company_id');
-        
-        // Cache Key unik
-        $cacheKey = $companyId ? "talents_company_{$companyId}_v3" : "talents_global_v3";
+        $cacheKey = $companyId ? "talents_company_{$companyId}_v1" : "talents_global_v1";
 
         // Cache 12 Jam
         $data = Cache::remember($cacheKey, 43200, function() use ($companyId) {
             $conn = DB::connection('sqlsrv');
 
             if ($companyId) {
-                // --- A. MODE COMPANY (Internal DB TV Show) ---
-                // Sumber: shows, production_companies, created_by, show_votes
+                // --- A. MODE COMPANY (Internal Talent / Creator Audit) ---
                 
-                // 1. KPI (Hanya data Creator yang tersedia di Schema)
-                // Karena tidak ada tabel actors, kita set 0 atau kita anggap 'talent' = creator
-                $totalCreators = $conn->table('shows as s')
+                // 1. KPI ANALYSIS (Hitung manual dari data creators)
+                $creatorStats = $conn->table('shows as s')
                     ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
                     ->join('created_by as cb', 's.show_id', '=', 'cb.show_id')
+                    ->join('show_votes as sv', 's.show_id', '=', 'sv.show_id')
                     ->where('pc.production_company_type_id', $companyId)
-                    ->distinct('cb.created_by_type_id')
-                    ->count('cb.created_by_type_id');
+                    ->select(
+                        'cb.created_by_type_id',
+                        DB::raw('AVG(sv.vote_average) as avg_rating'),
+                        DB::raw('SUM(sv.vote_count) as total_votes')
+                    )
+                    ->groupBy('cb.created_by_type_id')
+                    ->get();
 
+                // Hitung Metrik dari Collection hasil query di atas
                 $kpi = [
-                    'total_actors'    => 0, // Data tidak tersedia di schema
-                    'total_directors' => 0, 
-                    'total_writers'   => $totalCreators, // Mapping Creator ke Writer/Showrunner
+                    'card_1' => [
+                        'label' => 'Creative Leads',
+                        'value' => $creatorStats->count(),
+                        'icon'  => 'engineering' // Icon helm engineer/arsitek
+                    ],
+                    'card_2' => [
+                        'label' => 'Elite Talents', // Kreator Kualitas Tinggi
+                        'value' => $creatorStats->where('avg_rating', '>=', 8.0)->count(),
+                        'icon'  => 'workspace_premium' // Icon medali/sertifikat
+                    ],
+                    'card_3' => [
+                        'label' => 'Hit Makers', // Kreator Populer
+                        'value' => $creatorStats->where('total_votes', '>=', 1000)->count(),
+                        'icon'  => 'whatshot' // Icon api/populer
+                    ]
                 ];
 
-                // 2. Rising Stars (Top Creators by Rating in Company)
+                // 2. Rising Stars
                 $risingStars = $conn->table('shows as s')
                     ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
                     ->join('created_by as cb', 's.show_id', '=', 'cb.show_id')
@@ -363,70 +378,61 @@ class ExecutiveController extends Controller
                     ->join('air_dates as ad', 's.show_id', '=', 'ad.show_id')
                     ->where('pc.production_company_type_id', $companyId)
                     ->where('ad.is_first', 1)
-                    ->whereYear('ad.date', '>=', 2015) // Anggap Rising Star jika show rilis > 2015
-                    ->select(
-                        'cbt.created_by_name as primaryName',
-                        DB::raw("'Creator' as primaryProfession"),
-                        DB::raw('AVG(sv.vote_average) as averageRating'),
-                        DB::raw('MIN(YEAR(ad.date)) as startYear')
-                    )
+                    ->whereYear('ad.date', '>=', 2015)
+                    ->select('cbt.created_by_name as primaryName', DB::raw("'Creator' as primaryProfession"), DB::raw('AVG(sv.vote_average) as averageRating'), DB::raw('MIN(YEAR(ad.date)) as startYear'))
                     ->groupBy('cbt.created_by_name')
                     ->orderByDesc('averageRating')
                     ->limit(5)
                     ->get();
 
-                // 3. Bankable List (Internal Creators sorted by Total Votes/Popularity)
+                // 3. Bankable List
                 $bankableList = $conn->table('shows as s')
                     ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
                     ->join('created_by as cb', 's.show_id', '=', 'cb.show_id')
                     ->join('created_by_types as cbt', 'cb.created_by_type_id', '=', 'cbt.created_by_type_id')
                     ->join('show_votes as sv', 's.show_id', '=', 'sv.show_id')
                     ->where('pc.production_company_type_id', $companyId)
-                    ->select(
-                        'cbt.created_by_name as primaryName',
-                        DB::raw("'Creator' as primaryProfession"),
-                        DB::raw('SUM(sv.vote_count) as TotalNumVotes'),
-                        DB::raw('AVG(sv.vote_average) as AverageRating')
-                    )
+                    ->select('cbt.created_by_name as primaryName', DB::raw("'Creator' as primaryProfession"), DB::raw('SUM(sv.vote_count) as TotalNumVotes'), DB::raw('AVG(sv.vote_average) as AverageRating'))
                     ->groupBy('cbt.created_by_name')
                     ->orderByDesc('TotalNumVotes')
                     ->paginate(10);
 
-                // 4. Distribution (Disiasati dengan Genre Distribution Shows Company tersebut)
-                // Karena kita cuma punya 1 profesi (Creator), pie chart profesi jadi tidak relevan.
-                // Kita ganti jadi distribusi GENRE yang dikerjakan company ini.
+                // 4. Distribution (Genre)
                 $distribution = $conn->table('shows as s')
                     ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
                     ->join('genres as g', 's.show_id', '=', 'g.show_id')
                     ->join('genre_types as gt', 'g.genre_type_id', '=', 'gt.genre_type_id')
                     ->where('pc.production_company_type_id', $companyId)
-                    ->select('gt.genre_name as primaryProfession', DB::raw('COUNT(s.show_id) as total_count')) // Alias profession biar match UI
+                    ->select('gt.genre_name as primaryProfession', DB::raw('COUNT(s.show_id) as total_count'))
                     ->groupBy('gt.genre_name')
                     ->orderByDesc('total_count')
                     ->limit(5)
                     ->get();
 
             } else {
-                // --- B. MODE GLOBAL (IMDb Market Intelligence) ---
-                // Tetap pakai View yang sudah ada
+                // --- B. MODE GLOBAL (Market Intelligence) ---
                 
                 $kpi = [
-                    'total_actors'    => $conn->table('name_professions')
-                                            ->where('profession_name', 'LIKE', '%actor%')
-                                            ->orWhere('profession_name', 'LIKE', '%actress%')->count(),
-                    'total_directors' => $conn->table('name_professions')
-                                            ->where('profession_name', 'LIKE', '%director%')->count(),
-                    'total_writers'   => $conn->table('name_professions')
-                                            ->where('profession_name', 'LIKE', '%writer%')->count(),
+                    'card_1' => [
+                        'label' => 'Acting Talent',
+                        'value' => $conn->table('name_professions')->where('profession_name', 'LIKE', '%actor%')->orWhere('profession_name', 'LIKE', '%actress%')->count(),
+                        'icon'  => 'theater_comedy'
+                    ],
+                    'card_2' => [
+                        'label' => 'Directing Talent',
+                        'value' => $conn->table('name_professions')->where('profession_name', 'LIKE', '%director%')->count(),
+                        'icon'  => 'videocam'
+                    ],
+                    'card_3' => [
+                        'label' => 'Scriptwriters',
+                        'value' => $conn->table('name_professions')->where('profession_name', 'LIKE', '%writer%')->count(),
+                        'icon'  => 'history_edu'
+                    ]
                 ];
 
                 $distribution = $conn->table('v_Executive_Talent_Distribution')->get();
                 $risingStars = $conn->table('v_Executive_Rising_Stars')->get();
-                
-                $bankableList = $conn->table('v_Executive_BankabilityReport_Base')
-                    ->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')
-                    ->orderByDesc('TotalNumVotes')
-                    ->paginate(10); 
+                $bankableList = $conn->table('v_Executive_BankabilityReport_Base')->select('primaryName', 'primaryProfession', 'TotalNumVotes', 'AverageRating')->orderByDesc('TotalNumVotes')->paginate(10); 
             }
 
             return [
@@ -447,43 +453,99 @@ class ExecutiveController extends Controller
     }
 
     // 4. PLATFORM INTEL
-    public function platforms()
+    public function platforms(Request $request)
     {
-        $platformData = DB::connection('sqlsrv')
-            ->table('v_Executive_Platform_Share')
-            ->select(
-                'network_name',
-                'total_shows as total_titles', // Alias agar match dengan JSX
-                'total_seasons',
-                'avg_rating'
-            )
-            ->orderByDesc('total_shows')
-            ->limit(10) // Top 10 Network
-            ->get();
+        $companyId = $request->input('company_id');
+        $page = $request->input('page', 1); // Wajib ambil page buat cache key
+        
+        // Cache Key Spesifik per Halaman
+        $cacheKey = $companyId 
+            ? "platforms_company_{$companyId}_page_{$page}_v4" 
+            : "platforms_global_page_{$page}_v4";
 
-        // Tambahkan data dummy untuk 'top_title' karena di View belum ada
-        $platformData->transform(function ($item) {
-            $item->avg_rating = (float) $item->avg_rating; 
-            if ($item->avg_rating >= 8.5) {
-                $item->tier = 'Elite';
-            } elseif ($item->avg_rating >= 7.5) {
-                $item->tier = 'Strong';
+        // Cache 12 Jam
+        $result = Cache::remember($cacheKey, 43200, function() use ($companyId) {
+            $conn = DB::connection('sqlsrv');
+
+            // --- 1. BASE QUERY (INI ADALAH GLOBAL MODE) ---
+            // Secara default, query ini mengambil data seluruh dunia/pasar.
+            $query = $conn->table('networks as n')
+                ->join('network_types as nt', 'n.network_type_id', '=', 'nt.network_type_id')
+                ->join('shows as s', 'n.show_id', '=', 's.show_id')
+                ->join('show_votes as sv', 's.show_id', '=', 'sv.show_id');
+
+            // --- 2. MODE SWITCHING ---
+            if ($companyId) {
+                // [MODE COMPANY]
+                // Jika ada Company ID, kita persempit datanya:
+                // "Hanya ambil Network yang menayangkan film buatan Company ini"
+                $query->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                      ->where('pc.production_company_type_id', $companyId);
             } else {
-                $item->tier = 'Standard';
+                // [MODE GLOBAL]
+                // Tidak ada filter apa-apa.
+                // Query tetap mengambil data seluruh network di database.
             }
-            return $item;
+
+            // --- 3. MAIN DATA (PAGINATION AGAR TIDAK LEMOT) ---
+            // Kita clone $query supaya query aslinya masih bisa dipakai buat hitung KPI nanti
+            $platformData = (clone $query)
+                ->select(
+                    'nt.network_name',
+                    DB::raw('COUNT(DISTINCT s.show_id) as total_titles'), // Volume
+                    DB::raw('AVG(sv.vote_average) as avg_rating'),        // Kualitas
+                    DB::raw('SUM(sv.vote_count) as total_votes')          // Popularitas
+                )
+                ->groupBy('nt.network_name')
+                ->orderByDesc('total_titles') // Urutkan dari yang paling banyak filmnya
+                ->paginate(15); // <-- KUNCI PERFORMA: Cuma ambil 15 baris per halaman
+
+            // Transform Tiering (Hanya untuk 15 data yang tampil)
+            $platformData->getCollection()->transform(function ($item) {
+                $item->total_titles = (int) $item->total_titles;
+                $item->avg_rating = (float) $item->avg_rating;
+                $item->total_votes = (int) $item->total_votes;
+
+                if ($item->avg_rating >= 8.2) $item->tier = 'Elite';
+                elseif ($item->avg_rating >= 7.0 && $item->total_titles > 20) $item->tier = 'Mainstream';
+                else $item->tier = 'Volume';
+                
+                return $item;
+            });
+
+            // --- 4. KPI CALCULATIONS (Tetap Akurat untuk SELURUH Data) ---
+            // Kita pakai (clone $query) lagi. Karena $query di atas sudah kena filter Company (jika ada),
+            // maka KPI ini otomatis menyesuaikan (KPI Global atau KPI Company).
+            
+            // Cari Network Paling Dominan (Volume Terbanyak)
+            $dominant = (clone $query)
+                ->select('nt.network_name')
+                ->groupBy('nt.network_name')
+                ->orderByRaw('COUNT(DISTINCT s.show_id) DESC')
+                ->first();
+
+            // Cari Network Kualitas Terbaik (Rating Tertinggi, Min. 5 judul biar valid)
+            $quality = (clone $query)
+                ->select('nt.network_name')
+                ->groupBy('nt.network_name')
+                ->havingRaw('COUNT(DISTINCT s.show_id) >= 5') 
+                ->orderByRaw('AVG(sv.vote_average) DESC')
+                ->first();
+
+            return [
+                'kpi' => [
+                    'dominant_network' => $dominant->network_name ?? '-',
+                    'highest_quality'  => $quality->network_name ?? '-',
+                    'total_coverage'   => $platformData->total(), // Total seluruh data (bukan cuma yg tampil)
+                ],
+                'data' => $platformData
+            ];
         });
 
-        // Hitung KPI
-        $kpi = [
-            'dominant_network' => $platformData->first()->network_name ?? '-',
-            'highest_quality'  => $platformData->sortByDesc('avg_rating')->first()->network_name ?? '-',
-            'total_networks'   => DB::connection('sqlsrv')->table('v_Executive_Platform_Share')->count(),
-        ];
-
         return Inertia::render('Executive/Platforms', [
-            'kpi' => $kpi,
-            'data' => $platformData
+            'kpi' => $result['kpi'],
+            'data' => $result['data'], // Ini object Paginator (ada data, links, current_page, dll)
+            'isCompanyMode' => !!$companyId
         ]);
     }
 }

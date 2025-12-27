@@ -11,23 +11,22 @@ ChartJS.register(ArcElement, Tooltip, Legend, Title);
 // --- HELPER: FORMAT ANGKA INDONESIA ---
 const formatNum = (num) => new Intl.NumberFormat('id-ID').format(num);
 
-// --- COMPONENT: STAT CARD (Themed) ---
-const TalentStatCard = ({ label, value, icon, theme, colorClass, isZero }) => (
-    <div className={`relative overflow-hidden bg-[#1A1A1A] border border-white/5 rounded-2xl p-6 group transition-all duration-300 shadow-xl ${isZero ? 'opacity-60 grayscale' : 'hover:border-white/10'}`}>
-        {/* Glow Effect only if value > 0 */}
-        {!isZero && (
-            <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-[80px] opacity-10 transition-opacity group-hover:opacity-30 ${colorClass}`}></div>
-        )}
+// --- COMPONENT: STAT CARD (Dynamic) ---
+// Menerima prop 'data' yang berisi { label, value, icon } dari Controller
+const TalentStatCard = ({ data, theme, colorClass }) => (
+    <div className="relative overflow-hidden bg-[#1A1A1A] border border-white/5 rounded-2xl p-6 group hover:border-white/10 transition-all duration-300 shadow-xl">
+        {/* Glow Effect */}
+        <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full blur-[80px] opacity-10 transition-opacity group-hover:opacity-30 ${colorClass}`}></div>
         
         <div className="relative z-10 flex items-center gap-5">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-white/5 border border-white/5 ${isZero ? 'text-gray-500' : theme.text} shadow-inner`}>
-                <span className="material-symbols-outlined text-3xl">{icon}</span>
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-white/5 border border-white/5 ${theme.text} shadow-inner`}>
+                <span className="material-symbols-outlined text-3xl">{data.icon}</span>
             </div>
             <div>
-                <h4 className={`text-4xl font-black tracking-tighter ${isZero ? 'text-gray-500' : 'text-white'}`}>
-                    {typeof value === 'number' ? formatNum(value) : value}
+                <h4 className="text-4xl font-black text-white tracking-tighter">
+                    {typeof data.value === 'number' ? formatNum(data.value) : data.value}
                 </h4>
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-[0.15em] mt-1">{label}</p>
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-[0.15em] mt-1">{data.label}</p>
             </div>
         </div>
     </div>
@@ -38,16 +37,16 @@ const RisingStarItem = ({ rank, name, role, rating, year, theme }) => (
     <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-transparent hover:border-white/10 hover:bg-white/10 transition-all group cursor-default">
         {/* Rank Badge */}
         <div className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-black text-sm ${
-            rank === 1 ? 'bg-linear-to-br from-yellow-400 to-orange-500 text-black shadow-lg shadow-orange-500/20' : 
-            rank === 2 ? 'bg-linear-to-br from-gray-300 to-gray-400 text-black shadow-lg' : 
-            rank === 3 ? 'bg-linear-to-br from-orange-300 to-orange-400 text-black shadow-lg' : 'bg-[#222] text-gray-500'
+            rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-black shadow-lg shadow-orange-500/20' : 
+            rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black shadow-lg' : 
+            rank === 3 ? 'bg-gradient-to-br from-orange-300 to-orange-400 text-black shadow-lg' : 'bg-[#222] text-gray-500'
         }`}>
             {rank}
         </div>
         
         {/* Avatar Placeholder */}
         <div className="relative">
-            <div className={`w-10 h-10 rounded-full p-0.5 bg-linear-to-b ${theme.gradient}`}>
+            <div className={`w-10 h-10 rounded-full p-0.5 bg-gradient-to-b ${theme.gradient}`}>
                 <img 
                     src={`https://ui-avatars.com/api/?name=${name}&background=random&color=fff&size=128`} 
                     className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all border-2 border-[#121212]" 
@@ -81,14 +80,14 @@ export default function Talents({ kpi, charts, risingStars, bankable, isCompanyM
         text: 'text-purple-400',
         bg: 'bg-purple-500',
         gradient: 'from-purple-600 to-pink-500',
-        chartColors: ['#c084fc', '#e879f9', '#f472b6', '#fb7185', '#818cf8'] // Purple-Pink Spectrum
+        chartColors: ['#c084fc', '#e879f9', '#f472b6', '#fb7185', '#818cf8'] // Purple Spectrum
     } : {
         mode: 'Global',
         primary: '#22d3ee',
         text: 'text-cyan-400',
         bg: 'bg-cyan-500',
         gradient: 'from-cyan-500 to-blue-600',
-        chartColors: ['#22d3ee', '#3b82f6', '#0ea5e9', '#6366f1', '#14b8a6'] // Cyan-Blue Spectrum
+        chartColors: ['#22d3ee', '#3b82f6', '#0ea5e9', '#6366f1', '#14b8a6'] // Cyan Spectrum
     };
 
     // Chart Data Config
@@ -113,16 +112,13 @@ export default function Talents({ kpi, charts, risingStars, bankable, isCompanyM
                 <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-white/5 pb-8">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <span className={`flex h-3 w-3 relative`}>
-                                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${theme.bg}`}></span>
-                                <span className={`relative inline-flex rounded-full h-3 w-3 ${theme.bg}`}></span>
-                            </span>
+                            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${theme.bg}`}></span>
                             <span className={`text-xs font-bold uppercase tracking-[0.3em] ${theme.text} opacity-80`}>
                                 Human Resources
                             </span>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-                            {theme.mode} <span className="text-neutral-400">Talent Analytics</span>
+                            {theme.mode} <span className="text-neutral-500">Talent Analytics</span>
                         </h1>
                         <p className="text-neutral-500 text-sm mt-3 max-w-xl leading-relaxed">
                             {isCompanyMode 
@@ -137,32 +133,22 @@ export default function Talents({ kpi, charts, risingStars, bankable, isCompanyM
                     </button>
                 </div>
 
-                {/* --- 1. KPI SECTION --- */}
+                {/* --- 1. KPI SECTION (Dynamic from Controller) --- */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <TalentStatCard 
-                        label="Acting Talent" 
-                        value={kpi.total_actors} 
-                        icon="theater_comedy" 
+                        data={kpi.card_1}
                         theme={theme}
                         colorClass={isCompanyMode ? "bg-purple-500" : "bg-cyan-500"}
-                        isZero={kpi.total_actors === 0}
                     />
                     <TalentStatCard 
-                        label="Directing Talent" 
-                        value={kpi.total_directors} 
-                        icon="videocam" 
+                        data={kpi.card_2}
                         theme={theme}
                         colorClass={isCompanyMode ? "bg-pink-500" : "bg-blue-500"}
-                        isZero={kpi.total_directors === 0}
                     />
                     <TalentStatCard 
-                        // Jika mode company, label berubah jadi 'Creators / Showrunners' karena datanya diambil dari 'created_by'
-                        label={isCompanyMode ? "Creators / Writers" : "Scriptwriters"} 
-                        value={kpi.total_writers} 
-                        icon={isCompanyMode ? "engineering" : "history_edu"} 
+                        data={kpi.card_3}
                         theme={theme}
                         colorClass={isCompanyMode ? "bg-rose-500" : "bg-teal-500"}
-                        isZero={kpi.total_writers === 0}
                     />
                 </div>
 
