@@ -37,16 +37,16 @@ const RisingStarItem = ({ rank, name, role, rating, year, theme }) => (
     <div className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-transparent hover:border-white/10 hover:bg-white/10 transition-all group cursor-default">
         {/* Rank Badge */}
         <div className={`shrink-0 w-8 h-8 flex items-center justify-center rounded-lg font-black text-sm ${
-            rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-black shadow-lg shadow-orange-500/20' : 
-            rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-black shadow-lg' : 
-            rank === 3 ? 'bg-gradient-to-br from-orange-300 to-orange-400 text-black shadow-lg' : 'bg-[#222] text-gray-500'
+            rank === 1 ? 'bg-linear-to-br from-yellow-400 to-orange-500 text-black shadow-lg shadow-orange-500/20' : 
+            rank === 2 ? 'bg-linear-to-br from-gray-300 to-gray-400 text-black shadow-lg' : 
+            rank === 3 ? 'bg-linear-to-br from-orange-300 to-orange-400 text-black shadow-lg' : 'bg-[#222] text-gray-500'
         }`}>
             {rank}
         </div>
         
         {/* Avatar Placeholder */}
         <div className="relative">
-            <div className={`w-10 h-10 rounded-full p-0.5 bg-gradient-to-b ${theme.gradient}`}>
+            <div className={`w-10 h-10 rounded-full p-0.5 bg-linear-to-b ${theme.gradient}`}>
                 <img 
                     src={`https://ui-avatars.com/api/?name=${name}&background=random&color=fff&size=128`} 
                     className="w-full h-full rounded-full object-cover grayscale group-hover:grayscale-0 transition-all border-2 border-[#121212]" 
