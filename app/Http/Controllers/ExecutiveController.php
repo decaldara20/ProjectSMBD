@@ -514,8 +514,6 @@ class ExecutiveController extends Controller
             });
 
             // --- 4. KPI CALCULATIONS (Tetap Akurat untuk SELURUH Data) ---
-            // Kita pakai (clone $query) lagi. Karena $query di atas sudah kena filter Company (jika ada),
-            // maka KPI ini otomatis menyesuaikan (KPI Global atau KPI Company).
             
             // Cari Network Paling Dominan (Volume Terbanyak)
             $dominant = (clone $query)
@@ -544,7 +542,7 @@ class ExecutiveController extends Controller
 
         return Inertia::render('Executive/Platforms', [
             'kpi' => $result['kpi'],
-            'data' => $result['data'], // Ini object Paginator (ada data, links, current_page, dll)
+            'data' => $result['data'], 
             'isCompanyMode' => !!$companyId
         ]);
     }
