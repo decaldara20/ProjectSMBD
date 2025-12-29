@@ -347,38 +347,109 @@ class ProductionController extends Controller
         return redirect()->back();
     }
 
-    // --- 3. PEOPLE / TALENT LIST ---
-    public function people(Request $request) {
-        $query = DB::connection('sqlsrv')
-            ->table('v_DetailAktor')
-            ->select(
-                'nconst',
-                'primaryName',
-                'birthYear',
-                'deathYear',
-                'profession as primaryProfession', 
-                'known_for_titles as knownFor'
-            );
+    // --- 3. PEOPLE (TALENT REGISTRY) ---
+    public function people(Request $request)
+    {
+        $companyId = $request->input('company_id');
+        $search = $request->search;
+        $page = $request->page ?? 1;
 
-        // Filter Search (Nama)
-        if ($request->search) {
-            $query->where('primaryName', 'LIKE', '%' . $request->search . '%');
-        }
+        // Cache Key beda versi karena logic berubah drastis
+        $mode = $companyId ? "company_{$companyId}" : "global";
+        $searchKey = $search ? "_search_" . md5($search) : "";
+        $cacheKey = "prod_people_{$mode}_page_{$page}{$searchKey}_v3"; 
 
-        // Filter Profesi (Dropdown)
-        if ($request->role && $request->role !== 'all') {
-            $query->where('primaryProfession', 'LIKE', '%' . $request->role . '%');
-        }
+        $people = Cache::remember($cacheKey, 600, function() use ($companyId, $search) {
+            $conn = DB::connection('sqlsrv');
 
-        // Pagination
-        $people = $query->orderBy('primaryName')
-                        ->paginate(10)
-                        ->withQueryString();
+            if ($companyId) {
+                // --- A. MODE COMPANY (MADHOUSE - TV Show Creators) ---
+                // Sumber: created_by_types -> created_by -> shows -> production_companies
+                
+                $query = $conn->table('created_by_types as cbt')
+                    ->join('created_by as cb', 'cbt.created_by_type_id', '=', 'cb.created_by_type_id')
+                    ->join('shows as s', 'cb.show_id', '=', 's.show_id')
+                    ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                    ->where('pc.production_company_type_id', $companyId)
+                    ->select(
+                        // Mapping kolom agar sama dengan struktur name_basics di Frontend
+                        'cbt.created_by_type_id as nconst', // ID
+                        'cbt.created_by_name as primaryName', // Nama
+                        DB::raw("NULL as birthYear"), // Tidak ada data tahun
+                        DB::raw("NULL as deathYear"),
+                        DB::raw("'Creator, Showrunner' as professions") // Hardcode profesi
+                    )
+                    ->distinct(); // Agar nama tidak duplikat jika creator bikin banyak show
+
+                if ($search) {
+                    $query->where('cbt.created_by_name', 'LIKE', '%' . $search . '%');
+                }
+
+                return $query->orderBy('cbt.created_by_name')
+                    ->paginate(12)
+                    ->withQueryString();
+
+            } else {
+                // --- B. MODE GLOBAL (IMDb - All Actors/Staff) ---
+                $query = $conn->table('name_basics as nb')
+                    ->leftJoin('name_professions as np', 'nb.nconst', '=', 'np.nconst')
+                    ->select(
+                        'nb.nconst',
+                        'nb.primaryName',
+                        'nb.birthYear',
+                        'nb.deathYear',
+                        DB::raw("STRING_AGG(np.profession_name, ', ') WITHIN GROUP (ORDER BY np.profession_name) as professions")
+                    )
+                    ->groupBy('nb.nconst', 'nb.primaryName', 'nb.birthYear', 'nb.deathYear');
+
+                // Search di Global Mode
+                if ($search) {
+                    $query->where('nb.primaryName', 'LIKE', '%' . $search . '%');
+                }
+
+                return $query->orderBy('nb.primaryName')
+                    ->paginate(12)
+                    ->withQueryString();
+            }
+        });
 
         return Inertia::render('Production/People/Index', [
             'people' => $people,
-            'filters' => $request->all(['search', 'role'])
+            'filters' => $request->all(['search']),
+            'isCompanyMode' => !!$companyId,
+            'companyId' => $companyId
         ]);
+    }
+
+
+    public function storePerson(Request $request)
+    {
+        $request->validate(['primaryName' => 'required|string|max:255']);
+
+        DB::connection('sqlsrv')->table('created_by_types')->insert([
+            'created_by_name' => $request->primaryName
+        ]);
+
+        return redirect()->back();
+    }
+
+    public function updatePerson(Request $request, $id)
+    {
+        DB::connection('sqlsrv')->table('created_by_types')
+            ->where('created_by_type_id', $id)
+            ->update([
+                'created_by_name' => $request->primaryName
+            ]);
+
+        return redirect()->back();
+    }
+
+    public function destroyPerson($id)
+    {
+        DB::connection('sqlsrv')->table('created_by')->where('created_by_type_id', $id)->delete();
+        DB::connection('sqlsrv')->table('created_by_types')->where('created_by_type_id', $id)->delete();
+
+        return redirect()->back();
     }
 
     // --- 4. COMPANIES ---
