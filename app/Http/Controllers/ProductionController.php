@@ -206,40 +206,145 @@ class ProductionController extends Controller
     }
 
     // --- 2. TV SHOWS LIST ---
-    public function tvShows(Request $request) {
-        $query = DB::connection('sqlsrv')
-            ->table('v_DetailJudulTvShow')
-            ->select(
-                'show_id as tconst',      
-                'primaryTitle', 
-                'startYear',              
-                'endYear',                 
-                'Genres_List as genres',   
-                'averageRating', 
-                'numVotes',
-                DB::raw("'tvSeries' as titleType") 
-            );
+    public function tvShows(Request $request)
+    {
+        $companyId = $request->input('company_id');
+        $search = $request->search;
 
-        // Fitur Search
-        if ($request->search) {
-            $query->where('primaryTitle', 'LIKE', '%' . $request->search . '%');
+        $conn = DB::connection('sqlsrv');
+
+        if ($companyId) {
+            // --- A. MODE COMPANY (MADHOUSE) ---
+            $query = $conn->table('shows as s')
+                ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                ->leftJoin('show_votes as sv', 's.show_id', '=', 'sv.show_id') // Join rating
+                ->leftJoin('air_dates as ad', function($join) {
+                    $join->on('s.show_id', '=', 'ad.show_id')->where('ad.is_first', '=', 1);
+                })
+                ->where('pc.production_company_type_id', $companyId) // Filter Madhouse
+                ->select(
+                    's.show_id as tconst',
+                    's.name as primaryTitle',
+                    's.overview',
+                    's.number_of_seasons',
+                    's.number_of_episodes',
+                    DB::raw("FORMAT(ad.date, 'yyyy') as startYear"), // Ambil Tahun
+                    'sv.vote_average as averageRating',
+                    'sv.vote_count as numVotes',
+                    DB::raw("'tvSeries' as titleType")
+                );
+
+        } else {
+            // --- B. MODE GLOBAL (RIVAL) - READ ONLY ---
+            $query = $conn->table('v_DetailJudulTvShow')
+                ->select(
+                    'show_id as tconst',
+                    'primaryTitle',
+                    'startYear',
+                    'endYear',
+                    'Genres_List as genres',
+                    'averageRating',
+                    'numVotes',
+                    DB::raw("'tvSeries' as titleType")
+                );
         }
 
-        // Pagination + Formatting Data
-        $shows = $query->orderByDesc('startYear')
-                        ->orderByDesc('averageRating')
-                        ->paginate(10)
-                        ->withQueryString()
-                        ->through(function ($item) {
-                            $item->startYear = $item->startYear ? substr((string)$item->startYear, 0, 4) : null;
-                            $item->endYear   = $item->endYear   ? substr((string)$item->endYear, 0, 4)   : null;
-                            return $item;
-                        });
+        // Fitur Search
+        if ($search) {
+            $query->where($companyId ? 's.name' : 'primaryTitle', 'LIKE', '%' . $search . '%');
+        }
+
+        // Pagination
+        $shows = $query->orderByDesc($companyId ? 'ad.date' : 'startYear')
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Production/TvShows/Index', [
             'shows' => $shows,
-            'filters' => $request->all(['search'])
+            'filters' => $request->all(['search']),
+            'isCompanyMode' => !!$companyId, // Flag untuk Frontend
+            'companyId' => $companyId
         ]);
+    }
+
+    // --- CREATE (Insert ke Database) ---
+    public function storeTvShow(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'overview' => 'nullable|string',
+            'seasons' => 'required|integer',
+            'episodes' => 'required|integer',
+            'company_id' => 'required'
+        ]);
+
+        DB::transaction(function () use ($request) {
+            // 1. Insert ke tabel shows (Dapatkan ID baru)
+            $showId = DB::connection('sqlsrv')->table('shows')->insertGetId([
+                'name' => $request->name,
+                'overview' => $request->overview,
+                'number_of_seasons' => $request->seasons,
+                'number_of_episodes' => $request->episodes,
+                // Default values
+                'adult' => 0,
+                'in_production' => 1,
+                'popularity' => 0,
+                'type_id' => 1, // TV Series
+                'status_id' => 1 // Returning Series
+            ]);
+
+            // 2. Link ke Madhouse (production_companies)
+            DB::connection('sqlsrv')->table('production_companies')->insert([
+                'show_id' => $showId,
+                'production_company_type_id' => $request->company_id
+            ]);
+
+            // 3. Set Start Date
+            DB::connection('sqlsrv')->table('air_dates')->insert([
+                'show_id' => $showId,
+                'date' => now(),
+                'is_first' => 1
+            ]);
+        });
+
+        return redirect()->back();
+    }
+
+    // --- UPDATE (Edit Database) ---
+    public function updateTvShow(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'overview' => 'nullable|string',
+            'seasons' => 'required|integer',
+            'episodes' => 'required|integer',
+        ]);
+
+        DB::connection('sqlsrv')->table('shows')
+            ->where('show_id', $id)
+            ->update([
+                'name' => $request->name,
+                'overview' => $request->overview,
+                'number_of_seasons' => $request->seasons,
+                'number_of_episodes' => $request->episodes,
+            ]);
+
+        return redirect()->back();
+    }
+
+    // --- DELETE (Hapus dari Database) ---
+    public function destroyTvShow($id)
+    {
+        // Hapus relasi dulu (Foreign Keys) atau set ON DELETE CASCADE di DB
+        // Di sini kita hapus manual relasinya untuk keamanan
+        DB::connection('sqlsrv')->table('production_companies')->where('show_id', $id)->delete();
+        DB::connection('sqlsrv')->table('air_dates')->where('show_id', $id)->delete();
+        DB::connection('sqlsrv')->table('show_votes')->where('show_id', $id)->delete();
+        
+        // Hapus data utama
+        DB::connection('sqlsrv')->table('shows')->where('show_id', $id)->delete();
+
+        return redirect()->back();
     }
 
     // --- 3. PEOPLE / TALENT LIST ---

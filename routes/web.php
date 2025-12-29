@@ -96,12 +96,29 @@ Route::middleware(['auth', 'role:executive'])->prefix('executive')->group(functi
 
 // GROUP PRODUCTION
 Route::middleware(['auth', 'role:production'])->prefix('production')->group(function () {
+    // Dashboard
     Route::get('/dashboard', [ProductionController::class, 'dashboard'])->name('production.dashboard');
+    
+    // Films (Global Read Only)
     Route::get('/films', [ProductionController::class, 'films'])->name('production.films');
-    Route::get('/tv-shows', [ProductionController::class, 'tvShows'])->name('production.tv_shows');
+    
+    // TV Shows (List)
+    Route::get('/tv-shows', [ProductionController::class, 'tvShows'])->name('production.tv-shows'); // Konsisten pakai tv-shows (dash)
+    
+    // TV Shows (CRUD Functions) 
+    Route::post('/tv-shows', [ProductionController::class, 'storeTvShow'])->name('production.tv-shows.store');
+    Route::put('/tv-shows/{id}', [ProductionController::class, 'updateTvShow'])->name('production.tv-shows.update');
+    Route::delete('/tv-shows/{id}', [ProductionController::class, 'destroyTvShow'])->name('production.tv-shows.destroy');
+    
+    // People & Companies
     Route::get('/people', [ProductionController::class, 'people'])->name('production.people');
     Route::get('/companies', [ProductionController::class, 'companies'])->name('production.companies');
+    
+    // Genres (List + CRUD untuk Modal di Dashboard)
     Route::get('/genres', [ProductionController::class, 'genres'])->name('production.genres');
-    // Nanti tambah route CRUD movie disini
+    
+    // Modal Genre di Dashboard
+    Route::post('/genres', [ProductionController::class, 'storeGenre'])->name('production.genres.store');
+    Route::delete('/genres/{id}', [ProductionController::class, 'destroyGenre'])->name('production.genres.destroy');
 });
 
