@@ -14,8 +14,7 @@ class ProductionController extends Controller
     {
         $companyId = $request->input('company_id');
         
-        // Cache Key v10 (Refresh struktur baru)
-        $cacheKey = $companyId ? "prod_dash_company_{$companyId}_v10" : "prod_dash_global_v10";
+        $cacheKey = $companyId ? "prod_dash_company_{$companyId}_v1" : "prod_dash_global_v1";
 
         // Cache 10 Menit
         $data = Cache::remember($cacheKey, 600, function() use ($companyId) {
@@ -70,7 +69,7 @@ class ProductionController extends Controller
                     ->where('ad.is_first', 1)
                     ->select('s.name as primaryTitle', 'ad.date as release_date', DB::raw("'TV Show' as titleType"), 'sv.vote_average as averageRating', 's.number_of_seasons')
                     ->orderByDesc('ad.date')
-                    ->limit(20) // Limit diperbesar karena tabel bisa scroll
+                    ->limit(20) 
                     ->get()
                     ->map(function($item) {
                         return [
