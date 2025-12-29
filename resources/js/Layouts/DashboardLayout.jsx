@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
 import CompanySwitcher from '@/Components/Dashboard/CompanySwitcher';
 
-export default function DashboardLayout({ children }) {
+export default function DashboardLayout({ children, isSwitcherDisabled = false }) {
     const { auth } = usePage().props;
     const user = auth.user;
 
@@ -24,11 +24,13 @@ export default function DashboardLayout({ children }) {
     const currentCompanyId = params.get('company_id');
 
     const isGlobalOnlyPage = window.location.pathname.startsWith('/production/films');
+    const shouldDisableSwitcher = isGlobalOnlyPage || isSwitcherDisabled;
 
     // Menu Configuration
     const menus = user.role === 'executive' ? [
         { name: 'Overview', icon: 'dashboard', route: '/executive/dashboard' },
         { name: 'Market Trends', icon: 'trending_up', route: '/executive/trends' },
+        { name: 'Competitor Intel', icon: 'swords', route: '/executive/competitor-intel' },
         { name: 'Studio DNA', icon: 'fingerprint', route: '/executive/talents' },
         { name: 'Platform Intel', icon: 'pie_chart', route: '/executive/platforms' },
     ] : [
@@ -194,7 +196,7 @@ export default function DashboardLayout({ children }) {
                         {/* Company Switcher */}
                         <CompanySwitcher 
                             currentCompany={isGlobalOnlyPage ? null : currentCompanyId} 
-                            disabled={isGlobalOnlyPage} 
+                            disabled={shouldDisableSwitcher} 
                         />
                         
                         <div className="h-8 w-px bg-white/10 hidden sm:block"></div>
