@@ -32,7 +32,7 @@ const StatCard = ({ label, value, icon, color, glow }) => (
 
 // --- COMPONENT: QUICK ACTION BUTTON ---
 const QuickActionButton = ({ onClick, icon, title, desc, themeColor }) => (
-    <button onClick={onClick} className="w-full flex items-center gap-4 p-3 rounded-xl bg-white/[0.02] hover:bg-white/5 border border-transparent hover:border-white/5 transition-all group text-left">
+    <button onClick={onClick} className="w-full flex items-center gap-4 p-3 rounded-xl bg-white/2 hover:bg-white/5 border border-transparent hover:border-white/5 transition-all group text-left">
         <div className={`w-10 h-10 rounded-lg bg-[#181818] flex items-center justify-center text-gray-400 group-hover:text-white group-hover:${themeColor} transition-all shadow-inner border border-white/5`}>
             <span className="material-symbols-outlined text-xl">{icon}</span>
         </div>
@@ -333,7 +333,7 @@ export default function Dashboard({ stats, charts, recentItems, genres, isCompan
                                         <div key={i} className="flex items-center justify-between text-[10px]">
                                             <div className="flex items-center gap-2">
                                                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: donutData.datasets[0].backgroundColor[i] }}></span>
-                                                <span className="text-gray-400 font-medium truncate max-w-[80px]">{d.status_name}</span>
+                                                <span className="text-gray-400 font-medium truncate max-w-20">{d.status_name}</span>
                                             </div>
                                             <span className="font-bold text-white">{formatNum(d.count)}</span>
                                         </div>
