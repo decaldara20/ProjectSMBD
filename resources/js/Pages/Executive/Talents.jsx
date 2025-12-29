@@ -118,7 +118,7 @@ export default function Talents({ kpi, charts, risingStars, bankable, isCompanyM
                             </span>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-                            {theme.mode} <span className="text-neutral-500">Talent Analytics</span>
+                            {theme.mode} <span className="text-gray-400">Talent Analytics</span>
                         </h1>
                         <p className="text-neutral-500 text-sm mt-3 max-w-xl leading-relaxed">
                             {isCompanyMode 

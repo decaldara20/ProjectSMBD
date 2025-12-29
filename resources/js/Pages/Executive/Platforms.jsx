@@ -192,7 +192,7 @@ export default function Platforms({ kpi, data, isCompanyMode }) {
                             </span>
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-                            {theme.mode} <span className="text-neutral-500">Networks</span>
+                            {theme.mode} <span className="text-gray-400">Networks</span>
                         </h1>
                         <p className="text-neutral-500 text-sm mt-3 max-w-xl leading-relaxed">
                             {isCompanyMode 
