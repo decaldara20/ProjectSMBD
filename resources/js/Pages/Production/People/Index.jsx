@@ -78,7 +78,7 @@ const PersonModal = ({ isOpen, onClose, mode, personData, isCompanyMode }) => {
                         <button 
                             type="submit" 
                             disabled={processing}
-                            className="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-amber-900/20 flex justify-center items-center gap-2 disabled:opacity-50"
+                            className="w-full bg-linear-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-amber-900/20 flex justify-center items-center gap-2 disabled:opacity-50"
                         >
                             {processing ? (
                                 <span className="material-symbols-outlined animate-spin text-xl">progress_activity</span>
@@ -185,7 +185,7 @@ export default function PeopleIndex({ people, filters, isCompanyMode }) {
                             <div key={person.nconst} className="group relative bg-[#121212] border border-white/5 rounded-3xl p-5 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-black/60 hover:-translate-y-1">
                                 
                                 {/* Background Gradient on Hover */}
-                                <div className={`absolute inset-0 bg-gradient-to-br ${isCompanyMode ? 'from-amber-500/5 to-transparent' : 'from-cyan-500/5 to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl pointer-events-none`}></div>
+                                <div className={`absolute inset-0 bg-linear-to-br ${isCompanyMode ? 'from-amber-500/5 to-transparent' : 'from-cyan-500/5 to-transparent'} opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl pointer-events-none`}></div>
 
                                 {/* Header: Avatar & Name */}
                                 <div className="relative z-10 flex items-start gap-4">
