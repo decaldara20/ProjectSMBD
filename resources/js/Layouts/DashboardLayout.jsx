@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }) {
         { name: 'Films', icon: 'movie', route: '/production/films' },
         { name: 'TV Shows', icon: 'live_tv', route: '/production/tv-shows' },
         { name: 'People', icon: 'person', route: '/production/people' },
-        { name: 'Companies', icon: 'domain', route: '/production/companies' },
+        // { name: 'Companies', icon: 'domain', route: '/production/companies' },
         { name: 'Genres', icon: 'category', route: '/production/genres' },
     ];
 
