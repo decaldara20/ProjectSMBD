@@ -87,9 +87,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth', 'role:executive'])->prefix('executive')->group(function () {
     Route::get('/dashboard', [ExecutiveController::class, 'dashboard'])->name('executive.dashboard');
     Route::get('/trends', [ExecutiveController::class, 'trends'])->name('executive.trends');
+    Route::get('/competitor-intel', [ExecutiveController::class, 'competitorIntel'])->name('executive.competitor-intel');
     Route::get('/talents', [ExecutiveController::class, 'talents'])->name('executive.talents');
     Route::get('/platforms', [ExecutiveController::class, 'platforms'])->name('executive.platforms');
-    // Nanti tambah route report dll disini
 });
 
 // GROUP PRODUCTION
