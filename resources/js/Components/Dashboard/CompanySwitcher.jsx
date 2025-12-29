@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 
-// PERBAIKAN 1: Tambahkan 'disabled' di sini
 export default function CompanySwitcher({ currentCompany, disabled }) { 
     const [isOpen, setIsOpen] = useState(false);
 
