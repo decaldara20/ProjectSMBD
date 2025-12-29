@@ -51,12 +51,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
-// PERUBAHAN DI SINI: Ganti 'searchTitles' menjadi 'search'
-// sesuai dengan nama function baru di Controller Anda.
-// Ganti 'searchTitles' menjadi 'search'
 Route::get('/search', [GuestController::class, 'search'])->name('search');
 
 Route::get('/title/{tconst}', [GuestController::class, 'showTitleDetail'])->name('title.detail');
+
 // Rute Detail TV Show (Menggunakan ID Angka)
 Route::get('/tv/{show_id}', [GuestController::class, 'showTvDetail'])->name('tv.detail');
 Route::get('/person/{nconst}', [GuestController::class, 'showPersonDetail'])->name('person.detail');
@@ -64,7 +62,7 @@ Route::get('/person/{nconst}', [GuestController::class, 'showPersonDetail'])->na
 // Rute Detail TV Show (Parameter pakai show_id)
 Route::get('/tv/{show_id}', [GuestController::class, 'showTvDetail'])->name('tv.detail');
 
-//rute aktor
+// Rute Aktor
 Route::get('/person/{nconst}', [GuestController::class, 'showPersonDetail'])->name('person.detail');
 
 // Halaman About Us
@@ -102,18 +100,18 @@ Route::middleware(['auth', 'role:production'])->prefix('production')->group(func
     // Films (Global Read Only)
     Route::get('/films', [ProductionController::class, 'films'])->name('production.films');
     
-    // TV Shows (List)
+    // TV Shows (List & CRUD)
     Route::get('/tv-shows', [ProductionController::class, 'tvShows'])->name('production.tv-shows'); // Konsisten pakai tv-shows (dash)
-    
-    // TV Shows (CRUD Functions) 
     Route::post('/tv-shows', [ProductionController::class, 'storeTvShow'])->name('production.tv-shows.store');
     Route::put('/tv-shows/{id}', [ProductionController::class, 'updateTvShow'])->name('production.tv-shows.update');
     Route::delete('/tv-shows/{id}', [ProductionController::class, 'destroyTvShow'])->name('production.tv-shows.destroy');
     
-    // People & Companies
+    // People (List & CRUD)
     Route::get('/people', [ProductionController::class, 'people'])->name('production.people');
-    Route::get('/companies', [ProductionController::class, 'companies'])->name('production.companies');
-    
+    Route::post('/people', [ProductionController::class, 'storePerson'])->name('production.people.store');
+    Route::put('/people/{id}', [ProductionController::class, 'updatePerson'])->name('production.people.update');
+    Route::delete('/people/{id}', [ProductionController::class, 'destroyPerson'])->name('production.people.destroy');
+
     // Genres (List + CRUD untuk Modal di Dashboard)
     Route::get('/genres', [ProductionController::class, 'genres'])->name('production.genres');
     

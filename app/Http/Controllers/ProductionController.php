@@ -453,41 +453,141 @@ class ProductionController extends Controller
     }
 
     // --- 4. COMPANIES ---
-    public function companies(Request $request) {
-        $query = DB::connection('sqlsrv')->table('v_CompanyStats');
+    public function companies(Request $request)
+    {
+        $companyId = $request->input('company_id');
+        $search = $request->search;
+        $page = $request->page ?? 1;
 
-        // 1. Filter Search
-        if ($request->search) {
-            $query->where('company_name', 'LIKE', '%' . $request->search . '%');
-        }
+        $mode = $companyId ? "company_crud" : "global_view";
+        $searchKey = $search ? "_search_" . md5($search) : "";
+        $cacheKey = "prod_companies_{$mode}_page_{$page}{$searchKey}_v1";
 
-        // Pagination
-        $companies = $query->orderByDesc('total_titles')
-                            ->orderByDesc('avg_rating')
-                            ->paginate(12)
-                            ->withQueryString();
+        $companies = Cache::remember($cacheKey, 600, function() use ($search) {
+            $conn = DB::connection('sqlsrv');
+
+            // Query Master Data: production_company_types
+            $query = $conn->table('production_company_types as pct')
+                ->leftJoin('production_companies as pc', 'pct.production_company_type_id', '=', 'pc.production_company_type_id')
+                ->select(
+                    'pct.production_company_type_id as id',
+                    'pct.production_company_name as name',
+                    DB::raw('COUNT(pc.show_id) as total_titles') // Hitung jumlah film/series
+                )
+                ->groupBy('pct.production_company_type_id', 'pct.production_company_name');
+
+            if ($search) {
+                $query->where('pct.production_company_name', 'LIKE', '%' . $search . '%');
+            }
+
+            return $query->orderByDesc('total_titles')
+                ->paginate(12)
+                ->withQueryString();
+        });
 
         return Inertia::render('Production/Companies/Index', [
             'companies' => $companies,
-            'filters' => $request->all(['search'])
+            'filters' => $request->all(['search']),
+            'isCompanyMode' => !!$companyId, 
         ]);
     }
 
-    // --- 5. GENRES ---
-    public function genres(Request $request) {
-        $query = DB::connection('sqlsrv')->table('v_GenreStats');
+    public function storeCompany(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
 
-        if ($request->search) {
-            $query->where('genre_name', 'LIKE', '%' . $request->search . '%');
+        DB::connection('sqlsrv')->table('production_company_types')->insert([
+            'production_company_name' => $request->name
+        ]);
+
+        return redirect()->back();
+    }
+
+    public function updateCompany(Request $request, $id)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+
+        DB::connection('sqlsrv')->table('production_company_types')
+            ->where('production_company_type_id', $id)
+            ->update([
+                'production_company_name' => $request->name
+            ]);
+
+        return redirect()->back();
+    }
+
+    public function destroyCompany($id)
+    {
+        $isUsed = DB::connection('sqlsrv')->table('production_companies')
+            ->where('production_company_type_id', $id)
+            ->exists();
+
+        if ($isUsed) {
+            return redirect()->back()->with('error', 'Cannot delete company attached to productions.');
         }
 
-        $genres = $query->orderByDesc('total_titles')
-                        ->paginate(12)
-                        ->withQueryString();
+        DB::connection('sqlsrv')->table('production_company_types')
+            ->where('production_company_type_id', $id)
+            ->delete();
+
+        return redirect()->back();
+    }
+
+    // --- 5. GENRES ---
+    public function genres(Request $request)
+    {
+        $companyId = $request->input('company_id');
+        $search = $request->search;
+        $page = $request->page ?? 1; // Ambil nomor halaman
+        
+        // Cache Key
+        $mode = $companyId ? "company_{$companyId}_filtered" : "global_all";
+        $searchKey = $search ? "_search_" . md5($search) : "";
+        $cacheKey = "prod_genres_{$mode}_page_{$page}{$searchKey}_v4"; 
+
+        $genres = Cache::remember($cacheKey, 600, function() use ($companyId, $search) {
+            $conn = DB::connection('sqlsrv');
+
+            if ($companyId) {
+                // --- A. MODE COMPANY (FILTERED) ---
+                $query = $conn->table('genre_types as gt')
+                    ->join('genres as g', 'gt.genre_type_id', '=', 'g.genre_type_id') 
+                    ->join('shows as s', 'g.show_id', '=', 's.show_id')
+                    ->join('production_companies as pc', 's.show_id', '=', 'pc.show_id')
+                    ->where('pc.production_company_type_id', $companyId) 
+                    ->select(
+                        'gt.genre_type_id as id',
+                        'gt.genre_name as name',
+                        DB::raw('COUNT(s.show_id) as usage_count') 
+                    )
+                    ->groupBy('gt.genre_type_id', 'gt.genre_name');
+
+            } else {
+                // --- B. MODE GLOBAL (MASTER LIST) ---
+                $query = $conn->table('genre_types as gt')
+                    ->leftJoin('genres as g', 'gt.genre_type_id', '=', 'g.genre_type_id')
+                    ->select(
+                        'gt.genre_type_id as id',
+                        'gt.genre_name as name',
+                        DB::raw('COUNT(g.show_id) as usage_count')
+                    )
+                    ->groupBy('gt.genre_type_id', 'gt.genre_name');
+            }
+
+            if ($search) {
+                $query->where('gt.genre_name', 'LIKE', '%' . $search . '%');
+            }
+
+            return $query->orderByDesc('usage_count')
+                            ->orderBy('gt.genre_name')
+                            ->paginate(18)
+                            ->withQueryString();
+            });
 
         return Inertia::render('Production/Genres/Index', [
             'genres' => $genres,
-            'filters' => $request->all(['search'])
+            'filters' => $request->all(['search']),
+            'isCompanyMode' => !!$companyId
         ]);
     }
 }
