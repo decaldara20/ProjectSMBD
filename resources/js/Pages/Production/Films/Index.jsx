@@ -4,7 +4,6 @@ import { Head, Link, router } from '@inertiajs/react';
 
 export default function FilmIndex({ films, filters }) {
     const [search, setSearch] = useState(filters.search || '');
-    // Filter Type dihapus karena permintaan (hanya menampilkan semua / default dari controller)
 
     // Debounce Search
     useEffect(() => {
