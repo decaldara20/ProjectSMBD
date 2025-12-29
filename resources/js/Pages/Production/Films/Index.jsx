@@ -4,24 +4,18 @@ import { Head, Link, router } from '@inertiajs/react';
 
 export default function FilmIndex({ films, filters }) {
     const [search, setSearch] = useState(filters.search || '');
-    const [type, setType] = useState(filters.type || 'all');
+    // Filter Type dihapus karena permintaan (hanya menampilkan semua / default dari controller)
 
     // Debounce Search
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             if (search !== (filters.search || '')) {
-                router.get('/production/films', { search, type }, { preserveState: true, replace: true });
+                // Hapus parameter 'type' dari router.get karena sudah tidak dipakai di UI
+                router.get('/production/films', { search }, { preserveState: true, replace: true });
             }
         }, 500);
         return () => clearTimeout(timeoutId);
     }, [search]);
-
-    // Handle Type Filter Change
-    const handleTypeChange = (e) => {
-        const newType = e.target.value;
-        setType(newType);
-        router.get('/production/films', { search, type: newType }, { preserveState: true, replace: true });
-    };
 
     // Helper: Format Durasi
     const formatRuntime = (mins) => {
@@ -39,7 +33,7 @@ export default function FilmIndex({ films, filters }) {
         return 'text-rose-400';
     };
 
-    // Helper: Badge Style
+    // Helper: Badge Style (Tetap ada untuk menampilkan tipe di tabel)
     const getTypeBadge = (t) => {
         const typeMap = {
             movie: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
@@ -68,33 +62,14 @@ export default function FilmIndex({ films, filters }) {
                             Content <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-indigo-500">Registry</span>
                         </h1>
                         <p className="text-gray-500 text-sm mt-2 max-w-2xl">
-                            {/* UPDATE 1: Pakai 'id-ID' disini */}
                             Centralized database for all {films.total.toLocaleString('id-ID')} assets. Manage metadata for Movies, TV Shows, Games, and Shorts.
                         </p>
                     </div>
 
                     <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
                         
-                        {/* 1. Type Filter Dropdown */}
-                        <div className="relative group">
-                            <span className="absolute left-3 top-3 text-gray-500 material-symbols-outlined text-lg pointer-events-none">filter_alt</span>
-                            <select 
-                                value={type} 
-                                onChange={handleTypeChange}
-                                className="w-full sm:w-48 bg-[#121212] border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-white appearance-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 outline-none cursor-pointer hover:border-white/20 transition-all text-sm font-medium"
-                            >
-                                <option value="all">All Types</option>
-                                <option value="movie">Movies</option>
-                                <option value="tvSeries">TV Series</option>
-                                <option value="tvEpisode">TV Episodes</option>
-                                <option value="short">Shorts</option>
-                                <option value="videoGame">Video Games</option>
-                            </select>
-                            <span className="absolute right-3 top-3 text-gray-600 material-symbols-outlined text-sm pointer-events-none">expand_more</span>
-                        </div>
-
-                        {/* 2. Search Bar */}
-                        <div className="relative group flex-1 sm:w-64">
+                        {/* 1. Search Bar (Sekarang mengambil lebar penuh/flex-1 karena dropdown hilang) */}
+                        <div className="relative group flex-1 sm:w-80">
                             <span className="absolute left-3 top-2.5 text-gray-500 group-focus-within:text-blue-400 material-symbols-outlined transition-colors">search</span>
                             <input 
                                 type="text" 
@@ -105,11 +80,22 @@ export default function FilmIndex({ films, filters }) {
                             />
                         </div>
 
-                        {/* 3. Add Button */}
-                        <Link href="/production/movies/create" className="bg-white text-black hover:bg-gray-200 font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95">
+                        {/* 2. Add Button (Read Only Mode: Disabled/Removed or Keep if needed) */}
+                        {/* Sesuai request sebelumnya "Global Mode Read Only", tombol ini bisa dihilangkan. 
+                            Tapi jika Anda ingin membiarkannya untuk navigasi ke form create (meski nanti diblokir di backend), biarkan saja.
+                            Jika ingin benar-benar Read Only, hapus block <Link> ini. */}
+                        
+                        {/* <Link href="/production/movies/create" className="bg-white text-black hover:bg-gray-200 font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] active:scale-95">
                             <span className="material-symbols-outlined text-xl">add_box</span> 
                             <span className="whitespace-nowrap">New Entry</span>
-                        </Link>
+                        </Link> */}
+                        
+                        {/* Tombol Info Global (Pengganti Add Button) */}
+                        <div className="bg-white/5 border border-white/10 text-gray-400 font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 cursor-default select-none">
+                            <span className="material-symbols-outlined text-lg">public</span>
+                            <span className="whitespace-nowrap text-xs uppercase tracking-wider">Global View</span>
+                        </div>
+
                     </div>
                 </div>
 
@@ -126,7 +112,7 @@ export default function FilmIndex({ films, filters }) {
                                     <th className="px-6 py-4">Genres</th>
                                     <th className="px-6 py-4 text-center">Runtime</th>
                                     <th className="px-6 py-4 text-center">Rating</th>
-                                    <th className="px-6 py-4 text-right">Actions</th>
+                                    <th className="px-6 py-4 text-right">Market Data</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -190,25 +176,18 @@ export default function FilmIndex({ films, filters }) {
                                                         {film.averageRating ? Number(film.averageRating).toFixed(1) : '-'}
                                                         <span className="material-symbols-outlined text-sm filled">star</span>
                                                     </div>
-                                                    {film.numVotes > 0 && (
-                                                        <div className="text-[9px] text-gray-600 mt-0.5 uppercase tracking-wide">
-                                                            {/* UPDATE 2: Pakai 'id-ID' disini */}
-                                                            {Number(film.numVotes).toLocaleString('id-ID')} Votes
-                                                        </div>
-                                                    )}
                                                 </div>
                                             </td>
 
-                                            {/* Column 6: Actions */}
+                                            {/* Column 6: Market Data (Votes) - Ganti Actions Edit/Delete dengan Info */}
                                             <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
-                                                    <Link href={`/production/movies/${film.tconst}/edit`} className="w-8 h-8 flex items-center justify-center hover:bg-blue-500/10 text-gray-400 hover:text-blue-400 rounded-lg transition-all" title="Edit Metadata">
-                                                        <span className="material-symbols-outlined text-lg">edit</span>
-                                                    </Link>
-                                                    <button className="w-8 h-8 flex items-center justify-center hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-lg transition-all" title="Delete Entry">
-                                                        <span className="material-symbols-outlined text-lg">delete</span>
-                                                    </button>
-                                                </div>
+                                                {film.numVotes > 0 ? (
+                                                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wide bg-white/5 px-2 py-1 rounded-lg inline-block border border-white/5">
+                                                        {Number(film.numVotes).toLocaleString('id-ID')} Votes
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[10px] text-gray-700 uppercase">No Data</span>
+                                                )}
                                             </td>
 
                                         </tr>
@@ -222,13 +201,13 @@ export default function FilmIndex({ films, filters }) {
                                                 </div>
                                                 <p className="font-bold text-gray-300 text-lg">No records found</p>
                                                 <p className="text-sm text-gray-600 mt-1 max-w-xs">
-                                                    Try adjusting your search query or changing the content type filter.
+                                                    Try adjusting your search query.
                                                 </p>
                                                 <button 
-                                                    onClick={() => { setSearch(''); setType('all'); router.get('/production/films'); }}
+                                                    onClick={() => { setSearch(''); router.get('/production/films'); }}
                                                     className="mt-6 text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest"
                                                 >
-                                                    Clear Filters
+                                                    Clear Search
                                                 </button>
                                             </div>
                                         </td>
@@ -241,7 +220,6 @@ export default function FilmIndex({ films, filters }) {
                     {/* --- PAGINATION --- */}
                     <div className="p-4 border-t border-white/5 bg-[#161616] flex flex-col md:flex-row justify-between items-center gap-4 sticky bottom-0 z-10">
                         <div className="text-xs text-gray-500 font-mono">
-                            {/* UPDATE 3: Pakai 'id-ID' disini */}
                             Showing <span className="text-white">{films.from || 0}</span> - <span className="text-white">{films.to || 0}</span> of <span className="text-white">{films.total.toLocaleString('id-ID')}</span> assets
                         </div>
                         <div className="flex gap-1 overflow-x-auto max-w-full pb-1 md:pb-0 scrollbar-hide">

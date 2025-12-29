@@ -23,6 +23,8 @@ export default function DashboardLayout({ children }) {
     const params = new URLSearchParams(window.location.search);
     const currentCompanyId = params.get('company_id');
 
+    const isGlobalOnlyPage = window.location.pathname.startsWith('/production/films');
+
     // Menu Configuration
     const menus = user.role === 'executive' ? [
         { name: 'Overview', icon: 'dashboard', route: '/executive/dashboard' },
@@ -190,7 +192,10 @@ export default function DashboardLayout({ children }) {
 
                     <div className="flex items-center gap-6">
                         {/* Company Switcher */}
-                        <CompanySwitcher currentCompany={currentCompanyId} />
+                        <CompanySwitcher 
+                            currentCompany={isGlobalOnlyPage ? null : currentCompanyId} 
+                            disabled={isGlobalOnlyPage} 
+                        />
                         
                         <div className="h-8 w-px bg-white/10 hidden sm:block"></div>
 

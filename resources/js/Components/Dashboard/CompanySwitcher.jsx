@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { router } from '@inertiajs/react';
 
-export default function CompanySwitcher({ currentCompany }) {
+// PERBAIKAN 1: Tambahkan 'disabled' di sini
+export default function CompanySwitcher({ currentCompany, disabled }) { 
     const [isOpen, setIsOpen] = useState(false);
 
     // Fungsi ganti mode
@@ -13,55 +14,70 @@ export default function CompanySwitcher({ currentCompany }) {
         });
     };
 
+    const toggleOpen = () => {
+        if (!disabled) {
+            setIsOpen(!isOpen);
+        }
+    };
+
     return (
         <div className="relative z-50">
             {/* --- TOMBOL TRIGGER UTAMA --- */}
             <button 
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={toggleOpen} 
                 className={`group flex items-center gap-3 pl-1.5 pr-4 py-1.5 rounded-full border transition-all duration-500 relative overflow-hidden ${
-                    currentCompany 
-                    ? 'bg-cyan-950/40 border-cyan-500/50 text-cyan-400 shadow-[0_0_25px_-5px_rgba(6,182,212,0.3)] hover:shadow-[0_0_35px_-5px_rgba(6,182,212,0.5)]' 
-                    : 'bg-[#0a0a0a] border-white/10 text-gray-400 hover:border-white/30 hover:text-white hover:bg-white/5'
+                    disabled 
+                    ? 'bg-[#0a0a0a] border-white/5 text-gray-600 cursor-not-allowed opacity-60' 
+                    : currentCompany 
+                        ? 'bg-cyan-950/40 border-cyan-500/50 text-cyan-400 shadow-[0_0_25px_-5px_rgba(6,182,212,0.3)] hover:shadow-[0_0_35px_-5px_rgba(6,182,212,0.5)]' 
+                        : 'bg-[#0a0a0a] border-white/10 text-gray-400 hover:border-white/30 hover:text-white hover:bg-white/5'
                 } ${isOpen ? 'ring-2 ring-cyan-500/30 border-cyan-500/50' : ''}`}
+                disabled={disabled} 
             >
-                {/* Efek Shine Bergerak (Hanya aktif jika salah satu mode dipilih) */}
-                <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-linear-to-r from-transparent via-white/5 to-transparent z-0 pointer-events-none"></div>
+                {/* Efek Shine Bergerak (Matikan jika disabled) */}
+                {!disabled && (
+                    <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-linear-to-r from-transparent via-white/5 to-transparent z-0 pointer-events-none"></div>
+                )}
 
                 {/* Icon Circle */}
                 <div className={`relative z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-500 ${
-                    currentCompany 
-                    ? 'bg-cyan-500 text-black shadow-[0_0_15px_#22d3ee] scale-105' 
-                    : 'bg-indigo-500 text-white shadow-[0_0_15px_#6366f1] scale-105'
+                    disabled
+                    ? 'bg-[#151515] text-gray-600' // Icon mati
+                    : currentCompany 
+                        ? 'bg-cyan-500 text-black shadow-[0_0_15px_#22d3ee] scale-105' 
+                        : 'bg-indigo-500 text-white shadow-[0_0_15px_#6366f1] scale-105'
                 }`}>
                     <span className="material-symbols-outlined text-[20px]">
-                        {currentCompany ? 'domain' : 'hub'}
+                        {disabled ? 'lock' : (currentCompany ? 'domain' : 'hub')} 
                     </span>
                 </div>
                 
                 {/* Text Label */}
                 <div className="relative z-10 text-left hidden md:block">
                     <p className={`text-[9px] uppercase tracking-widest font-bold leading-none mb-0.5 transition-colors ${
-                        currentCompany ? 'text-cyan-500/70' : 'text-indigo-400'
+                        disabled ? 'text-gray-600' : (currentCompany ? 'text-cyan-500/70' : 'text-indigo-400')
                     }`}>
-                        {currentCompany ? 'Studio Focus' : 'Full Integration'}
+                        {disabled ? 'View Only' : (currentCompany ? 'Studio Focus' : 'Full Integration')}
                     </p>
                     <p className={`text-sm font-bold leading-none transition-colors ${
-                        currentCompany ? 'text-cyan-100' : 'text-white'
+                        disabled ? 'text-gray-500' : (currentCompany ? 'text-cyan-100' : 'text-white')
                     }`}>
-                        {currentCompany ? 'Madhouse Inc.' : 'Integrated DB'}
+                        {disabled ? 'Global Registry' : (currentCompany ? 'Madhouse Inc.' : 'Integrated DB')}
                     </p>
                 </div>
 
-                {/* Arrow Icon */}
-                <span className={`relative z-10 material-symbols-outlined text-sm opacity-50 transition-transform duration-500 ml-1 ${isOpen ? 'rotate-180 text-white opacity-100' : 'group-hover:translate-y-0.5'}`}>
-                    expand_more
-                </span>
+                {/* Arrow Icon (Hilangkan jika disabled) */}
+                {!disabled && (
+                    <span className={`relative z-10 material-symbols-outlined text-sm opacity-50 transition-transform duration-500 ml-1 ${isOpen ? 'rotate-180 text-white opacity-100' : 'group-hover:translate-y-0.5'}`}>
+                        expand_more
+                    </span>
+                )}
             </button>
 
             {/* --- DROPDOWN MENU --- */}
-            {isOpen && (
+            {isOpen && !disabled && ( 
                 <>
-                    {/* Backdrop (Klik luar tutup) */}
+                    {/* Backdrop */}
                     <div className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]" onClick={() => setIsOpen(false)}></div>
                     
                     {/* Menu Panel */}
@@ -96,8 +112,6 @@ export default function CompanySwitcher({ currentCompany }) {
                                     </div>
                                 </div>
                                 {!currentCompany && <span className="material-symbols-outlined text-indigo-400 text-lg animate-pulse relative z-10">check_circle</span>}
-                                
-                                {/* Background Glow for Active State */}
                                 {!currentCompany && <div className="absolute inset-0 bg-indigo-500/5 pointer-events-none"></div>}
                             </button>
 
@@ -110,7 +124,6 @@ export default function CompanySwitcher({ currentCompany }) {
                                     : 'hover:bg-cyan-950/10 border border-transparent hover:border-cyan-500/20'
                                 }`}
                             >
-                                {/* Subtle Shimmer on Hover */}
                                 <div className="absolute inset-0 bg-linear-to-r from-cyan-500/0 via-cyan-500/5 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
                                 <div className={`relative z-10 w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-inner ${
@@ -141,7 +154,6 @@ export default function CompanySwitcher({ currentCompany }) {
 
                         </div>
                         
-                        {/* Footer Kecil */}
                         <div className="bg-[#121212] px-5 py-2 border-t border-white/5 text-[10px] text-gray-600 flex justify-between items-center">
                             <span className="flex items-center gap-1 text-gray-700">
                                 <span className="w-1 h-1 rounded-full bg-green-500"></span> Live Connected
