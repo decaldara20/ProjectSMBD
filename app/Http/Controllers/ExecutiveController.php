@@ -323,7 +323,84 @@ class ExecutiveController extends Controller
         ]);
     }
 
-    // 3. TALENT ANALYTICS
+    // --- 3. COMPETITOR INTEL (Rival Analysis) ---
+    public function competitorIntel(Request $request)
+    {
+        // ID Madhouse (Sesuaikan dengan ID di database kamu)
+        $myCompanyId = 9538; 
+
+        // Cache Key
+        $cacheKey = "exec_competitor_intel_v2"; // Ganti versi biar cache lama terset
+
+        $data = Cache::remember($cacheKey, 3600, function() use ($myCompanyId) {
+            $conn = DB::connection('sqlsrv');
+
+            // 1. Query Agregasi: Ambil performa SEMUA studio
+            $allStudios = $conn->table('production_company_types as pct')
+                ->join('production_companies as pc', 'pct.production_company_type_id', '=', 'pc.production_company_type_id')
+                ->join('shows as s', 'pc.show_id', '=', 's.show_id')
+                ->leftJoin('show_votes as sv', 's.show_id', '=', 'sv.show_id')
+                ->select(
+                    'pct.production_company_type_id as id',
+                    'pct.production_company_name as name',
+                    DB::raw('COUNT(DISTINCT s.show_id) as total_titles'), // Kuantitas
+                    DB::raw('AVG(sv.vote_average) as avg_rating'),       // Kualitas
+                    DB::raw('SUM(sv.vote_count) as total_votes')         // Popularitas
+                )
+                ->groupBy('pct.production_company_type_id', 'pct.production_company_name')
+                
+                // --- PERBAIKAN DI SINI (SQL SERVER FIX) ---
+                // Jangan pakai alias 'total_titles', pakai rumus aslinya
+                ->havingRaw('COUNT(DISTINCT s.show_id) > ?', [5]) 
+                ->orderByRaw('COUNT(DISTINCT s.show_id) DESC') 
+                // ------------------------------------------
+                
+                ->get();
+
+            // 2. Pisahkan Data Kita (Madhouse) vs Rival
+            $myData = $allStudios->firstWhere('id', $myCompanyId);
+            
+            // Jika data Madhouse tidak ditemukan (mungkin karena filter > 5), buat dummy agar tidak error
+            if (!$myData) {
+                $myData = (object) [
+                    'id' => $myCompanyId,
+                    'name' => 'Madhouse Inc.',
+                    'total_titles' => 0,
+                    'avg_rating' => 0,
+                    'total_votes' => 0
+                ];
+            }
+            
+            // 3. Ambil Top 20 Rival (exclude diri sendiri)
+            $topRivals = $allStudios->where('id', '!=', $myCompanyId)->take(20);
+
+            // 4. Gabungkan untuk data Grafik
+            $chartData = $topRivals->push($myData);
+
+            // 5. Hitung Peringkat Kita
+            $sortedByVol = $allStudios->sortByDesc('total_titles')->values();
+            $sortedByQual = $allStudios->sortByDesc('avg_rating')->values();
+
+            $rankVolume = $sortedByVol->search(fn($i) => $i->id == $myCompanyId);
+            $rankQuality = $sortedByQual->search(fn($i) => $i->id == $myCompanyId);
+
+            return [
+                'myData' => $myData,
+                'chartData' => $chartData->values(),
+                'kpi' => [
+                    'rank_volume' => $rankVolume !== false ? $rankVolume + 1 : '-',
+                    'rank_quality' => $rankQuality !== false ? $rankQuality + 1 : '-',
+                    'total_competitors' => $allStudios->count()
+                ]
+            ];
+        });
+
+        return Inertia::render('Executive/CompetitorIntel', [
+            'stats' => $data
+        ]);
+    }
+
+    // 4. TALENT ANALYTICS
     public function talents(Request $request)
     {
         $companyId = $request->input('company_id');
@@ -452,7 +529,7 @@ class ExecutiveController extends Controller
         ]);
     }
 
-    // 4. PLATFORM INTEL
+    // 5. PLATFORM INTEL
     public function platforms(Request $request)
     {
         $companyId = $request->input('company_id');
@@ -468,7 +545,6 @@ class ExecutiveController extends Controller
             $conn = DB::connection('sqlsrv');
 
             // --- 1. BASE QUERY (INI ADALAH GLOBAL MODE) ---
-            // Secara default, query ini mengambil data seluruh dunia/pasar.
             $query = $conn->table('networks as n')
                 ->join('network_types as nt', 'n.network_type_id', '=', 'nt.network_type_id')
                 ->join('shows as s', 'n.show_id', '=', 's.show_id')
@@ -483,12 +559,9 @@ class ExecutiveController extends Controller
                       ->where('pc.production_company_type_id', $companyId);
             } else {
                 // [MODE GLOBAL]
-                // Tidak ada filter apa-apa.
-                // Query tetap mengambil data seluruh network di database.
             }
 
             // --- 3. MAIN DATA (PAGINATION AGAR TIDAK LEMOT) ---
-            // Kita clone $query supaya query aslinya masih bisa dipakai buat hitung KPI nanti
             $platformData = (clone $query)
                 ->select(
                     'nt.network_name',
